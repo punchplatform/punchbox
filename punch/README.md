@@ -18,7 +18,7 @@ punchbox --config configurations/complete_punch_16G.json \
         --generate-vagrantfile \
         --punch-conf ~/pp-punch/pp-packaging/punchplatform-standalone/target/tmp/punchplatform-resources-*/conf/ \
         --deployer ~/pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-*.zip \
-        -start-vagrant
+        --start-vagrant
 ```
 
 This will unzip the punch deployer archive, as well as the sample standalone channels so that you will have a complete
