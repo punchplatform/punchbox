@@ -1,0 +1,61 @@
+Vagrant.configure("2") do |config|
+
+  # Auto install required Vagrant plugins
+  config.vagrant.plugins = ["vagrant-disksize"]
+  
+  # Get your local SSH public key
+  PUBLIC_KEY = File.read("#{Dir.home}/.ssh/id_rsa.pub")
+
+  # Speed up VM creation using a precompiled '.vdi'
+  config.vm.provider "virtualbox" do |vb|
+    vb.linked_clone = true
+  end
+
+  {% for server in vagrant.boxes %}
+
+   config.vm.define "{{ server }}" do |server|
+      
+      server.vm.box = "{{ vagrant.meta.os }}"
+      server.vm.box_check_update = false
+      config.disksize.size = '{{ vagrant.boxes[server].disksize }}'
+
+      # Share only sample_confs
+      server.vm.synced_folder '.', '/vagrant', disabled: true
+      {% if vagrant.boxes[server].synced_pp_conf_folder is defined %}
+      server.vm.synced_folder '../punch/build/pp-conf', '/home/vagrant/pp-conf/'
+      {% endif %}
+      ## Configuration
+      server.vm.hostname = "{{ server }}"
+      server.vm.network "private_network", ip: "172.28.128.2{{ loop.index }}"
+
+      ## Provisionning 
+      server.vm.provision "shell", inline: <<-EOF
+        echo 'export LC_ALL=C' >> ~/.bashrc
+        echo '#{PUBLIC_KEY}' >> /home/vagrant/.ssh/authorized_keys
+      EOF
+      {% if vagrant.meta.os == 'ubuntu/bionic64' %}
+      server.vm.provision "shell", inline: "sudo ln -s /usr/bin/python3 /usr/bin/python"
+      server.vm.provision "shell", inline: "sudo apt-get install -y python3-distutils"
+      {% endif %}
+
+      {% if vagrant.meta.os == 'centos/7' %}
+      server.vm.provision "shell", inline: "sudo apt install -y python3-pip python3-venv"
+      {% endif %}
+
+      server.vm.provision "shell", inline: "sed -i '5,10d' /home/vagrant/.bashrc"
+      server.vm.provision "shell", inline: "sed -i '/{{ server }}/d' /etc/hosts"
+      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
+      server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
+
+      {% for server in vagrant.boxes %}
+      server.vm.provision "shell", inline: "echo '172.28.128.2{{ loop.index }} {{ server }}' >> /etc/hosts"
+      {% endfor %}
+
+      server.vm.provider :virtualbox do |v|
+        v.gui = false
+        v.memory = {{ vagrant.boxes[server].memory }}
+        v.cpus = {{ vagrant.boxes[server].cpu }}
+      end
+    end
+  {% endfor %}
+end

@@ -1,0 +1,112 @@
+{
+    "setups_root": "/data/opt",
+    "remote_data_root_directory": "/data",
+    "remote_logs_root_directory": "/var/log/punchplatform",
+    "punchplatform_daemons_user": "vagrant",
+    "punchplatform_group": "vagrant",
+    "ansible_remote_user": "vagrant",
+ 
+    {% if shiva is defined %}
+    "shiva_version": "{{ version.shiva }}",
+    "shiva_plugins": {
+      "spark": {
+          "version": "{{ version.spark }}",
+          "analytics_deployment_version": "{{ version["analytics-deployment"] }}",
+          "analytics_client_version": "{{ version["analytics-client"] }}"
+      },
+      "logstash": {
+          "version": "{{ version.logstash }}"
+      },
+      "storm": {
+          "version": "{{ version.storm }}",
+          "topology_jar_version": "punchplatform-topology-{{ version.punch }}"
+      }
+    },
+    {% endif %}
+
+
+    {% if operator is defined %}
+    "punchplatform_operator" : {
+      "configuration_name_dir_from_home" : "pp-conf",
+        {%- set temp_servers = [] %}
+        {%- for server in zookeeper.servers %}
+           {%- do temp_servers.append(server + ":2181/punchplatform-primary") %}
+        {%- endfor %}
+      "punchplatform_conf_url" : "{{temp_servers | join(',') }}",
+      "operators_username" : ["vagrant"],
+      "servers" : {
+      {% for server in operator.servers %}
+         "{{server}}" : {}
+      }
+      {% if not loop.last %}
+          ,
+        {% endif %} 
+      {% endfor %}
+    },
+    {% endif %}
+
+    {% if spark is defined %}
+   "spark_version" : "{{ version.spark }}",
+   {% endif %}
+   "punchplatform_analytics_deployment_version": "{{ version["analytics-deployment"] }}",
+   "punchplatform_operator_environment_version": "{{ version.operator }}",
+   
+   {% if zookeeper is defined %}
+   "zookeeper_version": "{{ version.zookeeper }}",
+   "zookeeper_nodes_production_interface": "{{ iface }}",
+   "zookeeper_childopts": "{{ zookeeper.childopts }}",
+   "zookeeper_admin_cluster_name": "common",
+   {% endif %}  
+
+   {% if gateway is defined %}
+   "gateway_version": "{{ version.gateway }}",
+   {% endif %}
+
+   {% if kafka is defined %}
+   "kafka_version" : "{{ version.kafka }}",
+   "kafka_brokers_production_interface" : "{{ iface }}",
+   {% endif %}
+
+   {% if elasticsearch is defined %}
+   "elasticsearch_version" : "{{ version.elastic }}",
+   {% endif %}
+
+   {% if elasticsearch.security is defined and elasticsearch.security == True %}
+   "elasticsearch_plugins": {
+     "opendistro_security": {
+       "version": "{{ version.opendistro_security }}"
+     },
+     "opendistro_alerting": {
+       "version": "{{ version.opendistro_security }}"
+     }
+   },
+   {% endif %}
+
+   {% if storm is defined %}
+   "storm_version" : "{{ version.storm }}",
+   "storm_nimbus_nodes_production_interface" : "{{ iface }}",
+   {% endif %}
+
+   {% if kibana is defined %}
+   "kibana_version" : "{{ version.elastic }}",
+   "kibana_plugins":{
+   	  "punchplatform": {
+        "version": "{{ version.punch }}"
+      }
+      {% if kibana.security is defined and kibana.security == True %}
+      ,
+      "opendistro_security": {
+        "version": "{{ version.opendistro_security }}"
+      },
+      "opendistro_alerting": {
+        "version": "{{ version.opendistro_security }}"
+      }
+      {% endif %}
+		},
+    {% endif %}
+    "metricbeat_version" : "{{ version.metricbeat }}"
+
+}
+
+
+

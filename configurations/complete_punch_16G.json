@@ -1,0 +1,95 @@
+{
+  "vagrant": {
+    "boxes": {
+      "server1": {
+        "disksize": "20GB",
+        "memory": 3000,
+        "cpu": 2,
+        "synced_pp_conf_folder": true
+      },
+      "server2": {
+        "disksize": "20GB",
+        "memory": 5120,
+        "cpu": 2
+      },
+      "server3": {
+        "disksize": "20GB",
+        "memory": 5120,
+        "cpu": 2
+      }
+    },
+    "meta": {
+      "os": "ubuntu/bionic64"
+    }
+  },
+  "punch": {
+    "elasticsearch": {
+      "servers": [
+        "server3"
+      ],
+      "cluster_production_transport_address": "server3",
+      "memory": "512m"
+    },
+    "kibana": {
+      "servers": [
+        "server1"
+      ]
+    },
+    "zookeeper": {
+      "servers": [
+        "server3"
+      ],
+      "childopts": "-server -Xmx128m -Xms128m"
+    },
+    "gateway": {
+      "servers": [
+        "server1"
+      ],
+      "inet_address": "172.28.128.21"
+    },
+    "storm": {
+      "master": {
+        "servers": [
+          "server2"
+        ],
+        "cluster_production_address": "server2"
+      },
+      "ui": {
+        "servers": [
+          "server2"
+        ],
+        "cluster_admin_url": "server2"
+      },
+      "slaves": [
+        "server2"
+      ],
+      "workers_childopts": "-Xmx128m",
+      "supervisor_memory_mb": 256
+    },
+    "kafka": {
+      "brokers": [
+        "server3:9092"
+      ],
+      "jvm_xmx": "512M"
+    },
+    "shiva": {
+      "servers": [
+        "server2"
+      ]
+    },
+    "spark": {
+      "masters": [
+        "server2"
+      ],
+      "slaves": [
+        "server2"
+      ],
+      "slaves_memory": "1200M"
+    },
+    "operator": {
+      "servers": [
+        "server1"
+      ]
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "vagrant": {
+    "boxes": {
+      "server1": {
+        "disksize": "20GB",
+        "memory": 3000,
+        "cpu": 2,
+        "synced_pp_conf_folder": true
+      },
+      "server2": {
+        "disksize": "20GB",
+        "memory": 5120,
+        "cpu": 2
+      },
+      "server3": {
+        "disksize": "20GB",
+        "memory": 5120,
+        "cpu": 2
+      }
+    },
+    "meta": {
+      "os": "ubuntu/bionic64"
+    }
+  },
+  "punch": {}
+}

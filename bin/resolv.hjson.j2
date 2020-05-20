@@ -1,0 +1,188 @@
+{ 
+   // All ES input/output nodes (Storm nodes)
+   elasticsearch_nodes:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='elasticsearch_input' || @.type=='elasticsearch_output')].settings
+      additional_values:{ 
+         http_hosts:[ 
+            { 
+               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               port:9200
+            }
+         ]
+      }
+   }
+
+   // All ES spark nodes 
+   elastic_nodes:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='elastic_batch_input' || @.type=='elastic_batch_output' || @.type=='elastic_stream_output' || @.type=='elastic_input' || @.type=='elastic_query_stats' || @.type=='python_elastic_input' || @.type=='python_elastic_output')].settings
+      additional_values:{ 
+         nodes:[ 
+            {{ punch.elasticsearch.cluster_production_transport_address }}
+         ]
+      }
+   }
+
+   // All Kafka input/output nodes (Storm nodes)
+   kafka_input:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='kafka_input' || @.type=='kafka_output')].settings
+      additional_values:{ 
+         bootstrap.servers:{{ punch.kafka.brokers[0] }}
+         metric_cluster_id:local
+      }
+   }
+   // All ES reporters 
+   es_reporter:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.metrics.reporters[?(@.type=='elasticsearch')]
+      additional_values:{ 
+         http_hosts:[ 
+            { 
+               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               port:9200
+            }
+         ]
+      }
+   }
+   // All Kafka reporters 
+   kafka_reporter:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.metrics.reporters[?(@.type=='kafka')]
+      additional_values:{ 
+         bootstrap.servers:{{ punch.kafka.brokers[0] }}
+      }
+   }
+   // All plan persistence
+   persistence_plan_resolver:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.plan_settings.persistence[?(@.type=='elasticsearch')]
+      additional_values:{ 
+         es_cluster: es_search
+      }
+   }
+   // Archive houeskeeping
+   archive_housekeeping:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.archiving_pools[*]
+      additional_values:{ 
+         es_cluster_id: es_search
+      }
+   }
+   // Channel monitoring 
+   channel_monitoring:{ 
+      selection:{ 
+         tenant:*
+         channel: admin
+         runtime:*
+      }
+      match: .elasticsearch
+      additional_values:{ 
+         es_cluster_id: es_search
+      }
+   }
+   // Channel monitoring reporters 
+   channel_monitoring_reporters:{ 
+      selection:{ 
+         tenant:*
+         channel: admin
+         runtime:*
+      }
+      match:$.reporters[?(@.type=='elasticsearch')]
+      additional_values:{ 
+       cluster_name: es_search
+      }
+   }
+    // ES Housekeeping 
+   es_housekeeping:{ 
+      selection:{ 
+         tenant:*
+         channel: admin
+         runtime:*
+      }
+      match:$.clusters_settings[*]
+      additional_values:{ 
+       cluster_id: es_search
+      }
+   }
+   // Elastalert
+   elastalert:{ 
+      selection:{ 
+         tenant: mytenant
+         channel: elastalert
+         runtime:*
+      }
+      match:$.[?(@.writeback_index=='elastalert')]
+      additional_values:{ 
+         es_host: {{ punch.elasticsearch.cluster_production_transport_address }}
+         es_port: 9200
+      }
+   }
+   // Elastalert aggregation fail
+   elastalert_agg_fail:{ 
+      selection:{ 
+         tenant: mytenant
+         channel: elastalert
+         runtime:*
+      }
+      match:$.[?(@.name=='Aggregation fail')]
+      additional_values:{ 
+         alert_text_type: alert_text_only
+         alert_text: "\n Aggregation channel failed !\n No doc found in aggregation index\n Timestamp : {0}"
+         alert_text_args: ["timestamp"]
+         alert: slack
+         slack_webhook_url: "https://hooks.slack.com/services/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"
+         slack_emoji_override: ":punchlogo2:"
+         slack_msg_color: "danger"
+         slack_title: "6.0"
+      }
+   }
+     // Elastalert aggregation fail
+   elastalert_agg_success:{ 
+      selection:{ 
+         tenant: mytenant
+         channel: elastalert
+         runtime:*
+      }
+      match:$.[?(@.name=='Aggregation success')]
+      additional_values:{ 
+        alert_text_type: alert_text_only
+        alert_text: "\n Aggregation channel works like a charm !\n Max value of doc_count : {0}\n Hits : {1}\n Matched : {2}\n Timestamp : {3}"
+        alert_text_args: ["metric_doc_count_max","num_hits","num_matches","timestamp"]
+        alert: slack
+        slack_webhook_url: "https://hooks.slack.com/services/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"
+        slack_emoji_override: ":punchlogo2:"
+        slack_msg_color: "good"
+        slack_title: "6.0"
+      }
+   }
+}
