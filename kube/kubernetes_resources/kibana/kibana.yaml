@@ -8,13 +8,13 @@ metadata:
 spec:
   selector:
     app: kibana
-  type: LoadBalancer
+  type: NodePort
   ports:
   - name: http
     port: 5601
     targetPort: 5601
     protocol: TCP
-#   nodePort: 31000
+    nodePort: 31000
 
 
 ---
