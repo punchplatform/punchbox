@@ -3,7 +3,7 @@
   apiVersion: v1
   metadata:
     name: es-routing
-    namespace: elasticsearch
+    namespace: elk
     labels:
       app: elasticsearch
       role: coordinating
@@ -22,7 +22,7 @@
   kind: Deployment
   metadata:
     name: es-coordinating
-    namespace: elasticsearch
+    namespace: elk
   spec:
     replicas: 1
     selector:

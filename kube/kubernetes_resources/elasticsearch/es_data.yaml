@@ -3,7 +3,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: es-dt-ds
-  namespace: elasticsearch
+  namespace: elk
   labels:
     app: elasticsearch
     role: data
@@ -21,7 +21,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: es-data
-  namespace: elasticsearch
+  namespace: elk
 spec:
   serviceName: es-dt-ds
   replicas: 2
