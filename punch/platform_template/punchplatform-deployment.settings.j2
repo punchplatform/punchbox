@@ -2,9 +2,9 @@
     "setups_root": "/data/opt",
     "remote_data_root_directory": "/data",
     "remote_logs_root_directory": "/var/log/punchplatform",
-    "punchplatform_daemons_user": "vagrant",
-    "punchplatform_group": "vagrant",
-    "ansible_remote_user": "vagrant",
+    "punchplatform_daemons_user": "{{ operator.username }}",
+    "punchplatform_group": "{{ operator.username }}",
+    "ansible_remote_user": "{{ operator.username }}",
  
     {% if shiva is defined %}
     "shiva_version": "{{ version.shiva }}",
@@ -33,7 +33,7 @@
            {%- do temp_servers.append(server + ":2181/punchplatform-primary") %}
         {%- endfor %}
       "punchplatform_conf_url" : "{{temp_servers | join(',') }}",
-      "operators_username" : ["vagrant"],
+      "operators_username" : ["{{ operator.username }}"],
       "servers" : {
       {% for server in operator.servers %}
          "{{server}}" : {}

@@ -196,13 +196,13 @@
           "registry": {
             "type": "file",
             "settings": {
-              "root_path": "/home/vagrant/pp-conf/tenants",
+              "root_path": "/home/{{ operator.username }}/pp-conf/tenants",
               "create_root": true
             }
           }
         },
         "resources": {
-          "resources_dir": "/home/vagrant/pp-conf/resources",
+          "resources_dir": "/home/{{ operator.username }}/pp-conf/resources",
           "doc_dir": "/data/opt/punchplatform-docuementation-{{version.gateway}}/doc/html",
           "tmp_dir": "/tmp",
           "archives_dir": "/tmp"
