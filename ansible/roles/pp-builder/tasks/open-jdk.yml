@@ -1,0 +1,13 @@
+## Install openjdk 8 for Ubuntu
+
+- name: make sure the install_root directory is present
+  file: path={{ pp_remote_data_dir }} state=directory
+
+- name: install openjdk-8-jdk
+  apt:
+    pkg:
+    - "{{ openjdk_package }}"
+  become: true
+
+- name: update alternatives
+  alternatives: name=java  path="/usr/lib/jvm/{{openjdk_alternative}}/jre/bin/java"

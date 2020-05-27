@@ -1,0 +1,15 @@
+---
+# tasks to import punchplatform config to deployer.
+
+# This role supports ubuntu 18.04, without internet access, but with standard repositories access
+
+- name: Upload Punchplatform config
+  copy: src={{conf_local_path}} dest={{conf_remote_path}} owner={{pp_remote_deployment_user}}
+  become: true
+
+- name: Set PUNCHPLATFORM_CONF_DIR (.bashrc file of this user)
+  become: true
+  lineinfile:
+    dest: "{{deployer_user_home}}/.bashrc"
+    line: "export PUNCHPLATFORM_CONF_DIR={{conf_remote_path}}/{{pp_conf_name}}"
+    regex: "export PUNCHPLATFORM_CONF_DIR.*"
