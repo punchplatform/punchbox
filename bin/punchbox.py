@@ -8,6 +8,7 @@ import argparse
 import os
 from distutils.dir_util import copy_tree
 from shutil import copyfile
+import uuid
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) # This is your Project Root
 
