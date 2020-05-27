@@ -1,20 +1,21 @@
 ﻿# Elasticsearch Deployment
 
 ##  Prerequisites
-- A cluster up and running with kubernetes
+- a cluster up and running with kubernetes installed
 -  kubectl configured to deploy resources in your cluster
-- Min 3 nodes (4CPU 4GB )
+- min 3 nodes (4CPU 4GB )
 
 ##  Deployment types
-In this repository two mode of deployment are available :
- - "Dedicated roles" each nodes have specific roles like master role, data role ...
- - "All roles" each nodes will have all roles.
+In this repository two modes of deployment are available :
+ - **Dedicated roles** : each nodes have specific roles like master role, data role, ingest role ...
+ - **All roles** :  each nodes have all roles.
  
 ## Configuration 
 You can configure your **Elasticsearch** nodes with global environment variables ([Elasticsearch configuration](https://www.elastic.co/guide/en/elasticsearch/reference/current/settings.html))
-You can add yours environment variables in needed nodes in "env" array of StatefulSet objects : ``StatefulSet.spec.template.spec.containers.env``
 
-##  Deploy Mode All Roles
+To configure you just need to add yours environment variables in this field : `StatefulSet.spec.template.spec.containers.env`
+
+##  Deploy  All Roles Mode
 Before deploy elasticsearch you can customize your deployment by modify (CPU, RAM, number of nodes ...) in the file ``elasticsearch/all_roles.yaml``
 You recommend to deploy at least **3 elasticsearch nodes** to avoid [split-brain problem.](https://blog.trifork.com/2013/10/24/how-to-avoid-the-split-brain-problem-in-elasticsearch/)
 
@@ -22,21 +23,24 @@ You recommend to deploy at least **3 elasticsearch nodes** to avoid [split-brain
 kubectl create -f kubernetes_resources/elasticsearch/all_roles/all_roles.yaml
 ```
 This file will create 3 kubernetes objects :
-- A Namespace to group elasticsearch resources
-- A Service in charge to allow communication inter node and to handle customer request
-- A StatefulSet in charge managing deployment and scaling of a set of Pods
+- a **Namespace** to group elasticsearch, kibana and logstash resources
+- a **Service** in charge to allow communication inter node and to handle customer request
+- a **StatefulSet** in charge managing deployment and scaling of a set of Pods
 
 
-##  Deploy Mode Dedicated Roles
-In this mode you are able to custom each specific role for example add more storage to data node.
+##  Deploy  Dedicated Roles Mode
+In this mode you are able to custom each specific role, for example add more storage to data node.
 You can deploy following dedicated nodes : 
-- **Master Node** are responsible for lightweight cluster-wide actions such as creating or deleting an index, tracking which nodes are part of the cluster, and deciding which shards to allocate to which nodes
+- **Master Node** are responsible for lightweight cluster-wide actions such as creating or deleting an index, tracking which elasticsearch nodes are part of the cluster, and deciding which shards to allocate to which nodes
 - **Data Nodes** hold the shards that contain the documents you have indexed. Data nodes handle data related operations like CRUD, search, and aggregations. These operations are I/O-, memory-, and CPU-intensive.
 - **Ingest Nodes** : can execute pre-processing pipelines, composed of one or more ingest processors.
 - **Coordinating Nodes** are in charge of route requests, handle the search reduce phase, and distribute bulk indexing
 
-You recommend to deploy at least **3 elasticsearch master nodes** to avoid [split-brain problem.](https://blog.trifork.com/2013/10/24/how-to-avoid-the-split-brain-problem-in-elasticsearch/)
-To have a functionnal cluster you need to deploy at least a master nodes, a data nodes and a coordinating nodes.
+We recommended to deploy at least **3 elasticsearch master nodes** to avoid [split-brain problem.](https://blog.trifork.com/2013/10/24/how-to-avoid-the-split-brain-problem-in-elasticsearch/)
+To have a functionnal cluster you need to deploy at least following roles :
+- master nodes,
+-  data nodes
+-  coordinating nodes.
 
 ##### deploy  Elasticsearch master nodes 
 ```sh
@@ -62,13 +66,12 @@ To verify that the deployment works correctly run below commands :
 ```sh
 kubectl get pod -n elk -w
 ```
+2.  Check that a master was elected and nodes join the  cluster
 #### For dedicated roles mode
-2.  Check that a master was elected and nodes join the cluster
 ```sh
 kubectl logs po/es-master-0 -n elk | grep ClusterApplierService | jq
 ```
 #### For all roles mode
-2.  Check that a master was elected and nodes join the cluster
 ```sh
 kubectl logs po/es-cluster-0 -n elk | grep ClusterApplierService | jq
 ```
@@ -99,11 +102,18 @@ curl -X PUT http://es-svc.elk:9200/twitter?pretty
 
 
 ## Scaling the Cluster
-In dedicated role mode you are able to scale each specific node by using
-`kubectl scale`
 
+#### All Roles Mode
+You can scale the cluster by updating the number of `StatefulSet.spec.replicas` field. You can perform this with the `kubectl scale` command.
 
-##### deploy  Elasticsearch master nodes 
+```sh
+kubectl scale sts es-cluster -n elk --replicas=4
+```
+
+#### Dedicated Roles Mode
+In dedicated role mode you are able to scale each specific node by using `kubectl scale`.
+
+##### scale  Elasticsearch master nodes 
 ```sh
 kubectl scale sts es-master -n elk --replicas=4
 ```
@@ -120,11 +130,4 @@ kubectl scale sts es-coordinating -n elk --replicas=4
 kubectl scale sts es-ingest -n elk --replicas=4
 ```
 
-You can scale the cluster by updating the number of `spec.replicas` field of StatefulSet. You can accomplish this with the `kubectl scale` command.
 
-In all roles mode you are able to scale your by using
-`kubectl scale`
-
-```sh
-kubectl scale sts es-cluster -n elk --replicas=4
-```
