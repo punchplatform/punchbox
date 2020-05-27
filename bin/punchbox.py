@@ -104,7 +104,7 @@ def generate_playbook(deployer):
   logging.info('Successful generation of playbook in %s', punchbox_playbook_target)
 
 ## GENERATE FILE MODEL ##
-def generate_model(user_config, deployer):
+def generate_model(user_config, deployer, vagrant_mode):
   data = {}
   model = {}
   for component in cots :
@@ -114,10 +114,13 @@ def generate_model(user_config, deployer):
     data[component] = result.decode("utf-8").rstrip()
   # vagrant model
   model['version'] = data
-  if 'centos' in user_config['targets']['meta']['os']:
-    model['iface'] = "eth1"
-  else :
-    model['iface'] = "enp0s8"
+  if vagrant_mode is True :
+    if 'centos' in user_config['targets']['meta']['os']:
+      model['iface'] = "eth1"
+    else :
+      model['iface'] = "enp0s8"
+  else : 
+    model['iface'] = "ens4"
   # security model
   local_es_certs = "{}/../resources/security/certs/elasticsearch".format(ROOT_DIR)
   local_kibana_certs = "{}/../resources/security/certs/kibana".format(ROOT_DIR)
@@ -197,7 +200,7 @@ def main():
     create_inventory(user_config)
   if parser.parse_args().deployer is not None:
     unzip_punch_archive(parser.parse_args().deployer)
-    generate_model(user_config, parser.parse_args().deployer)
+    generate_model(user_config, parser.parse_args().deployer, parser.parse_args().generate_vagrantfile)
     if parser.parse_args().generate_playbook is True:
       generate_playbook(parser.parse_args().deployer)
   if parser.parse_args().punch_conf is not None:
