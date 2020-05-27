@@ -46,7 +46,7 @@ make install
 source activate.sh
 punchbox --deployer $DEPLOYER_ZIP --config configurations/CI_punch.json --punch-conf $PUNCHCONF --generate-inventory --generate-playbook
 source $INTEGRATION_DIR/activate.sh
-punchplatform-deployer.sh --generate-platform-config --templates-dir $INTEGRATION_DIR/platform_template/ --model $INTEGRATION_DIR/model.json
+punchplatform-deployer.sh --generate-platform-config --templates-dir $INTEGRATION_DIR/punch/platform_template/ --model $INTEGRATION_DIR/punch/build/model.json
 
 
 echo -e "${GREEN}INFO:${RESET} Transfert data to ansible VM"

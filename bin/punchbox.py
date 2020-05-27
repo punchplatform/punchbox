@@ -91,7 +91,8 @@ def create_inventory(user_config):
   logging.info('Successful generation of inventory in %s', punchbox_inv_target)
 
 def generate_playbook(deployer):
-  cmd = "{0}/bin/punchplatform-versionof.sh --legacy punch".format(os.path.splitext(os.path.basename(deployer))[0])
+  version_of = punch_dir+"/"+os.path.splitext(os.path.basename(deployer))[0]+"/bin/punchplatform-versionof.sh"
+  cmd = "{0} --legacy {1}".format(version_of, "punch")
   result = subprocess.check_output(cmd, shell=True)
   file_loader = jinja2.FileSystemLoader(template_dir)
   env = jinja2.Environment(loader=file_loader)
