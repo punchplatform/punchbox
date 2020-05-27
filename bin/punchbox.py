@@ -18,7 +18,7 @@ bin_dir = top_dir + '/bin'
 punch_dir = top_dir + '/punch/build'
 vagrant_dir = top_dir + '/vagrant'
 conf_dir = punch_dir + '/pp-conf'
-template_dir = bin_dir + '/templates'
+template_dir = top_dir + '/punch/templates'
 ansible_dir = top_dir + '/ansible'
 
 # Templates path

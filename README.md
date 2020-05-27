@@ -21,6 +21,8 @@ PATH environment variable so as to make sure it is the one used.
 │   └── the punchbox utility plus a few extra commands including ansible
 ├── configurations
 │   └── some ready to use boxes with or without punch layout models
+├── ansible
+│   └── some ready to use ansible roles
 ├── kube
 │   └── the kubernetes resources to deploy a production-ready punch, or simply play with kube.
 ├── punch
@@ -134,6 +136,14 @@ three ready-to-use complete punch configurations to accomodate 16Gb, 32Gb laptop
 Also provided is a great tool to perform an end-to-end validation of the punch. 
 
 Refer to the [punch](./punch/README.md) guide.  
+
+## Install punch prerequisites
+
+You may want to configure servers for different use cases : build pp-punch, create a deployer or targets, install minikube  
+
+Some ansible roles are provided to install the necessary prerequisites 
+
+Refer to the [ansible](./ansible/README.md) guide.  
 
 
 ## Contribute
