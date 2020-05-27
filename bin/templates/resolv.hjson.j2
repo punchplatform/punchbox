@@ -160,7 +160,7 @@
          alert_text: "\n Aggregation channel failed !\n No doc found in aggregation index\n Timestamp : {0}"
          alert_text_args: ["timestamp"]
          alert: slack
-         slack_webhook_url: "https://hooks.slack.com/services/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"
+         slack_webhook_url: "${{ secrets.slackwebhook }}"
          slack_proxy: 10.10.1.10:3128
          slack_emoji_override: ":punchlogo2:"
          slack_msg_color: "danger"
@@ -180,7 +180,7 @@
         alert_text: "\n Aggregation channel works like a charm !\n Max value of doc_count : {0}\n Hits : {1}\n Matched : {2}\n Timestamp : {3}"
         alert_text_args: ["metric_doc_count_max","num_hits","num_matches","timestamp"]
         alert: slack
-        slack_webhook_url: "https://hooks.slack.com/services/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"
+        slack_webhook_url: "${{ secrets.slackwebhook }}"
         slack_proxy: 10.10.1.10:3128
         slack_emoji_override: ":punchlogo2:"
         slack_msg_color: "good"

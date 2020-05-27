@@ -78,7 +78,7 @@ def destroy_vagrant_boxes():
 def custom_uuid_filter(*args):
     return uuid.uuid4()
 
-def create_inventories(user_config):
+def create_inventory(user_config):
   file_loader = jinja2.FileSystemLoader(template_dir)
   env = jinja2.Environment(loader=file_loader)
   env.filters['custom_uuid'] = custom_uuid_filter
@@ -180,7 +180,7 @@ def main():
   parser.add_argument("--destroy-vagrant", help="Vagrant destroy", action="store_true")
   parser.add_argument("--generate-vagrantfile", help="Generate vagrantfile", action="store_true")
   parser.add_argument("--start-vagrant", help="Vagrant up", action="store_true")
-  parser.add_argument("--generate-inventories", help="Generate ansible inventory to launch Punch roles", action="store_true")
+  parser.add_argument("--generate-inventory", help="Generate ansible inventory to launch Punch roles", action="store_true")
   parser.add_argument("--generate-playbook", help="Generate ansible playbook to launch Punch roles", action="store_true")
 
   if parser.parse_args().destroy_vagrant is True:
@@ -192,7 +192,7 @@ def main():
   if parser.parse_args().start_vagrant is True:
     launch_vagrant_boxes()
   if parser.parse_args().generate_inventories is True:
-    create_inventories(user_config)
+    create_inventory(user_config)
   if parser.parse_args().deployer is not None:
     unzip_punch_archive(parser.parse_args().deployer)
     generate_model(user_config, parser.parse_args().deployer)
