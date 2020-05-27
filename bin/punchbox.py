@@ -143,7 +143,7 @@ def create_resolver(user_config):
   file_loader = FileSystemLoader(template_dir)
   env = Environment(loader=file_loader)
   resolv_template = env.get_template(resolv_template_file)
-  resolv_render = resolv_template.render(punch=user_config["punch"])
+  resolv_render = resolv_template.render(punch=user_config["punch"], webhook=os.getenv('SLACK_WEBHOOK', ''))
   resolv_file = open(resolv_target, "w+")
   resolv_file.write(resolv_render)
   resolv_file.close()
@@ -191,7 +191,7 @@ def main():
     create_vagrantfile(user_config)
   if parser.parse_args().start_vagrant is True:
     launch_vagrant_boxes()
-  if parser.parse_args().generate_inventories is True:
+  if parser.parse_args().generate_inventory is True:
     create_inventory(user_config)
   if parser.parse_args().deployer is not None:
     unzip_punch_archive(parser.parse_args().deployer)
