@@ -50,11 +50,11 @@ punchplatform-deployer.sh --generate-platform-config --templates-dir $INTEGRATIO
 
 
 echo -e "${GREEN}INFO:${RESET} Transfert data to ansible VM"
-scp -r ansible/punchbox.* ansible/ansible.cfg $DEPLOYER_ZIP pp-conf $ANSIBLE_PUNCHBOX_VM:/data/punchbox-workspace/
+scp -r $INTEGRATION_DIR/ansible/punchbox.* $INTEGRATION_DIR/ansible/ansible.cfg $DEPLOYER_ZIP $INTEGRATION_DIR/punch/build/pp-conf $ANSIBLE_PUNCHBOX_VM:/data/punchbox-workspace/
 
 echo -e "${GREEN}INFO:${RESET} Create deployer and targets VM"
 ssh $ANSIBLE_PUNCHBOX_VM << EOF
-cd /data/punchbox && git pull
+cd $INTEGRATION_DIR/ && git pull
 ansible-playbook -i /data/punchbox-workspace/punchbox.inv ~/pp-pbx-asb/deploy-vms.yml
 EOF
 
@@ -93,7 +93,7 @@ punchplatform-deployer.sh deploy -u adm-infra --private-key ~/.ssh/id_rsa_ansibl
 EOF
 
 echo -e "${GREEN}INFO:${RESET} Transfert conf to operator node"
-scp -r -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_ansible pp-conf $OPERATOR_VM:
+scp -r -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_ansible $INTEGRATION_DIR/pp-conf $OPERATOR_VM:
 
 echo -e "${GREEN}INFO:${RESET} Execute check platform on operator node"
 ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_ansible $OPERATOR_VM << EOF
@@ -103,7 +103,7 @@ source ~/.bashrc
 EOF
     
 echo -e "${GREEN}INFO:${RESET} Shutdown VMs"
-boxes=$(cat /data/punchbox/ansible/punchbox.inv | grep -v vm | grep  pbci) 
+boxes=$(cat $INTEGRATION_DIR/ansible/punchbox.inv | grep -v vm | grep  pbci) 
 for box in $boxes; do ssh $ANSIBLE_PUNCHBOX_VM "ssh adm-infra@$box 'sudo shutdown -h now'"; done
 
 sleep 240 
