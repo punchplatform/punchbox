@@ -93,7 +93,7 @@ punchplatform-deployer.sh deploy -u adm-infra --private-key ~/.ssh/id_rsa_ansibl
 EOF
 
 echo -e "${GREEN}INFO:${RESET} Transfert conf to operator node"
-scp -r -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_ansible $INTEGRATION_DIR/pp-conf $OPERATOR_VM:
+scp -r -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_ansible $INTEGRATION_DIR/punch/build/pp-conf $OPERATOR_VM:
 
 echo -e "${GREEN}INFO:${RESET} Execute check platform on operator node"
 ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_ansible $OPERATOR_VM << EOF
