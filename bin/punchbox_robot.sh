@@ -30,7 +30,7 @@ echo -e "${GREEN}INFO:${RESET} Build pp-punch branch $1"
 cd $PUNCH_DIR
 git checkout $1
 git pull
-mvn clean install -Dmaven.repo.local=/data/.m2/repository -DskipTests
+#mvn clean install -Dmaven.repo.local=/data/.m2/repository -DskipTests
 
 DEPLOYER_ZIP=$(ls -of $PUNCH_DIR/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-*.zip)
 PUNCHCONF=$(realpath $PUNCH_DIR/pp-packaging/punchplatform-standalone/punchplatform-standalone-linux/target/tmp/punchplatform-standalone-*/conf)

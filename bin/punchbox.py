@@ -1,5 +1,5 @@
 import json
-from jinja2 import Environment, FileSystemLoader
+import jinja2
 import vagrant
 import logging
 import subprocess
@@ -54,8 +54,8 @@ def load_user_config(user_config_file):
 
 ## VAGRANT MANAGEMENT ##
 def create_vagrantfile(user_config):
-  file_loader = FileSystemLoader(vagrant_dir)
-  env = Environment(loader=file_loader)
+  file_loader = jinja2.FileSystemLoader(vagrant_dir)
+  env = jinja2.Environment(loader=file_loader)
   vagrantfile_template = env.get_template(vagrant_template_file)
   vagrantfile_render = vagrantfile_template.render(targets=user_config["targets"])
   vagrantfile = open(vagrantfile_target, "w+")
@@ -140,8 +140,8 @@ def create_ppconf():
 
 ## CREATE RESOLV FILE ##
 def create_resolver(user_config):
-  file_loader = FileSystemLoader(template_dir)
-  env = Environment(loader=file_loader)
+  file_loader = jinja2.FileSystemLoader(template_dir)
+  env = jinja2.Environment(loader=file_loader)
   resolv_template = env.get_template(resolv_template_file)
   resolv_render = resolv_template.render(punch=user_config["punch"], webhook=os.getenv('SLACK_WEBHOOK', ''))
   resolv_file = open(resolv_target, "w+")
@@ -156,8 +156,8 @@ def import_resources(conf):
 
 ## CREATE A VALIDATION SHELL ##
 def create_platform_shell(user_config):
-  file_loader = FileSystemLoader(template_dir)
-  env = Environment(loader=file_loader)
+  file_loader = jinja2.FileSystemLoader(template_dir)
+  env = jinja2.Environment(loader=file_loader)
   platform_template = env.get_template(platform_template_shell)
   platform_render = platform_template.render(punch=user_config["punch"])
   platform_shell = open(platform_shell_target, "w+")
