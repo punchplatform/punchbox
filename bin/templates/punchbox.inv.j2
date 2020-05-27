@@ -1,0 +1,26 @@
+[vms:children]
+deployer
+targets
+
+[deployer]
+pbcideployer vm_hypervisor_num=1 vm_ram=2 vm_ip=198 vm_cpu=2 vm_net=13 vm_data_size=30G vm_uuid=9f9d3803-ca48-4391-ae1d-5e90c592d587
+
+[targets]
+{% for server in targets.info %} 
+{{ server }} vm_hypervisor_num={{ [2,3]|random }} vm_ram={{ (targets.info[server].memory | string)[0] }} vm_ip=19{{ loop.index }} vm_cpu={{ targets.info[server].cpu }} vm_net=13 vm_data_size={{ (targets.info[server].disksize | string)[:-1] }} vm_uuid={{ random | custom_uuid }}
+{% endfor %}
+
+[pp_deployers]
+pbcideployer
+
+[pp_targets]
+{% for server in targets.info %} 
+{{ server }}
+{% endfor %}
+
+[vms:vars]
+{% if 'ubuntu' in targets.meta.os %}
+os=ubuntu-netplan
+vm_template=ubuntu-18.04LTS-5
+{% endif %}
+ansible_user=adm-infra

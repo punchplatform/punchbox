@@ -92,8 +92,8 @@ Here the configurations/empty_16G.json example:
 
 ```json
 {
-  "vagrant": {
-    "boxes": {
+  "targets": {
+    "info": {
       "server1": {
         "disksize": "20GB",
         "memory": 3000,

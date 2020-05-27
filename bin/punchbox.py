@@ -17,17 +17,23 @@ bin_dir = top_dir + '/bin'
 punch_dir = top_dir + '/punch/build'
 vagrant_dir = top_dir + '/vagrant'
 conf_dir = punch_dir + '/pp-conf'
+template_dir = bin_dir + '/templates'
+ansible_dir = top_dir + '/ansible'
 
 # Templates path
 vagrant_template_file = 'Vagrantfile.j2'
 resolv_template_file = 'resolv.hjson.j2'
 platform_template_shell = 'check_platform.sh.j2'
+punchbox_inv_template = 'punchbox.inv.j2'
+punchbox_playbook_template = 'punchbox.yml.j2'
 
 # Targets path
 resolv_target = conf_dir+'/resolv.hjson'
 vagrantfile_target = vagrant_dir+'/Vagrantfile'
 platform_shell_target = conf_dir+'/check_platform.sh'
 generated_model = punch_dir+'/model.json'
+punchbox_inv_target = ansible_dir+'/punchbox.inv'
+punchbox_playbook_target = ansible_dir+'/punchbox.yml'
 
 cots = ["punch", "minio" , "zookeeper", "spark", "pyspark", "elastic", "opendistro_security", "operator", "analytics-deployment",
         "analytics-client", "shiva", "gateway", "storm", "kafka", "logstash", "metricbeat", "filebeat", "packetbeat", "auditbeat"]
@@ -51,7 +57,7 @@ def create_vagrantfile(user_config):
   file_loader = FileSystemLoader(vagrant_dir)
   env = Environment(loader=file_loader)
   vagrantfile_template = env.get_template(vagrant_template_file)
-  vagrantfile_render = vagrantfile_template.render(vagrant=user_config["vagrant"])
+  vagrantfile_render = vagrantfile_template.render(targets=user_config["targets"])
   vagrantfile = open(vagrantfile_target, "w+")
   vagrantfile.write(vagrantfile_render)
   vagrantfile.close()
@@ -68,6 +74,33 @@ def destroy_vagrant_boxes():
     v.destroy()
     logging.info(' vagrant boxes successfully stopped')
 
+## PUNCHBOX MANAGEMENT ##
+def custom_uuid_filter(*args):
+    return uuid.uuid4()
+
+def create_inventories(user_config):
+  file_loader = jinja2.FileSystemLoader(template_dir)
+  env = jinja2.Environment(loader=file_loader)
+  env.filters['custom_uuid'] = custom_uuid_filter
+  inventory_template = env.get_template(punchbox_inv_template)
+  inventory_render = inventory_template.render(targets=user_config["targets"])
+  inventory = open(punchbox_inv_target, "w+")
+  inventory.write(inventory_render)
+  inventory.close()
+  logging.info('Successful generation of inventory in %s', punchbox_inv_target)
+
+def generate_playbook(deployer):
+  cmd = "{0}/bin/punchplatform-versionof.sh --legacy punch".format(os.path.splitext(os.path.basename(deployer))[0])
+  result = subprocess.check_output(cmd, shell=True)
+  file_loader = jinja2.FileSystemLoader(template_dir)
+  env = jinja2.Environment(loader=file_loader)
+  playbook_template = env.get_template(punchbox_playbook_template)
+  playbook_render = playbook_template.render(version=result.decode("utf-8").rstrip())
+  playbook = open(punchbox_playbook_target, "w+")
+  playbook.write(playbook_render)
+  playbook.close()
+  logging.info('Successful generation of playbook in %s', punchbox_playbook_target)
+
 ## GENERATE FILE MODEL ##
 def generate_model(user_config, deployer):
   data = {}
@@ -79,7 +112,7 @@ def generate_model(user_config, deployer):
     data[component] = result.decode("utf-8").rstrip()
   # vagrant model
   model['version'] = data
-  if 'centos' in user_config['vagrant']['meta']['os']:
+  if 'centos' in user_config['targets']['meta']['os']:
     model['iface'] = "eth1"
   else :
     model['iface'] = "enp0s8"
@@ -107,7 +140,7 @@ def create_ppconf():
 
 ## CREATE RESOLV FILE ##
 def create_resolver(user_config):
-  file_loader = FileSystemLoader(bin_dir)
+  file_loader = FileSystemLoader(template_dir)
   env = Environment(loader=file_loader)
   resolv_template = env.get_template(resolv_template_file)
   resolv_render = resolv_template.render(punch=user_config["punch"])
@@ -123,7 +156,7 @@ def import_resources(conf):
 
 ## CREATE A VALIDATION SHELL ##
 def create_platform_shell(user_config):
-  file_loader = FileSystemLoader(bin_dir)
+  file_loader = FileSystemLoader(template_dir)
   env = Environment(loader=file_loader)
   platform_template = env.get_template(platform_template_shell)
   platform_render = platform_template.render(punch=user_config["punch"])
@@ -147,6 +180,8 @@ def main():
   parser.add_argument("--destroy-vagrant", help="Vagrant destroy", action="store_true")
   parser.add_argument("--generate-vagrantfile", help="Generate vagrantfile", action="store_true")
   parser.add_argument("--start-vagrant", help="Vagrant up", action="store_true")
+  parser.add_argument("--generate-inventories", help="Generate ansible inventory to launch Punch roles", action="store_true")
+  parser.add_argument("--generate-playbook", help="Generate ansible playbook to launch Punch roles", action="store_true")
 
   if parser.parse_args().destroy_vagrant is True:
     destroy_vagrant_boxes()
@@ -156,9 +191,13 @@ def main():
     create_vagrantfile(user_config)
   if parser.parse_args().start_vagrant is True:
     launch_vagrant_boxes()
+  if parser.parse_args().generate_inventories is True:
+    create_inventories(user_config)
   if parser.parse_args().deployer is not None:
     unzip_punch_archive(parser.parse_args().deployer)
     generate_model(user_config, parser.parse_args().deployer)
+    if parser.parse_args().generate_playbook is True:
+      generate_playbook(parser.parse_args().deployer)
   if parser.parse_args().punch_conf is not None:
     import_resources(parser.parse_args().punch_conf)
     create_resolver(user_config)

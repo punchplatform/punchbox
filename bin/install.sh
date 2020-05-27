@@ -13,6 +13,7 @@ rm -rf "${punchBoxPex}"
 rm -rf "${ansibleBoxPex}"
 rm -rf ./punch/build
 rm -rf ./vagrant/Vagrantfile
+rm -rf ./ansible/punchbox.*
 rm -rf ./activate.sh
 
 green "generating ${punchBoxPex}"

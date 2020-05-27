@@ -44,6 +44,6 @@ model.json
 bin/pex/ansible_pex/ansible.pex
 bin/pex/punchbox_pex/punchbox.pex
 vagrant/Vagrantfile
-ansible/integration.*
+ansible/punchbox.*
 .idea
 .idea/**

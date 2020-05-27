@@ -1,6 +1,6 @@
 {
-  "vagrant": {
-    "boxes": {
+  "targets": {
+    "info": {
       "server1": {
         "disksize": "20GB",
         "memory": 2048,
@@ -97,7 +97,8 @@
     "operator": {
       "servers": [
         "server1"
-      ]
+      ],
+      "username": "vagrant"
     }
   }
 }
