@@ -35,6 +35,16 @@ spec:
       labels:
         app: kibana
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - kibana
+            topologyKey: "kubernetes.io/hostname"
       containers:
       - name: es-kibana
         image: docker.elastic.co/kibana/kibana:7.2.1
