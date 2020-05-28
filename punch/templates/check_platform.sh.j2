@@ -9,31 +9,26 @@ RESET="\033[0m"
 echo -e "${BLUE}INFO:${RESET} Put platform and tenants configurations in zookeeper"
 punchplatform-putconf.sh --zookeeper-cluster-name common --platform -v
 punchplatform-putconf.sh --zookeeper-cluster-name common --tenant mytenant -v
-punchplatform-putconf.sh --zookeeper-cluster-name common --tenant platform -v
-
 
 echo -e "${BLUE}INFO:${RESET} Push Elasticsearch templates"
 punchplatform-push-es-templates.sh --directory $PUNCHPLATFORM_CONF_DIR/resources/elasticsearch/templates/ --url {{ punch.elasticsearch.cluster_production_transport_address }}:9200
 
-echo -e "${BLUE}INFO:${RESET} Push Kibana dashboards"
-punchplatform-setup-kibana.sh --import --url {{ punch.kibana.servers[0] }}:5601
-
 echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
-punchctl -t mytenant start 
-punchctl -t mytenant start --channel elastalert 
+punchctl -t mytenant start --channel apache_httpd
+punchctl -t mytenant start --channel aggregation
 
 echo -e "${BLUE}INFO:${RESET} Launch log injectors"
 # For loop to send logs on each storm/shiva nodes 
 {% for server in punch.storm.slaves %}
 nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/mytenant/apache_httpd_injector.json -H {{ server }} &
 {% endfor %}
-{% for server in punch.shiva.servers %}
-nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/mytenant/stormshield_networksecurity_injector.json -H {{ server }} &
-{% endfor %}
 
-echo -e "${BLUE}INFO:${RESET} Wait for 15 min, logs are being inserted in platform"
-sleep 900
+echo -e "${BLUE}INFO:${RESET} Wait for 10 min, logs are being inserted in platform"
+sleep 600
 pkill -f org.thales.punch.injector.Main >/dev/null 2>/dev/null
+
+echo -e "${BLUE}INFO:${RESET} Check results"
+$PUNCHPLATFORM_CONF_DIR/applicative_monitoring.sh --url {{ punch.elasticsearch.cluster_production_transport_address }}:9200 -i mytenant-agg* -b '{"query":{"bool":{"must":[{"range":{"timestamp":{"lt": "now","gte": "now-5w"}}}]}}}'
 
 echo -e "${BLUE}INFO:${RESET} End of check platform"
 

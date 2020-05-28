@@ -122,9 +122,24 @@
       {% endfor %}
       {% endif %} 
       "punchplatform": {
-      "rest_api": {
-        "hosts": {{ server_ip | tojson }}
-      }
+      "zookeeper_cluster": "punchplatform-primary",
+        "spark_cluster": "spark_main",
+        "extraction_path": "/home/{{ operator.username }}/pp-conf/extractions",
+        "tmp_path": "/home/{{ operator.username }}/pp-conf/tmp_path",
+        "extraction_es_data_cluster_hosts": [
+          "{{ elasticsearch.cluster_production_transport_address }}"
+        ],
+        "extraction_es_metric_cluster_hosts": [
+          "{{ elasticsearch.cluster_production_transport_address }}"
+        ],
+        "extraction_es_metric_cluster_port": 9200,
+        "extraction_tenant": "mytenant",
+        "job_editor_tenant": "mytenant",
+        "job_editor_index": "jobs",
+        "platform_editor_tenants": [
+          "mytenant"
+        ]
+
       }
     }
   },
@@ -282,7 +297,7 @@
           "{{ server }}": {
             "runner": true,
             "can_be_master": true,
-            "tags": [ "punchline" ]
+            "tags": [ "standalone" ]
           }
       {% if not loop.last %}
       ,

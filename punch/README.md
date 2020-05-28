@@ -67,9 +67,8 @@ ssh vagrant@server_operator
 ./pp-conf/check_platform.sh
 ```
 
-This automatic test checks if aggregation channel works and send result in a specific slack channel.
+This automatic test checks if aggregation channel works and send result in console
 
-**Watchout** : You must set 'SLACK_WEBHOOK' environment variable with a valid slack webhook to be able to publish results  
 
 ## Manual test 
 

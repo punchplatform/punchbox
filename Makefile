@@ -25,7 +25,6 @@ clean:
 	rm -rf ${DIR}/activate.sh
 	rm -rf ${DIR}/bin/pex/punchbox_pex/punchbox.pex
 	rm -rf ${DIR}/bin/pex/ansible_pex/ansible.pex
-	rm -rf ${DIR}/ansible/punchbox.*
 
 install: clean
 	$(info ************  INSTALL  ************)

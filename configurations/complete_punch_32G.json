@@ -84,10 +84,10 @@
     },
     "spark": {
       "masters": [
-        "server3"
+        "server4"
       ],
       "slaves": [
-        "server3"
+        "server4"
       ],
       "slaves_memory": "1200M"
     },
