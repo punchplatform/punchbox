@@ -18,8 +18,9 @@ bin_dir = top_dir + '/bin'
 punch_dir = top_dir + '/punch/build'
 vagrant_dir = top_dir + '/vagrant'
 conf_dir = punch_dir + '/pp-conf'
-template_dir = top_dir + '/punch/templates'
+template_dir = top_dir + '/punch/validation/templates'
 ansible_dir = top_dir + '/ansible'
+ansible_templates_dir = ansible_dir + '/templates'
 
 # Templates path
 vagrant_template_file = 'Vagrantfile.j2'
@@ -80,7 +81,7 @@ def custom_uuid_filter(*args):
     return uuid.uuid4()
 
 def create_inventory(user_config):
-  file_loader = jinja2.FileSystemLoader(template_dir)
+  file_loader = jinja2.FileSystemLoader(ansible_templates_dir)
   env = jinja2.Environment(loader=file_loader)
   env.filters['custom_uuid'] = custom_uuid_filter
   inventory_template = env.get_template(punchbox_inv_template)
@@ -94,7 +95,7 @@ def generate_playbook(deployer):
   version_of = punch_dir+"/"+os.path.splitext(os.path.basename(deployer))[0]+"/bin/punchplatform-versionof.sh"
   cmd = "{0} --legacy {1}".format(version_of, "punch")
   result = subprocess.check_output(cmd, shell=True)
-  file_loader = jinja2.FileSystemLoader(template_dir)
+  file_loader = jinja2.FileSystemLoader(ansible_templates_dir)
   env = jinja2.Environment(loader=file_loader)
   playbook_template = env.get_template(punchbox_playbook_template)
   playbook_render = playbook_template.render(version=result.decode("utf-8").rstrip())

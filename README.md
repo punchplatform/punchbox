@@ -137,7 +137,7 @@ Also provided is a great tool to perform an end-to-end validation of the punch.
 
 Refer to the [punch](./punch/README.md) guide.  
 
-## Install punch prerequisites
+## Install Punch prerequisites
 
 You may want to configure servers for different use cases : build pp-punch, create a deployer or targets, install minikube  
 
