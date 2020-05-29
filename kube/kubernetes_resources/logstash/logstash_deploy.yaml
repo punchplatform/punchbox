@@ -25,7 +25,11 @@ spec:
       containers:
       - name: logstash
         image: docker.elastic.co/logstash/logstash:7.6.2
-              
+        resources:
+          limits:
+              cpu: 1
+          requests:
+              cpu: 0.5
         ports:
             - name: logstash 
               containerPort: 9600
