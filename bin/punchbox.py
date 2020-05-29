@@ -18,8 +18,8 @@ bin_dir = top_dir + '/bin'
 punch_dir = top_dir + '/punch/build'
 vagrant_dir = top_dir + '/vagrant'
 conf_dir = punch_dir + '/pp-conf'
-template_dir = top_dir + '/punch/templates'
-resources_dir = top_dir + '/punch/resources'
+template_dir = top_dir + '/punch/validation/templates'
+validation_bin_dir = top_dir + '/punch/validation/bin'
 
 
 # Templates path
@@ -136,7 +136,7 @@ def create_platform_shell(user_config):
   platform_shell = open(platform_shell_target, "w+")
   platform_shell.write(platform_render)
   platform_shell.close()
-  copyfile(resources_dir+'/applicative_monitoring.sh', conf_dir+'/applicative_monitoring.sh')
+  copyfile(validation_bin_dir+'/applicative_monitoring.sh', conf_dir+'/applicative_monitoring.sh')
   os.chmod(platform_shell_target, 0o775)
   os.chmod(conf_dir+'/applicative_monitoring.sh', 0o775)
   logging.info(' punchplatform validation shell successfully generated in %s', platform_shell_target)

@@ -1,14 +1,23 @@
-# Punch Integration Tools
+# Punchplatform Integration
 
-This repository provides easy tools to deploy a production punch on top of
-virtual boxes. It is designed to do all that on a single laptop.
+This folder provides easy tools to deploy and to validate a complete Punchplatform with different configurations 
 
-Watchout : this repository follows the punch branch naming convention used by the punch. I.e. use the
-- 5.7 branch if you work with a craig release
-- 6.0 branch if you work with a dave or duke release 
-- etc..
+## File Organization
 
-## Punch deployment
+```sh
+.
+├── README.md
+├── platform_template
+│   └── Punchplatform configuration template
+├── resources
+│   └── some resources necessary to deploy a Punchplatform
+├── validation
+│   └── validation tools and resources
+├── build
+    └── temp files 
+```
+
+## Punchplatform deployment
 
 Assumming you also have the pp-punch punch repository somewhere (say `~/pp-punch`)
 type in the following command: (remove the --start-vagrant to no start the vagrant boxes)
@@ -48,147 +57,7 @@ punchplatform-deployer.sh deploy -u vagrant --tags zookeeper
 punchplatform-deployer.sh deploy -u vagrant --tags zookeeper,operator
 ```
 
-## Punch Integration Tests 
-
-Once your deployment is successful you can check your platform health. 
-Connect to your operator node, you will find a shell in `pp-conf/check_platform.sh` which : 
-
-  - Put your configuration in Zookeeper
-  - Push some templates to Elasticsearch
-  - Import Kibana dashboards 
-  - Launch useful channels 
-  - Start log injectors 
-
-Global execution takes around 15 minutes. 
-
-To execute it: 
-```sh
-ssh vagrant@server_operator
-./pp-conf/check_platform.sh
-```
-
-This automatic test checks if aggregation channel works and send result in console
-
-
-## Manual test 
-
-After deployment, additionals steps are required to have a full functionning deployement setup.
-
-**Prerequisites**
-
-Inject ES templates and save your configuration in zookeeper
-
-```sh
-# root dir - of kibana server
-ROOTDIR=$(realpath ~/pp-conf)
-
-# insert elasticsearch templates mapping
-punchplatform-push-es-templates.sh --directory $ROOTDIR/resources/elasticsearch --cluster es_search --verbose
-
-# put conf for punchctl
-punchplatform-putconf.sh -t mytenant
-```
-
-**Inject Data**
-
-```sh
-ROOTDIR=$(realpath ~/pp-conf)
-
-# to inject fake logs, by default apache_httpd topology starts on server3
-punchctl -t mytenant start --channel apache_httpd
-punchplatform-log-injector.sh -c $ROOTDIR/resources/injectors/mytenant/apache_httpd_injector.json -H server3
-```
-
-**Troubleshooting**
-
-If you have some issues with Kibana plugin : 
-
-```sh 
-# kibana needs punchplatform.properties in it's working directory, by default: ~/pp-conf/tmp_path
-mkdir -p $ROOTDIR/tmp_path/conf/
-cp $ROOTDIR/punchplatform.properties $ROOTDIR/tmp_path/conf/
-```
-
-If you have some issues with ES templates : 
-
-```sh
-# In test environment, all indices created prior the insertion of template mapping should be wiped...
-# below is a list (not all are included)
-CURRENTDATE=2020.03.24
-ESVERSION=6.8.6
-curl -sS -XDELETE server1:9200/platform-metricbeat-$ESVERSION-$CURRENTDATE
-curl -sS -XDELETE server1:9200/mytenant-metrics-$CURRENTDATE
-curl -sS -XDELETE server1:9200/mytenant-events-$CURRENTDATE
-curl -sS -XDELETE server1:9200/mytenant-archive-$CURRENTDATE
-curl -sS -XDELETE server1:9200/mytenant-jobs
-```
-
-## How it works ? 
-
-Here we will explain repository tree and then each internal steps 
-
-This repository contains three essential folders:
-
-- plaform_template provides a punchplatform configuration template
-- bin : provide a shell and a python app 
-      - `punchbox`: create your integration pex environement and execute integration.py app
-      - `punchbox.py`: unarchive punchplatform deployer, administrate vagrant and ansible files, generate model for punchplatform 
-      deployment, create your ansible pex environement and generate a check platform script
-
-### Generate Inventories and Vagrant management : punchbox
-
-```sh
-ROOTDIR=$(realpath ~/Desktop/myPunch/6)  # change this to your location
-DEPLOYERZIP=$(ls -of $ROOTDIR/pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-*.zip)
-PUNCHCONF=$(realpath $ROOTDIR/pp-punch/pp-packaging/punchplatform-standalone/punchplatform-standalone-linux/target/tmp/punchplatform-standalone-*/conf) 
-
-./bin/setup_model.sh --deployer $DEPLOYERZIP \
-    --config configurations/32-full.json \ 
-    --punch-conf $PUNCHCONF \
-    --generate-vagrantfile \
-    --start-vagrant
-```
-
-It provides two mandatory prerequisites before Punchplatform deployment : 
-  - Vagrant boxes to install Punchplatform on it 
-  - model.json file to generate punchplatform.properties and punchplatform-deployment.settings files
-
-It also generated a virtualenv like `activate.sh` shell, and unzip your deployer. Setup your environment :
-
-```sh
-source ~/.activate.sh`.
-```
-Splendid ! You are ready to go.
-
-### Deploy : punchplatform-deployer.sh
-
-First generate the final platform configuration files for the target platform you want. 
-Here is an example to deploy a 3 nodes zookeeper cluster. We use the zookeeper example because it is extra simple, and has no operator. 
-It is a good way to ensure your environment is all good before exploring more
-realistic setups. 
-
-```sh
-punchplatform-deployer.sh --generate-platform-config --templates-dir punch/platform_template/ --model punch/build/model.json
-Generated files:
-  /Users/dimi/Punch/Craig/pp-integration-vagrant/pp-conf/punchplatform-deployment.settings
-  /Users/dimi/Punch/Craig/pp-integration-vagrant/pp-conf/punchplatform.properties
-``` 
-
-From there you can generate the required ansible inventories.  
-
-```sh
-punchplatform-deployer.sh -gi
-```
-
-You can now deploy your platform :
-
-```sh
-punchplatform-deployer.sh deploy -u vagrant
-```
-
-Check things are running ok. But basically that is it. 
-
-## Daily usage 
+### Daily usage 
 
 If you want to reset your environnement : 
 
@@ -214,3 +83,9 @@ punchbox --config configurations/32-full.json --generate-vagrantfile --start-vag
 ```
 
 **Note** : For each update on config or templates you must relaunch all these commands, you can only play with `punchbox` options to be more or less verbose
+
+## Punchplatform validation  
+
+Once you have deployed your Punchplatform, you may be wondering how to check your platform health
+
+Refer to the [validation](./validation/README.md) guide. 
