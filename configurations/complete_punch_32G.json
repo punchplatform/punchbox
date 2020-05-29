@@ -19,6 +19,11 @@
       },
       "server4": {
         "disksize": "20GB",
+        "memory": 3072,
+        "cpu": 2
+      }, 
+      "server5": {
+        "disksize": "20GB",
         "memory": 6144,
         "cpu": 2
       }
@@ -84,7 +89,7 @@
     },
     "spark": {
       "masters": [
-        "server3"
+        "server5"
       ],
       "slaves": [
         "server3"
