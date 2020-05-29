@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  namespace: elk
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata: 
+      labels:
+        app: logstash
+    spec:
+      volumes:
+      - name: configlogstash
+        configMap:
+          name: logstash-config
+      - name: parsinglog
+        configMap:
+          name: log-parse
+
+      containers:
+      - name: logstash
+        image: docker.elastic.co/logstash/logstash:7.6.2
+              
+        ports:
+            - name: logstash 
+              containerPort: 9600
+            - name: filebeat 
+              containerPort: 5044
+             
+        volumeMounts:
+        - name: configlogstash
+          mountPath: /usr/share/logstash/config
+
+        - name: parsinglog
+          mountPath: /usr/share/logstash/pipeline
+
+        command:
+        - "logstash"
+        - "-f"
+        - "/usr/share/logstash/pipeline/logstash.conf"
+        
+      
+  
+
+
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: logstash-svc
+  namespace: elk
+spec:
+  type: NodePort
+  #if you deploy in cloud
+  #type: LoadBalancer
+  selector:
+    app: logstash
+  ports:
+  - name: logstash
+    port: 9600
+    targetPort: 9600
+    nodePort: 30113
+    protocol: TCP
+
+  - name: filebeat
+    port: 5044
+    targetPort: 5044
+    nodePort: 30114
+    protocol: TCP
+
