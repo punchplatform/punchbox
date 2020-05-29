@@ -55,7 +55,7 @@ spec:
    
       containers:
       - name: elasticsearch
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
         resources:
             limits:
               cpu: 1
