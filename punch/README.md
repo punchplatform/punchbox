@@ -42,7 +42,7 @@ punchplatform-deployer.sh --generate-platform-config \
     --templates-dir $PUNCHBOX_DIR/punch/platform_template/ \
     --model $PUNCHBOX_DIR/punch/build/model.json
 punchplatform-deployer.sh -gi
-``
+```
 
 Last you can effectively deploy the punch. Note that you can use tags to install only
 a part of it:
