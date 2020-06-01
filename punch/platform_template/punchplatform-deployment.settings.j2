@@ -48,6 +48,9 @@
     {% if spark is defined %}
    "spark_version" : "{{ version.spark }}",
    {% endif %}
+   {% if pyspark is defined %}
+   "pyspark_version" : "{{ version.pyspark }}",
+   {% endif %}
    "punchplatform_analytics_deployment_version": "{{ version["analytics-deployment"] }}",
    "punchplatform_operator_environment_version": "{{ version.operator }}",
    

@@ -96,6 +96,11 @@
       ],
       "slaves_memory": "1200M"
     },
+    "pyspark": {
+      "servers": [
+        "server1"
+      ]
+    },
     "operator": {
       "servers": [
         "server1"

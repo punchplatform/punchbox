@@ -331,7 +331,12 @@
   },
   {% endif %}
 
-
+  {% if pyspark is defined %}
+  "pyspark" : {
+    "install_dir": "/data/opt/punchplatform-pyspark-{{ version.pyspark }}",
+        "servers": {{ pyspark.servers | tojson }}
+  },
+  {% endif %}
   
   "metricbeat" : {
     "modules" : {
