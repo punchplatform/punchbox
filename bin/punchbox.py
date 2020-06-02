@@ -149,7 +149,7 @@ def create_resolver(user_config):
   file_loader = jinja2.FileSystemLoader(template_dir)
   env = jinja2.Environment(loader=file_loader)
   resolv_template = env.get_template(resolv_template_file)
-  resolv_render = resolv_template.render(punch=user_config["punch"], webhook=os.getenv('SLACK_WEBHOOK', ''))
+  resolv_render = resolv_template.render(punch=user_config["punch"], webhook=os.getenv('SLACK_WEBHOOK', ''), proxy=os.getenv('SLACK_PROXY', ''))
   resolv_file = open(resolv_target, "w+")
   resolv_file.write(resolv_render)
   resolv_file.close()

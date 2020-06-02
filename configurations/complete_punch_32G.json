@@ -2,7 +2,7 @@
   "targets": {
     "info": {
       "server1": {
-        "disksize": "20GB",
+        "disksize": "40GB",
         "memory": 3072,
         "cpu": 2,
         "synced_pp_conf_folder": true
@@ -13,7 +13,7 @@
         "cpu": 2
       },
       "server3": {
-        "disksize": "20GB",
+        "disksize": "40GB",
         "memory": 3072,
         "cpu": 2
       },

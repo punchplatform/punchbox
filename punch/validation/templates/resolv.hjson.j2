@@ -83,7 +83,9 @@
       }
       match:$.plan_settings.persistence[?(@.type=='elasticsearch')]
       additional_values:{ 
-         es_cluster: es_search
+         nodes:[ 
+            {{ punch.elasticsearch.cluster_production_transport_address }}
+         ]
       }
    }
    // Archive houeskeeping
@@ -147,41 +149,35 @@
          es_port: 9200
       }
    }
-   // Elastalert aggregation fail
-   elastalert_agg_fail:{ 
+   // Elastalert slack fail
+   elastalert_slack_fail:{ 
       selection:{ 
          tenant: mytenant
          channel: elastalert
          runtime:*
       }
-      match:$.[?(@.name=='Aggregation fail')]
+      match:$.[?(@.name=='Aggregation fail' || @.name=='Spark distributed executions fail')]
       additional_values:{ 
-         alert_text_type: alert_text_only
-         alert_text: "\n Aggregation channel failed !\n No doc found in aggregation index\n Timestamp : {0}"
-         alert_text_args: ["timestamp"]
          alert: slack
          slack_webhook_url: "{{ webhook }}"
-         slack_proxy: 10.10.1.10:3128
+         slack_proxy: "{{ proxy }}"
          slack_emoji_override: ":punchlogo2:"
          slack_msg_color: "danger"
          slack_title: "6.0"
       }
    }
-     // Elastalert aggregation fail
-   elastalert_agg_success:{ 
+     // Elastalert slack fail
+   elastalert_slack_success:{ 
       selection:{ 
          tenant: mytenant
          channel: elastalert
          runtime:*
       }
-      match:$.[?(@.name=='Aggregation success')]
+      match:$.[?(@.name=='Aggregation success' || @.name=='Spark distributed executions success')]
       additional_values:{ 
-        alert_text_type: alert_text_only
-        alert_text: "\n Aggregation channel works like a charm !\n Max value of doc_count : {0}\n Hits : {1}\n Matched : {2}\n Timestamp : {3}"
-        alert_text_args: ["metric_doc_count_max","num_hits","num_matches","timestamp"]
         alert: slack
         slack_webhook_url: "{{ webhook }}"
-        slack_proxy: 10.10.1.10:3128
+        slack_proxy: "{{ proxy }}"
         slack_emoji_override: ":punchlogo2:"
         slack_msg_color: "good"
         slack_title: "6.0"
