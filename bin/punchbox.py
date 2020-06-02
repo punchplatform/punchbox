@@ -161,7 +161,7 @@ def create_resolver(user_config):
 def import_resources(conf):
   copy_tree(conf, conf_dir)
   copy_tree(validation_conf_dir, conf_dir)
-logging.info(' punchplatform configuration successfully imported in %s', conf_dir)
+  logging.info(' punchplatform configuration successfully imported in %s', conf_dir)
 
 ## CREATE A VALIDATION SHELL ##
 def create_platform_shell(user_config):
