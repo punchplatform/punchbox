@@ -1,0 +1,67 @@
+{
+  "stop_by_tenant": true,
+  "version": "6.0",
+  "start_by_tenant": true,
+  "applications": [
+    {
+      "args": [
+        "--punchline",
+        "dataset_generator_to_stdout_java.hjson",
+        "--runtime",
+        "spark",
+        "--spark-master",
+        "spark://server5:7077"
+      ],
+      "cluster": "common",
+      "shiva_runner_tags": [
+        "punchline"
+      ],
+      "name": "dataset_generator_to_stdout_java",
+      "runtime": "shiva",
+      "resources": [
+        "dataset_generator_to_stdout_java.hjson"
+      ],
+      "command": "punchline"
+    },
+    {
+      "args": [
+        "--punchline",
+        "dataset_generator_to_stdout_python.hjson",
+        "--runtime",
+        "pyspark",
+        "--spark-master",
+        "spark://server5:7077"
+      ],
+      "cluster": "common",
+      "shiva_runner_tags": [
+        "punchline"
+      ],
+      "name": "dataset_generator_to_stdout_python",
+      "runtime": "shiva",
+      "resources": [
+        "dataset_generator_to_stdout_python.hjson"
+      ],
+      "command": "punchline"
+    },
+    {
+      "args": [
+        "--punchline",
+        "punchline_java_python.hjson",
+        "--runtime",
+        "pyspark",
+        "--spark-master",
+        "spark://server5:7077"
+      ],
+      "cluster": "common",
+      "shiva_runner_tags": [
+        "punchline"
+      ],
+      "name": "punchline_java_python",
+      "runtime": "shiva",
+      "resources": [
+        "punchline_java_python.hjson"
+      ],
+      "command": "punchline"
+    }
+  ]
+}

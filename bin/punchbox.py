@@ -21,6 +21,8 @@ conf_dir = punch_dir + '/pp-conf'
 template_dir = top_dir + '/punch/validation/templates'
 ansible_dir = top_dir + '/ansible'
 ansible_templates_dir = ansible_dir + '/templates'
+validation_conf_dir = top_dir + '/punch/validation/conf'
+
 
 # Templates path
 vagrant_template_file = 'Vagrantfile.j2'
@@ -158,7 +160,8 @@ def create_resolver(user_config):
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
 def import_resources(conf):
   copy_tree(conf, conf_dir)
-  logging.info(' punchplatform configuration successfully imported oin %s', conf_dir)
+  copy_tree(validation_conf_dir, conf_dir)
+logging.info(' punchplatform configuration successfully imported in %s', conf_dir)
 
 ## CREATE A VALIDATION SHELL ##
 def create_platform_shell(user_config):

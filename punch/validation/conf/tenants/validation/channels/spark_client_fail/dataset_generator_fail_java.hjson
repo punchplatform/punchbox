@@ -1,0 +1,92 @@
+{
+  type: punchline
+  version: "6.0"
+  tenant: validation
+  channel: spark_client_success
+  runtime: spark
+  dag:
+  [
+    {
+      settings:
+      {
+        input_data:
+        [
+          {
+            name: phil
+            musician: false
+            age: 21
+            friends:
+            [
+              alice
+            ]
+          }
+          {
+            name: alice
+            musician: true
+            age: 23
+            friends:
+            [
+              dimi
+            ]
+          }
+          {
+            name: dimi
+            musician: true
+            age: 53
+            friends:
+            [
+              phil
+              alice
+            ]
+          }
+        ]
+      }
+      component: input
+      publish:
+      [
+        {
+          stream: data
+        }
+      ]
+      description:
+        '''
+        The batch_input node simply generates some data.
+        You simply write your data inline, it convert it as Dataset<Row>
+        '''
+      type: dataset_generator
+    }
+    {
+                type: sql
+                component: sql
+                settings: {
+                    statement: SELECT COUNT(`metricset.name`) AS TOP_5_mname, `metricset.name` AS NAME FROM input_data GROUP BY `metricset.name` ORDER BY TOP_5_mname DESC LIMIT 5
+                }
+                subscribe: [
+                    {
+                        component: input
+                        stream: data
+                    }
+                ]
+                publish: [
+                    { 
+                        stream: data
+                    }
+                ]
+            }
+    {
+      settings:
+      {
+        truncate: false
+      }
+      component: show
+      subscribe:
+      [
+        {
+          component: sql
+          stream: data
+        }
+      ]
+      type: show
+    }
+  ]
+}

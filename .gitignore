@@ -34,7 +34,6 @@ current-deployment.inv
 .DS_Store
 *.iml
 bin/activate.sh
-conf
 pp-conf
 punchplatform-deployer
 .venv

@@ -1,0 +1,25 @@
+name: Exit code 0 on java and python punchline 
+
+type: frequency
+
+index: platform-logs-*
+
+filter:
+- query:
+    query_string:
+      query: "platform.job:punchline_java_python AND content.return_code: 0"
+
+num_events: 1
+timeframe: 
+  minutes: 10
+doc_type: _doc
+
+realert:
+ minutes: 15
+
+alert:
+- command
+
+command: 
+  - "/bin/echo"
+  - "alert: Spark client java and python execution exit 0 works like a charm"

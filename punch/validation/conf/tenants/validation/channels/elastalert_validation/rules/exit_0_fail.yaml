@@ -1,0 +1,26 @@
+name: Anormal exit code 1
+
+type: frequency
+
+index: platform-logs-*
+
+filter:
+- query:
+    query_string:
+      query: "platform.channel: spark_client_success AND content.return_code: 1"
+
+num_events: 1
+timeframe: 
+  minutes: 10
+doc_type: _doc
+
+realert:
+ minutes: 15
+
+alert:
+- command
+
+command: 
+  - "/bin/echo"
+  - "alert: Anormal number of exit 1 code received"
+

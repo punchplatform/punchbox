@@ -1,0 +1,5 @@
+{
+  "admin_zk_cluster": "common",
+  "admin_es_cluster": "es_search",
+  "analytics_spark_cluster": "spark_main"
+}

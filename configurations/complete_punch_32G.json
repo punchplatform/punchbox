@@ -98,7 +98,8 @@
     },
     "pyspark": {
       "servers": [
-        "server1"
+        "server1",
+        "server4"
       ]
     },
     "operator": {
