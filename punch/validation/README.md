@@ -16,6 +16,8 @@ to your specific use case
 
 ## Punchplatform integration 
 
+**Watchout** : You must set 'SLACK_WEBHOOK' and 'SLACK_PROXY' environment variable with a valid slack webhook and proxy if needed to be able to publish results  
+
 ### Manual integration 
 
 Once your deployment is successful you can check your platform health. 
@@ -29,8 +31,6 @@ ssh vagrant@server_operator
 ```
 
 This automatic test checks if aggregation channel works and send result in a specific slack channel.
-
-**Watchout** : You must set 'SLACK_WEBHOOK' and 'SLACK_PROXY' environment variable with a valid slack webhook and proxy if needed to be able to publish results  
 
 ### Automatic integration 
 
