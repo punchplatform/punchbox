@@ -1,5 +1,7 @@
 # Punchplatform validation
 
+**Warning** : Section in Beta, fixes will coming soon
+
 Punchplatform validation could be use to daily check your platform health or to check a 
 specific critic point
 
@@ -33,7 +35,7 @@ This automatic test checks if aggregation channel works and send result in a spe
 ### Automatic integration 
 
 You can also configure an automatic integration on your laptop or in remote servers by calling shell
-in `bin` directory in a crontab
+in `binutils` directory in a crontab
 
 Be sure to complete these steps and to adapt shell to your use case : 
 
@@ -67,6 +69,15 @@ Launch aggregation and apache channels from Punchplatform standalone and then us
   - Plan and spark in foreground mode  
   - Log injectors 
   - Elasticsearch 
+
+### Spark test 
+
+Launch spark channels from punchbox validation tenant (located in `conf` folder )
+
+**Scope covered** : 
+  - Check exit 0 code for spark executions in client mode (java, python and java/python punchlines)  
+  - Check exit 1 code for spark executions in client mode (java, python and java/python malformed punchlines)  
+  - Check anormal exit 0/1 
 
 ### Elastalert test : 
 

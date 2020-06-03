@@ -2,6 +2,13 @@
 
 This folder provides easy tools to deploy and to validate a complete Punchplatform with different configurations 
 
+**Warning**
+
+  - This version is a Beta
+  - Alpha version named 6.1 will be released mid-June
+  - Validation section use standalone and punchbox resources, it will be fixed soon to be more flexible
+  - Requires hardcode configuration : SLACK_WEBHOOK environment variable set with specific slack webhook URL
+
 ## File Organization
 
 ```sh
@@ -29,6 +36,9 @@ punchbox --config configurations/complete_punch_16G.json \
         --deployer ~/pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-*.zip \
         --start-vagrant
 ```
+
+**Warning** : The use of tagret/tmp is awful and will be fix in alpha release 
+
 
 This will unzip the punch deployer archive, as well as the sample standalone channels so that you will have a complete
 sample application deployed on your punch.

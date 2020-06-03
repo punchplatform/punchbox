@@ -10,7 +10,7 @@
         "--runtime",
         "spark",
         "--spark-master",
-        "spark://server5:7077"
+        "spark://{{spark_master}}:7077"
       ],
       "cluster": "common",
       "shiva_runner_tags": [
@@ -30,7 +30,7 @@
         "--runtime",
         "pyspark",
         "--spark-master",
-        "spark://server5:7077"
+        "spark://{{spark_master}}:7077"
       ],
       "cluster": "common",
       "shiva_runner_tags": [
@@ -50,7 +50,7 @@
         "--runtime",
         "pyspark",
         "--spark-master",
-        "spark://server5:7077"
+        "spark://{{spark_master}}:7077"
       ],
       "cluster": "common",
       "shiva_runner_tags": [

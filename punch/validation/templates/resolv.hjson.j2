@@ -139,8 +139,8 @@
    // Elastalert
    elastalert:{ 
       selection:{ 
-         tenant: mytenant
-         channel: elastalert
+         tenant:*
+         channel:*
          runtime:*
       }
       match:$.[?(@.writeback_index=='elastalert')]
@@ -152,11 +152,11 @@
    // Elastalert slack fail
    elastalert_slack_fail:{ 
       selection:{ 
-         tenant: mytenant
-         channel: elastalert
+         tenant:*
+         channel:*
          runtime:*
       }
-      match:$.[?(@.name=='Aggregation fail' || @.name=='Spark distributed executions fail')]
+      match:$.[?(@.name=~ /.*fail.*/i)]
       additional_values:{ 
          alert: slack
          slack_webhook_url: "{{ webhook }}"
@@ -169,11 +169,11 @@
      // Elastalert slack fail
    elastalert_slack_success:{ 
       selection:{ 
-         tenant: mytenant
-         channel: elastalert
+         tenant:*
+         channel:*
          runtime:*
       }
-      match:$.[?(@.name=='Aggregation success' || @.name=='Spark distributed executions success')]
+      match:$.[?(@.name=~ /.*success.*/i)]
       additional_values:{ 
         alert: slack
         slack_webhook_url: "{{ webhook }}"

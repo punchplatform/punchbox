@@ -5,7 +5,7 @@ import logging
 import subprocess
 import zipfile
 import argparse
-import os
+import os, fnmatch
 from distutils.dir_util import copy_tree
 from shutil import copyfile
 import uuid
@@ -157,10 +157,22 @@ def create_resolver(user_config):
   resolv_file.close()
   logging.info(' platform resolv.hjson successfully generated in %s', resolv_target)
 
+## FIND AND REPLACE - RESOLVER ALTERNATIVE FOR 5.* BRANCHES"
+def findReplace(directory, find, replace, filePattern):
+    for path, dirs, files in os.walk(os.path.abspath(directory)):
+        for filename in fnmatch.filter(files, filePattern):
+            filepath = os.path.join(path, filename)
+            with open(filepath) as f:
+                s = f.read()
+            s = s.replace(find, replace)
+            with open(filepath, "w") as f:
+                f.write(s)
+
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
-def import_resources(conf):
+def import_resources(conf, user_config):
   copy_tree(conf, conf_dir)
   copy_tree(validation_conf_dir, conf_dir)
+  findReplace(conf_dir+"/tenants/validation", "{{spark_master}}", user_config["punch"]["spark"]["masters"][0], "*")
   logging.info(' punchplatform configuration successfully imported in %s', conf_dir)
 
 ## CREATE A VALIDATION SHELL ##
@@ -208,7 +220,7 @@ def main():
     if parser.parse_args().generate_playbook is True:
       generate_playbook(parser.parse_args().deployer)
   if parser.parse_args().punch_conf is not None:
-    import_resources(parser.parse_args().punch_conf)
+    import_resources(parser.parse_args().punch_conf, user_config)
     create_resolver(user_config)
     create_platform_shell(user_config)
 

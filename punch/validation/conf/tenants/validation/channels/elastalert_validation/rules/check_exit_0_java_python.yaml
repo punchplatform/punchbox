@@ -1,4 +1,4 @@
-name: Exit code 0 on java and python punchline 
+name: Exit code 0 on java/python punchline success
 
 type: frequency
 
@@ -17,9 +17,12 @@ doc_type: _doc
 realert:
  minutes: 15
 
+alert_text_type: alert_text_only
+alert_text: "\n Spark execution in client mode for a java punchline ended with success (Exit 0 code reveived)"
+
 alert:
 - command
 
 command: 
   - "/bin/echo"
-  - "alert: Spark client java and python execution exit 0 works like a charm"
+  - "alert: Spark execution in client mode for a java/python punchline ended with success (Exit 0 code reveived)"

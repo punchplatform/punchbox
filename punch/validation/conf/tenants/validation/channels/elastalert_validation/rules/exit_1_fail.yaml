@@ -1,4 +1,4 @@
-name: Anormal exit code 0
+name: Exit code 1 fail
 
 type: frequency
 
@@ -13,6 +13,9 @@ num_events: 1
 timeframe: 
   minutes: 10
 doc_type: _doc
+
+alert_text_type: alert_text_only
+alert_text: "\n Anormal number of exit code 0 reveived"
 
 realert:
  minutes: 15
