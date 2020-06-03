@@ -89,9 +89,6 @@
                port:9200
         	   } 
          ]
-         nodes:[ 
-            {{ punch.elasticsearch.cluster_production_transport_address }}
-         ]
       }
    }
    // Archive houeskeeping
@@ -169,7 +166,7 @@
          slack_proxy: "{{ proxy }}"
          slack_emoji_override: ":punchlogo2:"
          slack_msg_color: "danger"
-         slack_title: "6.0"
+         slack_title: "6.0 validation from {{ hostname }}"
       }
    }
      // Elastalert slack fail
@@ -186,7 +183,7 @@
         slack_proxy: "{{ proxy }}"
         slack_emoji_override: ":punchlogo2:"
         slack_msg_color: "good"
-        slack_title: "6.0"
+        slack_title: "6.0 validation from {{ hostname }}"
       }
    }
 }

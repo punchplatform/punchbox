@@ -18,11 +18,11 @@ realert:
  minutes: 15
 
 alert_text_type: alert_text_only
-alert_text: "\n Spark execution in client mode for a java punchline ended with success (Exit 0 code reveived)"
+alert_text: "\n Spark execution in client mode for a java punchline ended with success (Exit 0 code received)"
 
 alert:
 - command
 
 command: 
   - "/bin/echo"
-  - "alert: Spark execution in client mode for a java/python punchline ended with success (Exit 0 code reveived)"
+  - "alert: Spark execution in client mode for a java/python punchline ended with success (Exit 0 code received)"
