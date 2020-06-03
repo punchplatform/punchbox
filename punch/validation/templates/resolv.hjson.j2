@@ -84,6 +84,12 @@
       match:$.plan_settings.persistence[?(@.type=='elasticsearch')]
       additional_values:{ 
          nodes:[ 
+           	{
+               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               port:9200
+        	   } 
+         ]
+         nodes:[ 
             {{ punch.elasticsearch.cluster_production_transport_address }}
          ]
       }

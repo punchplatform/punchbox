@@ -50,7 +50,7 @@ Then, under these lines add :
 ```sh
 PUNCHBOX_DIR=/home/punch/workspace/punchbox
 PUNCH_DIR=/home/punch/workspace/pp-punch
-00 1  * *  * $PUNCHBOX_DIR/punch/validation/bin/local_integration.sh 6.0 > /tmp/punchbox-6.0 2>&1
+00 1  * *  * $PUNCHBOX_DIR/punch/validation/binutils/local_integration.sh 6.0 > /tmp/punchbox-6.0 2>&1
 ```
 
 ## Punchplatform tests 

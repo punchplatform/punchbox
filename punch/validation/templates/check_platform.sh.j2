@@ -9,6 +9,7 @@ RESET="\033[0m"
 echo -e "${BLUE}INFO:${RESET} Put platform and tenants configurations in zookeeper"
 punchplatform-putconf.sh --zookeeper-cluster-name common --platform -v
 punchplatform-putconf.sh --zookeeper-cluster-name common --tenant mytenant -v
+punchplatform-putconf.sh --zookeeper-cluster-name common --tenant validation -v
 punchplatform-putconf.sh --zookeeper-cluster-name common --tenant platform -v
 
 
@@ -21,6 +22,10 @@ punchplatform-setup-kibana.sh --import --url {{ punch.kibana.servers[0] }}:5601
 echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
 punchctl -t mytenant start 
 punchctl -t mytenant start --channel elastalert 
+
+echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
+punchctl -t validation start 
+punchctl -t validation start --channel elastalert_validation
 
 echo -e "${BLUE}INFO:${RESET} Launch log injectors"
 # For loop to send logs on each storm/shiva nodes 

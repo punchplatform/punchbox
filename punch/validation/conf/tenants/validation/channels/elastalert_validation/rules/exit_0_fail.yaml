@@ -18,12 +18,12 @@ realert:
  minutes: 15
 
 alert_text_type: alert_text_only
-alert_text: "\n Anormal number of exit code 1 reveived"
+alert_text: "\n At least one exit 1 code have been received during punchlines execution in spark client mode"
 
 alert:
 - command
 
 command: 
   - "/bin/echo"
-  - "alert: Anormal number of exit 1 code received"
+  - "alert: At least one exit 1 code have been received during punchlines execution in spark client mode"
 
