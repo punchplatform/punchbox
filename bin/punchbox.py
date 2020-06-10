@@ -7,7 +7,7 @@ import zipfile
 import argparse
 import os, fnmatch
 from distutils.dir_util import copy_tree
-from shutil import copyfile
+from shutil import copyfile, copytree, ignore_patterns
 import uuid
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) # This is your Project Root
@@ -170,7 +170,10 @@ def findReplace(directory, find, replace, filePattern):
 
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
 def import_resources(conf, user_config):
-  copy_tree(conf, conf_dir)
+  try:
+    copytree(conf, conf_dir, ignore=ignore_patterns('*punchplatform*'))
+  except FileExistsError:
+    pass
   copy_tree(validation_conf_dir, conf_dir)
   findReplace(conf_dir+"/tenants/validation", "{{spark_master}}", user_config["punch"]["spark"]["masters"][0], "*")
   logging.info(' punchplatform configuration successfully imported in %s', conf_dir)
