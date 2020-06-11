@@ -8,7 +8,7 @@ This folder provides easy tools to deploy and to validate a complete Punchplatfo
   - Alpha version named 6.1 will be released mid-June
   - Validation section use standalone and punchbox resources, it will be fixed soon to be more flexible
   - Requires hardcode configuration : SLACK_WEBHOOK environment variable set with specific slack webhook URL
-  
+
 ## File Organization
 
 ```sh
@@ -32,7 +32,7 @@ type in the following command: (remove the --start-vagrant to no start the vagra
 ```sh
 punchbox --config configurations/complete_punch_16G.json \
         --generate-vagrantfile \
-        --punch-conf ~/pp-punch/pp-packaging/punchplatform-standalone/target/tmp/punchplatform-resources-*/conf/ \
+        --punch-conf ~/pp-punch/pp-packaging/punchplatform-standalone/target/tmp/punchplatform-resources-*/conf \
         --deployer ~/pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-*.zip \
         --start-vagrant
 ```
@@ -77,7 +77,7 @@ If you made a error in your user config file for example, you might want to rege
 ```sh
 make install
 source activate.sh
-punchbox --deployer ../pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-6.0.0-SNAPSHOT.zip --config configurations/32-full.json --punch-conf ../pp-punch/pp-packaging/punchplatform-standalone/punchplatform-standalone-linux/target/tmp/punchplatform-standalone-6.0.0-SNAPSHOT/conf
+punchbox --deployer ../pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-*6.0.0-SNAPSHOT*.zip --config configurations/32-full.json --punch-conf ../pp-punch//pp-packaging/punchplatform-standalone/target/tmp/punchplatform-resources-*/conf
 source activate 
 punchplatform-deployer.sh --generate-platform-config --templates-dir punch/platform_template/ --model punch/build/model.json
 punchplatform-deployer.sh -gi

@@ -19,7 +19,7 @@ punch_dir = top_dir + '/punch/build'
 vagrant_dir = top_dir + '/vagrant'
 conf_dir = punch_dir + '/pp-conf'
 template_dir = top_dir + '/punch/validation/templates'
-validation_bin_dir = top_dir + '/punch/validation/bin'
+validation_bin_dir = top_dir + '/punch/validation/binutils'
 
 
 # Templates path

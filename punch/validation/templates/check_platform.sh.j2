@@ -32,7 +32,7 @@ OUTPUT=$($PUNCHPLATFORM_CONF_DIR/applicative_monitoring.sh --url {{ punch.elasti
 HOST={{ hostname }}
 OS={{ os }}
 
-curl -X POST -H 'Content-type: application/json' --data '{"text":"5.7 validation from '"${}"' on '"${OS}"' \n '"${OUTPUT}"'", "username": "elastalert", "icon_emoji": ":punchlogo2:"}' {{ webhook }}
+curl -X POST -H 'Content-type: application/json' --data '{"text":"5.7 validation from '"${HOST}"' on '"${OS}"' \n '"${OUTPUT}"'", "username": "elastalert", "icon_emoji": ":punchlogo2:"}' {{ webhook }}
 
 echo -e "${BLUE}INFO:${RESET} End of check platform"
 
