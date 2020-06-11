@@ -29,7 +29,7 @@
       }
     },
     "meta": {
-      "os": "centos/7"
+      "os": "ubuntu/bionic64"
     }
   },
   "punch": {
