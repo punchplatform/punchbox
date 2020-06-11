@@ -7,7 +7,7 @@ import zipfile
 import argparse
 import os, fnmatch
 from distutils.dir_util import copy_tree
-from shutil import copyfile, copytree, ignore_patterns
+from shutil import copyfile, copy2, copytree, ignore_patterns
 import uuid
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) # This is your Project Root
@@ -55,6 +55,18 @@ def load_user_config(user_config_file):
   with open(user_config_file) as f:
     logging.info(' loading user configuration from file %s', user_config_file)
     return json.load(f)
+
+def my_copy_tree(src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            try:
+              copytree(s, d, symlinks, ignore)
+            except FileExistsError:
+              pass
+        else:
+            copy2(s, d)
 
 ## VAGRANT MANAGEMENT ##
 def create_vagrantfile(user_config):
@@ -170,10 +182,7 @@ def findReplace(directory, find, replace, filePattern):
 
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
 def import_resources(conf, user_config):
-  try:
-    copytree(conf, conf_dir, ignore=ignore_patterns('*punchplatform*'))
-  except FileExistsError:
-    pass
+  my_copy_tree(conf, conf_dir, ignore=ignore_patterns('punchplatform.properties'))
   copy_tree(validation_conf_dir, conf_dir)
   findReplace(conf_dir+"/tenants/validation", "{{spark_master}}", user_config["punch"]["spark"]["masters"][0], "*")
   logging.info(' punchplatform configuration successfully imported in %s', conf_dir)
