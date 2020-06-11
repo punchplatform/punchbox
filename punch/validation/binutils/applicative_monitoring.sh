@@ -113,31 +113,20 @@ case $1 in
 esac
 done
 
-RED="\033[31m"
-GREEN="\033[32m"
-YELLOW="\033[33m"
-BLUE="\033[34m"
-RESET="\033[0m"
-
-RED="\033[31m"
-GREEN="\033[32m"
-YELLOW="\033[33m"
-BLUE="\033[34m"
-RESET="\033[0m"
 
 # Usage : echo $(printInsertionResult $REQUEST_RESULT)
 function printInsertionResult () {
     result=`echo "$1" | jq -c .count`
     if [ $result = 0 ]; then
-        status="${RED}No doc found in ${INDEX} index${RESET}"
-        echo -e "${BLUE}Status=${RESET}${status}"
+        status="No doc found in ${INDEX} index"
+        echo -e "Status=${status}"
     else
-        status="${GREEN}Some doc found in ${INDEX} index${RESET}"
-        echo -e "${BLUE}Status=${RESET}${status} ${BLUE}Count=${RESET}${result}"
+        status="Some doc found in ${INDEX} index"
+        echo -e "Status=${status} Count=${result}"
     fi
 }
 
-echo -e "${BLUE}ElasticsearchEndpoint=${RESET}${ELASTIC}"
+echo -e "ElasticsearchEndpoint=${ELASTIC}"
 
 
 RESULT=`curl -s ${USER} -XGET "${ELASTIC}/${INDEX}/_count" -H 'Content-type: application/json' -d "${BODY}"`

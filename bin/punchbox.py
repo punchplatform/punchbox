@@ -132,7 +132,7 @@ def create_platform_shell(user_config):
   file_loader = jinja2.FileSystemLoader(template_dir)
   env = jinja2.Environment(loader=file_loader)
   platform_template = env.get_template(platform_template_shell)
-  platform_render = platform_template.render(punch=user_config["punch"])
+  platform_render = platform_template.render(punch=user_config["punch"], os=user_config["targets"]["meta"]["os"], webhook=os.getenv('SLACK_WEBHOOK', ''), hostname=os.uname()[1])
   platform_shell = open(platform_shell_target, "w+")
   platform_shell.write(platform_render)
   platform_shell.close()

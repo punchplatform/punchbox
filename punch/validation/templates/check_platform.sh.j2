@@ -28,7 +28,11 @@ sleep 600
 pkill -f org.thales.punch.injector.Main >/dev/null 2>/dev/null
 
 echo -e "${BLUE}INFO:${RESET} Check results"
-$PUNCHPLATFORM_CONF_DIR/applicative_monitoring.sh --url {{ punch.elasticsearch.cluster_production_transport_address }}:9200 -i mytenant-agg* -b '{"query":{"bool":{"must":[{"range":{"timestamp":{"lt": "now","gte": "now-5w"}}}]}}}'
+OUTPUT=$($PUNCHPLATFORM_CONF_DIR/applicative_monitoring.sh --url {{ punch.elasticsearch.cluster_production_transport_address }}:9200 -i mytenant-agg* -b '{"query":{"bool":{"must":[{"range":{"timestamp":{"lt": "now","gte": "now-5w"}}}]}}}')
+HOST={{ hostname }}
+OS={{ os }}
+
+curl -X POST -H 'Content-type: application/json' --data '{"text":"5.7 validation from '"${}"' on '"${OS}"' \n '"${OUTPUT}"'", "username": "elastalert", "icon_emoji": ":punchlogo2:"}' {{ webhook }}
 
 echo -e "${BLUE}INFO:${RESET} End of check platform"
 

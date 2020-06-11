@@ -2,6 +2,13 @@
 
 This folder provides easy tools to deploy and to validate a complete Punchplatform with different configurations 
 
+**Warning**
+
+  - This version is a Beta
+  - Alpha version named 6.1 will be released mid-June
+  - Validation section use standalone and punchbox resources, it will be fixed soon to be more flexible
+  - Requires hardcode configuration : SLACK_WEBHOOK environment variable set with specific slack webhook URL
+  
 ## File Organization
 
 ```sh
