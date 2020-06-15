@@ -1,4 +1,6 @@
 { 
+
+   {% if punch.elasticsearch is defined %}
    // All ES input/output nodes (Storm nodes)
    elasticsearch_nodes:{ 
       selection:{ 
@@ -31,7 +33,10 @@
          ]
       }
    }
+   {% endif %}
 
+
+   {% if punch.kafka is defined %}
    // All Kafka input/output nodes (Storm nodes)
    kafka_input:{ 
       selection:{ 
@@ -45,7 +50,11 @@
          metric_cluster_id:local
       }
    }
-   // All ES reporters 
+   {% endif %}
+
+
+   {% if punch.elasticsearch is defined %}
+   // All ES reporters
    es_reporter:{ 
       selection:{ 
          tenant:*
@@ -62,7 +71,10 @@
          ]
       }
    }
-   // All Kafka reporters 
+   {% endif %}
+
+   {% if punch.kafka is defined %}
+   // All Kafka reporters
    kafka_reporter:{ 
       selection:{ 
          tenant:*
@@ -74,6 +86,9 @@
          bootstrap.servers:{{ punch.kafka.brokers[0] }}
       }
    }
+   {% endif %}
+
+   {% if punch.elasticsearch is defined %}
    // All plan persistence
    persistence_plan_resolver:{ 
       selection:{ 
@@ -186,4 +201,5 @@
         slack_title: "6.0 validation from {{ hostname }} on {{os}}"
       }
    }
+   {% endif %}
 }
