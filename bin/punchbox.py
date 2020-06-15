@@ -181,9 +181,10 @@ def create_resolver(user_config, target_os):
   logging.info(' platform resolv.hjson successfully generated in %s', resolv_target)
 
 ## FIND AND REPLACE - RESOLVER ALTERNATIVE FOR 5.* BRANCHES"
-def findReplace(directory, find, replace, filePattern):
+def find_replace(directory, find, replace, file_pattern):
+
     for path, dirs, files in os.walk(os.path.abspath(directory)):
-        for filename in fnmatch.filter(files, filePattern):
+        for filename in fnmatch.filter(files, file_pattern):
             filepath = os.path.join(path, filename)
             with open(filepath) as f:
                 s = f.read()
@@ -195,7 +196,12 @@ def findReplace(directory, find, replace, filePattern):
 def import_resources(conf, user_config):
   my_copy_tree(conf, conf_dir, ignore=ignore_patterns('*.properties'))
   copy_tree(validation_conf_dir, conf_dir)
-  findReplace(conf_dir+"/tenants/validation", "{{spark_master}}", user_config["punch"]["spark"]["masters"][0], "*")
+  replace_key = "spark"
+  try :
+    find_replace(conf_dir+"/tenants/validation", "{{spark_master}}", user_config["punch"][replace_key]["masters"][0], "*")
+  except KeyError:
+    logging.warn(' key \"{}\" not found. Skipping key for replacement'.format(replace_key))
+    
   logging.info(' punchplatform configuration successfully imported in %s', conf_dir)
 
 ## CREATE A VALIDATION SHELL ##
