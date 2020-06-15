@@ -46,3 +46,4 @@ vagrant/Vagrantfile
 ansible/punchbox.*
 .idea
 .idea/**
+punch/build

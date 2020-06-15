@@ -166,7 +166,7 @@
          slack_proxy: "{{ proxy }}"
          slack_emoji_override: ":punchlogo2:"
          slack_msg_color: "danger"
-         slack_title: "6.0 validation from {{ hostname }}"
+         slack_title: "6.0 validation from {{ hostname }} on {{os}}"
       }
    }
      // Elastalert slack fail
@@ -183,7 +183,7 @@
         slack_proxy: "{{ proxy }}"
         slack_emoji_override: ":punchlogo2:"
         slack_msg_color: "good"
-        slack_title: "6.0 validation from {{ hostname }}"
+        slack_title: "6.0 validation from {{ hostname }} on {{os}}"
       }
    }
 }

@@ -7,7 +7,7 @@ import zipfile
 import argparse
 import os, fnmatch
 from distutils.dir_util import copy_tree
-from shutil import copyfile
+from shutil import copyfile, copy2, copy, copytree, ignore_patterns, rmtree
 import uuid
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) # This is your Project Root
@@ -56,12 +56,25 @@ def load_user_config(user_config_file):
     logging.info(' loading user configuration from file %s', user_config_file)
     return json.load(f)
 
+def my_copy_tree(src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            try:
+              copytree(s, d, symlinks, ignore)
+            except FileExistsError:
+               pass
+        else:
+            if "properties" not in s:
+                copy2(s, d)
+
 ## VAGRANT MANAGEMENT ##
-def create_vagrantfile(user_config):
+def create_vagrantfile(user_config, vagrant_os: str=None):
   file_loader = jinja2.FileSystemLoader(vagrant_dir)
   env = jinja2.Environment(loader=file_loader)
   vagrantfile_template = env.get_template(vagrant_template_file)
-  vagrantfile_render = vagrantfile_template.render(targets=user_config["targets"])
+  vagrantfile_render = vagrantfile_template.render(targets=user_config["targets"], os=vagrant_os)
   vagrantfile = open(vagrantfile_target, "w+")
   vagrantfile.write(vagrantfile_render)
   vagrantfile.close()
@@ -107,7 +120,7 @@ def generate_playbook(deployer):
   logging.info('Successful generation of playbook in %s', punchbox_playbook_target)
 
 ## GENERATE FILE MODEL ##
-def generate_model(user_config, deployer, vagrant_mode):
+def generate_model(user_config, deployer, vagrant_mode, vagrant_os: str=None, vagrant_interface: str=None):
   data = {}
   model = {}
   for component in cots :
@@ -117,7 +130,13 @@ def generate_model(user_config, deployer, vagrant_mode):
     data[component] = result.decode("utf-8").rstrip()
   # vagrant model
   model['version'] = data
-  if vagrant_mode is True :
+  # os
+  if vagrant_os is not None:
+    model['os'] = vagrant_os
+  # interface
+  if vagrant_interface is not None:
+    model['iface'] = vagrant_interface
+  elif vagrant_mode is True :
     if 'centos' in user_config['targets']['meta']['os']:
       model['iface'] = "eth1"
     else :
@@ -133,7 +152,7 @@ def generate_model(user_config, deployer, vagrant_mode):
   model['security']['local_kibana_certs'] = local_kibana_certs
   model['security']['local_gateway_keystore'] = local_gateway_keystore
 
-  model = json.dumps({**model, **user_config['punch']})
+  model = json.dumps({**model, **user_config['punch']}, indent=4, sort_keys=True)
   model_file = open(generated_model, "w+")
   model_file.write(model)
   model_file.close()
@@ -151,7 +170,7 @@ def create_resolver(user_config):
   file_loader = jinja2.FileSystemLoader(template_dir)
   env = jinja2.Environment(loader=file_loader)
   resolv_template = env.get_template(resolv_template_file)
-  resolv_render = resolv_template.render(punch=user_config["punch"], webhook=os.getenv('SLACK_WEBHOOK', ''), proxy=os.getenv('SLACK_PROXY', ''), hostname=os.uname()[1])
+  resolv_render = resolv_template.render(punch=user_config["punch"], webhook=os.getenv('SLACK_WEBHOOK', ''), proxy=os.getenv('SLACK_PROXY', ''), hostname=os.uname()[1], os=user_config["targets"]["meta"]["os"])
   resolv_file = open(resolv_target, "w+")
   resolv_file.write(resolv_render)
   resolv_file.close()
@@ -170,7 +189,7 @@ def findReplace(directory, find, replace, filePattern):
 
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
 def import_resources(conf, user_config):
-  copy_tree(conf, conf_dir)
+  my_copy_tree(conf, conf_dir, ignore=ignore_patterns('*.properties'))
   copy_tree(validation_conf_dir, conf_dir)
   findReplace(conf_dir+"/tenants/validation", "{{spark_master}}", user_config["punch"]["spark"]["masters"][0], "*")
   logging.info(' punchplatform configuration successfully imported in %s', conf_dir)
@@ -203,20 +222,23 @@ def main():
   parser.add_argument("--start-vagrant", help="Vagrant up", action="store_true")
   parser.add_argument("--generate-inventory", help="Generate ansible inventory to launch Punch roles", action="store_true")
   parser.add_argument("--generate-playbook", help="Generate ansible playbook to launch Punch roles", action="store_true")
+  parser.add_argument("--os", help="Operating system to deploy with Vagrant. If set, it overwrites configuration")
+  parser.add_argument("--interface", help="Interface to apply to deployed services")
 
   if parser.parse_args().destroy_vagrant is True:
     destroy_vagrant_boxes()
   user_config=load_user_config(parser.parse_args().config)
   create_ppconf()
   if parser.parse_args().generate_vagrantfile is True:
-    create_vagrantfile(user_config)
+    create_vagrantfile(user_config, parser.parse_args().os)
   if parser.parse_args().start_vagrant is True:
     launch_vagrant_boxes()
   if parser.parse_args().generate_inventory is True:
     create_inventory(user_config)
   if parser.parse_args().deployer is not None:
     unzip_punch_archive(parser.parse_args().deployer)
-    generate_model(user_config, parser.parse_args().deployer, parser.parse_args().generate_vagrantfile)
+    generate_model(user_config, parser.parse_args().deployer, parser.parse_args().generate_vagrantfile,
+        parser.parse_args().os, parser.parse_args().interface)
     if parser.parse_args().generate_playbook is True:
       generate_playbook(parser.parse_args().deployer)
   if parser.parse_args().punch_conf is not None:

@@ -152,4 +152,6 @@ This repository is licensed under the ApacheV2 license, please feel free to cont
 Only the punch itself is submitted to license, but is not necessary to use the vagrant or kube 
 parts.
 
+## Troubleshooting
 
+Refer to the [troubleshooting](./Troubleshooting.md) documentation if you encounter some problems:
