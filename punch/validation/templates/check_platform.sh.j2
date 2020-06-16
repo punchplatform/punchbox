@@ -10,7 +10,6 @@ echo -e "${BLUE}INFO:${RESET} Put platform and tenants configurations in zookeep
 punchplatform-putconf.sh --zookeeper-cluster-name common --platform -v
 punchplatform-putconf.sh --zookeeper-cluster-name common --tenant mytenant -v
 punchplatform-putconf.sh --zookeeper-cluster-name common --tenant validation -v
-punchplatform-putconf.sh --zookeeper-cluster-name common --tenant platform -v
 
 
 echo -e "${BLUE}INFO:${RESET} Push Elasticsearch templates"
@@ -20,18 +19,16 @@ echo -e "${BLUE}INFO:${RESET} Push Kibana dashboards"
 punchplatform-setup-kibana.sh --import --url {{ punch.kibana.servers[0] }}:5601
 
 echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
-punchctl -t mytenant start 
-punchctl -t mytenant start --channel elastalert 
+punchctl -t mytenant start --channel stormshield_networksecurity
+punchctl -t mytenant start --channel aggregation
+punchctl -t mytenant start --channel elastalert  
 
 echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
 punchctl -t validation start 
 punchctl -t validation start --channel elastalert_validation
 
 echo -e "${BLUE}INFO:${RESET} Launch log injectors"
-# For loop to send logs on each storm/shiva nodes 
-{% for server in punch.storm.slaves %}
-nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/mytenant/apache_httpd_injector.json -H {{ server }} &
-{% endfor %}
+
 {% for server in punch.shiva.servers %}
 nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/mytenant/stormshield_networksecurity_injector.json -H {{ server }} &
 {% endfor %}
@@ -39,6 +36,10 @@ nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injecto
 echo -e "${BLUE}INFO:${RESET} Wait for 15 min, logs are being inserted in platform"
 sleep 900
 pkill -f org.thales.punch.injector.Main >/dev/null 2>/dev/null
+
+echo -e "${BLUE}INFO:${RESET} Stop channels"
+punchctl -t mytenant stop 
+punchctl -t validation stop 
 
 echo -e "${BLUE}INFO:${RESET} End of check platform"
 

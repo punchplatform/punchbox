@@ -14,12 +14,12 @@
       },
       "server3": {
         "disksize": "40GB",
-        "memory": 6144,
+        "memory": 4096,
         "cpu": 2
       },
       "server4": {
         "disksize": "40GB",
-        "memory": 4096,
+        "memory": 6144,
         "cpu": 2
       }, 
       "server5": {

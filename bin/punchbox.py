@@ -166,11 +166,13 @@ def create_ppconf():
     logging.info('Creating conf dir %s', conf_dir)
 
 ## CREATE RESOLV FILE ##
-def create_resolver(user_config):
+def create_resolver(user_config, target_os):
   file_loader = jinja2.FileSystemLoader(template_dir)
   env = jinja2.Environment(loader=file_loader)
   resolv_template = env.get_template(resolv_template_file)
-  resolv_render = resolv_template.render(punch=user_config["punch"], webhook=os.getenv('SLACK_WEBHOOK', ''), proxy=os.getenv('SLACK_PROXY', ''), hostname=os.uname()[1], os=user_config["targets"]["meta"]["os"])
+  if not target_os:
+    target_os=user_config["targets"]["meta"]["os"]
+  resolv_render = resolv_template.render(punch=user_config["punch"], webhook=os.getenv('SLACK_WEBHOOK', ''), proxy=os.getenv('SLACK_PROXY', ''), hostname=os.uname()[1], os=target_os)
   resolv_file = open(resolv_target, "w+")
   resolv_file.write(resolv_render)
   resolv_file.close()
@@ -243,7 +245,7 @@ def main():
       generate_playbook(parser.parse_args().deployer)
   if parser.parse_args().punch_conf is not None:
     import_resources(parser.parse_args().punch_conf, user_config)
-    create_resolver(user_config)
+    create_resolver(user_config, parser.parse_args().os)
     create_platform_shell(user_config)
 
 if __name__ == "__main__":
