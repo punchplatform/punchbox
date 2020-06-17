@@ -71,6 +71,8 @@ def my_copy_tree(src, dst, symlinks=False, ignore=None):
 
 ## VAGRANT MANAGEMENT ##
 def create_vagrantfile(user_config, vagrant_os: str=None):
+  if not vagrant_os: 
+    vagrant_os=user_config["targets"]["meta"]["os"]
   file_loader = jinja2.FileSystemLoader(vagrant_dir)
   env = jinja2.Environment(loader=file_loader)
   vagrantfile_template = env.get_template(vagrant_template_file)

@@ -19,17 +19,11 @@ Vagrant.configure("2") do |config|
     vb.linked_clone = true
   end
 
-  {% if os is defined %}
-  {% set my_os = os %}
-  {% else %}
-  {% set my_os = targets.meta.os %}
-  {% endif %}
-
   {% for server in targets.info %}
 
    config.vm.define "{{ server }}" do |server|
 
-      server.vm.box = "{{ my_os }}"
+      server.vm.box = "{{ os }}"
       server.vm.box_check_update = false
       config.disksize.size = '{{ targets.info[server].disksize }}'
 
