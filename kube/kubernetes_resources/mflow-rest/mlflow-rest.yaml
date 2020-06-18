@@ -11,7 +11,7 @@ metadata:
 spec:
   selector:
     app: mlflow-rest
-  type: LoadBalancer
+  type: NodePort
   ports:
   - name: api
     port: 6060
