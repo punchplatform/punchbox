@@ -72,7 +72,8 @@ If you want to reset your environnement :
 make clean
 ```
 
-If you made a error in your user config file for example, you might want to regenerate configuration file without dealing another time with vagrant boxes. For that use `punchbox` without vagrant options: 
+If you made a mistake in your user config file for example, you might want to regenerate the configuration file without 
+dealing another time with vagrant boxes. For that use `punchbox` without vagrant options: 
 
 ```sh
 make install
@@ -90,6 +91,29 @@ punchbox --config configurations/32-full.json --generate-vagrantfile --start-vag
 ```
 
 **Note** : For each update on config or templates you must relaunch all these commands, you can only play with `punchbox` options to be more or less verbose
+
+## Secured deployment
+
+To deploy the Punchplatform alongside security measures, use the `--security` option with a complete configuration file :
+
+```shell
+make install
+source activate.sh
+punchbox --deployer ../pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-6.0.0-SNAPSHOT.zip \
+    --config configurations/complete_punch_32G.json \
+    --punch-conf ../pp-punch/pp-packaging/punchplatform-standalone/punchplatform-standalone-linux/target/tmp/punchplatform-standalone-6.0.0-SNAPSHOT/conf
+    --security
+source activate 
+punchplatform-deployer.sh --generate-platform-config --templates-dir punch/platform_template/ --model punch/build/model.json
+punchplatform-deployer.sh -gi
+```
+
+A secured deployment enable :
+
+* Authentication to the Elasticsearch cluster
+* Authentication to the Kibana servers
+* SSL connexions to the Elasticsearch cluster
+* SSL connexions to the Kibana servers
 
 ## Punchplatform validation  
 

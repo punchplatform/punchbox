@@ -74,7 +74,7 @@
    "elasticsearch_version" : "{{ version.elastic }}",
    {% endif %}
 
-   {% if elasticsearch.security is defined and elasticsearch.security == True %}
+   {% if security.elasticsearch is defined and security.elasticsearch == True %}
    "elasticsearch_plugins": {
      "opendistro_security": {
        "version": "{{ version.opendistro_security }}"
@@ -105,7 +105,7 @@
       "punchplatform-feedback": {
         "version": "{{ version.punch }}"
       }
-      {% if kibana.security is defined and kibana.security == True %}
+      {% if security.kibana is defined and security.kibana == True %}
       ,
       "opendistro_security": {
         "version": "{{ version.opendistro_security }}"
