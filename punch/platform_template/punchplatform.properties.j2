@@ -337,6 +337,18 @@
         "servers": {{ pyspark.servers | tojson }}
   },
   {% endif %}
+
+  {% if minio is defined %}
+    "minio": {
+      "clusters": {
+        "common": {
+          "hosts": {{ minio.servers | tojson }},
+          "port": "9000"
+        }
+      },
+      "install_dir": "/data/opt/{{ version.minio }}"
+    },
+  {% endif %}
   
   "metricbeat" : {
     "modules" : {

@@ -56,6 +56,10 @@ This file is composed as follow :
           - `masters`: list of spark master hosts
           - `slaves`: list of spark slave hosts
           - `slaves_memory`: allocation of memory for each slaves
+      - `pyspark`:
+          - `servers`: list of pyspark hosts
+      - `minio`:
+          - `servers`: list of minio hosts
       - `operator`: 
           - `servers`: list of operator hosts
           - `username`: operator username
