@@ -36,7 +36,7 @@ PATH environment variable so as to make sure it is the one used.
 
 This repository leverages python pex. We recommand the use of [pyenv](https://github.com/pyenv/pyenv). 
 If not familiar with python installation and best practices refer to 
-[Setup Python](https://gitlab.thalesdigital.io/punch/product/pp-punch/-/blob/6.x/pp-documentation/docs/Contribution_Guide/Setup_Python.md). 
+[Setup Python](https://doc.punchplatform.com/Contribution_Guide/Setup_Python.html). 
 
 Here is a safe and clean procedure to setup your python environment: first 
 create and activates a new virtualenv and call it (say) punchbox

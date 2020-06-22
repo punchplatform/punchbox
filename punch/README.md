@@ -26,19 +26,16 @@ This folder provides easy tools to deploy and to validate a complete Punchplatfo
 
 ## Punchplatform deployment
 
-Assumming you also have the pp-punch punch repository somewhere (say `~/pp-punch`)
+Assumming you also have a punchplatform deployer and your associated configuration somewhere
 type in the following command: (remove the --start-vagrant to no start the vagrant boxes)
 
 ```sh
 punchbox --config configurations/complete_punch_16G.json \
         --generate-vagrantfile \
-        --punch-conf ~/pp-punch/pp-packaging/punchplatform-standalone/target/tmp/punchplatform-resources-*/conf/ \
-        --deployer ~/pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-*.zip \
+        --punch-conf <path_to_your_punchplatform_config_folder> \
+        --deployer <path_to_your_punchplatform_deployer_zip> \
         --start-vagrant
 ```
-
-**Warning** : The use of tagret/tmp is awful and will be fix in alpha release 
-
 
 This will unzip the punch deployer archive, as well as the sample standalone channels so that you will have a complete
 sample application deployed on your punch.
