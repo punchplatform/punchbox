@@ -1,12 +1,24 @@
 {
   "platform": {
     "platform_id": "punchplatform-primary",
+    "admin" : {
+            "type" : "file",
+            "root" : "/data/opt/admin",
+            "topics" : {
+                "admin_topic" : {
+                    "name" : "platform-admin"
+                }
+            }
+    },
     "reporters" : [
-      {
-        "type": "elasticsearch",
-        "cluster_name": "es_search",
-        "index_prefix": "platform-logs"
-      }
+     {
+      "type": "kafka",
+      "bootstrap.servers": {% for broker in kafka.brokers %}"{{ broker }}"{% endfor %},
+      "topic": "reporter-topic",
+      "metric_document_field_name": "log",
+      "reporting_interval": 30,
+      "encoding": "lumberjack"
+    }
     ]
   },
 
@@ -19,8 +31,7 @@
         "cluster_port": 2181,
         "punchplatform_root_node": "/punchplatform-primary"
       }
-    },
-    "install_dir": "/data/opt/{{ version.zookeeper }}"
+    }
   },
   {% endif %}
 
@@ -209,17 +220,12 @@
         },
         "reporters": [
           {
-            "type": "elasticsearch",
-            "cluster_name": "es_search"
-            {% if gateway.security is defined and gateway.security == True %}
-            ,
-            "credentials": {
-              "user": "admin",
-              "password": "admin"
-            },
-            "ssl_enabled": true
-            {% endif %}
-
+            "type": "kafka",
+            "bootstrap.servers": {% for broker in kafka.brokers %}"{{ broker }}"{% endfor %},
+            "topic": "reporter-topic",
+            "metric_document_field_name": "log",
+            "reporting_interval": 30,
+            "encoding": "lumberjack"
           }
         ]
       }
@@ -247,8 +253,7 @@
         "supervisor_memory_mb" : {{ storm.supervisor_memory_mb }},
         "supervisor_cpu" : 2
       }
-    },
-    "install_dir": "/data/opt/{{ version.storm }}"
+    }
   },
   {% endif %} 
 
@@ -266,8 +271,7 @@
         "partition_retention_hours" : 24,
         "kafka_brokers_jvm_xmx": "{{ kafka.jvm_xmx }}"
       }
-    },
-    "install_dir" : "/data/opt/{{ version.kafka }}"
+    }
   },
   {% endif %}
 
@@ -275,8 +279,29 @@
   "shiva": {
     "clusters": {
       "common": {
-        "zk_cluster": "common",
-        "reporters" : [],
+        "reporters": [
+          {
+            "type": "kafka",
+            "bootstrap.servers": {% for broker in kafka.brokers %}"{{ broker }}"{% endfor %},
+            "topic": "reporter-topic",
+            "metric_document_field_name": "log",
+            "reporting_interval": 30,
+            "encoding": "lumberjack"
+          }
+        ],
+        "topics" : {
+                    "control_topic" : {
+                        "name" : "shiva-local-ctl"
+                    },
+                    "data_topic" : {
+                        "name" : "shiva-local-data"
+                    },
+                    "assignement_topic" : {
+                        "name" : "shiva-local-assignement"
+                    }
+                },
+        "type" : "file", 
+        "root" : "/data/opt/admin",
         "servers": {
         {% for server in shiva.servers %}
           "{{ server }}": {
@@ -288,11 +313,9 @@
       ,
       {% endif %} 
       {% endfor %}
-        },
-        "plugins": [ "logstash", "spark", "storm" ]
+        }
       }
-    },
-    "install_dir": "/data/opt/{{ version.shiva }}"
+    }
   },
   {% endif %}
 
@@ -326,16 +349,25 @@
         "slaves_cpu" : 2,
         "slaves_memory" : "{{ spark.slaves_memory }}"
       }
-    },
-    "install_dir": "/data/opt/{{ version.spark }}"
+    }
   },
   {% endif %}
 
   {% if pyspark is defined %}
   "pyspark" : {
-    "install_dir": "/data/opt/punchplatform-pyspark-{{ version.pyspark }}",
         "servers": {{ pyspark.servers | tojson }}
   },
+  {% endif %}
+
+  {% if minio is defined %}
+    "minio": {
+      "clusters": {
+        "common": {
+          "hosts": {{ minio.servers | tojson }},
+          "port": "9000"
+        }
+      }
+    },
   {% endif %}
   
   "metricbeat" : {
