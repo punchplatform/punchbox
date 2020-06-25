@@ -65,7 +65,7 @@ Check everything is correctly setup by executing the punchbox command:
 punchbox -h
 ```
 
-## Generate Bare Linux Servers
+## Generate Bare Linux VMs
 
 A first basic requirement is to generate one or several linux boxes. You will find some
 simple models in the 'configurations' folder. For example to generate 
@@ -129,7 +129,7 @@ deploy a complete kube platform using [kube_spray](https://github.com/kubernetes
 
 ***info*** : this part is subjected to hot activities. It will soon become an integrated part of the punch. 
 
-# Create Punch-Ready OS servers
+## Create Punch-Ready Bare OS servers
 
 This part lets you create plain unix servers with all the prerequisites to (i) setup a punch deployer server and/or (ii) setup a punch platform target server.
 
@@ -139,7 +139,7 @@ The ansible roles defined in this part are free to use and lets you setup these 
 
 Refer to the [ansible](./ansible/README.md) guide.  
 
-## Deploy a complete Punch
+## Deploy a Complete Punch
 
 The punch deployment is performed in a way similar than what is just explained to deploy empty servers.
 You simply use layout configuration file with the punch components you need. This repository provides
