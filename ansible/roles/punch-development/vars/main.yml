@@ -1,5 +1,5 @@
 ---
-# Vars for pp-builder role
+# Vars for punch-development role
 
 ## MAVEN
 maven_version: apache-maven-3.6.3
