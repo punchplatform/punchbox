@@ -90,6 +90,12 @@
    "storm_nimbus_nodes_production_interface" : "{{ iface }}",
    {% endif %}
 
+   {% if minio is defined %}
+    "minio_version": "{{ version.minio }}",
+    "minio_access_key": "admin",
+    "minio_secret_key": "punchplatform",
+   {% endif %}
+
    {% if kibana is defined %}
    "kibana_version" : "{{ version.elastic }}",
    "kibana_plugins":{

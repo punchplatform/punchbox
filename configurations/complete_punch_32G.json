@@ -104,6 +104,11 @@
         "server3"
       ]
     },
+    "minio": {
+      "servers": [
+        "server2"
+      ]
+    },
     "operator": {
       "servers": [
         "server1"

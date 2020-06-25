@@ -26,7 +26,7 @@
   {% if zookeeper is defined %}
   "zookeeper": {
     "clusters": {
-      "common": {
+      "local": {
         "hosts": {{ zookeeper.servers | tojson }},
         "cluster_port": 2181,
         "punchplatform_root_node": "/punchplatform-primary"
@@ -236,7 +236,7 @@
   {% if storm is defined %}
   "storm" : {
     "clusters" : {
-      "main": {
+      "local": {
         "master" : {
           "servers" : {{ storm.master.servers | tojson }},
           "cluster_production_address" : "{{ storm.master.cluster_production_address }}"
@@ -246,7 +246,7 @@
           "cluster_admin_url": "{{ storm.ui.cluster_admin_url }}:8080"
         },
         "slaves" : {{ storm.slaves | tojson }},
-        "zk_cluster" : "common",
+        "zk_cluster" : "local",
         "zk_root" : "storm-1.2.2-main",
         "storm_workers_by_punchplatform_supervisor" : 10,
         "workers_childopts" : "{{ storm.workers_childopts }}",
@@ -262,7 +262,7 @@
     "clusters" : {
       "local" : {
         "brokers" : {{ kafka.brokers | tojson }},
-        "zk_cluster" : "common",
+        "zk_cluster" : "local",
         "zk_root" : "kafka-local",
         "brokers_config" : "punchplatform-local-server.properties",
         "default_replication_factor" : 1,
@@ -278,7 +278,7 @@
   {% if shiva is defined %}
   "shiva": {
     "clusters": {
-      "common": {
+      "local": {
         "reporters": [
           {
             "type": "kafka",
@@ -323,7 +323,7 @@
   {% if spark is defined %}
   "spark" : {
     "clusters" : {
-      "spark_main": {
+      "local": {
         "master" : {
           "servers" : {{ spark.masters | tojson }},
           "listen_interface" : "{{ iface }}",
@@ -344,7 +344,7 @@
         {% endfor %}
         },
         "spark_workers_by_punchplatform_spark": 1,
-        "zk_cluster" : "common",
+        "zk_cluster" : "local",
         "zk_root" : "spark-main",
         "slaves_cpu" : 2,
         "slaves_memory" : "{{ spark.slaves_memory }}"
@@ -362,7 +362,7 @@
   {% if minio is defined %}
     "minio": {
       "clusters": {
-        "common": {
+        "local": {
           "hosts": {{ minio.servers | tojson }},
           "port": "9000"
         }
