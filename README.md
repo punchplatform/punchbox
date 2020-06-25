@@ -127,6 +127,18 @@ Checkout the [kube](./kube/README.md) guide to install such a production kube eq
 Note that this is fun even if you do not want to put a punch on top of it. It shows how simple it is to
 deploy a complete kube platform using [kube_spray](https://github.com/kubernetes-sigs/kubespray).
 
+***info*** : this part is subjected to hot activities. It will soon become an integrated part of the punch. 
+
+# Create Punch-Ready OS servers
+
+This part lets you create plain unix servers with all the prerequisites to (i) setup a punch deployer server and/or (ii) setup a punch platform target server.
+
+Depending on your goal the prerequisites are differnt. A punch deployer server needs for example ansible, jq, unzip python etc .. Instead a punch target server (i.e. where you deploy and run punch apps and services) requires  mainly python 3. 
+
+The ansible roles defined in this part are free to use and lets you setup these target in minutes. 
+
+Refer to the [ansible](./ansible/README.md) guide.  
+
 ## Deploy a complete Punch
 
 The punch deployment is performed in a way similar than what is just explained to deploy empty servers.
@@ -135,16 +147,9 @@ three ready-to-use complete punch configurations to accomodate 16Gb, 32Gb laptop
 
 Also provided is a great tool to perform an end-to-end validation of the punch. 
 
+**warning**: this part requires you have an official punch deployer package. 
+
 Refer to the [punch](./punch/README.md) guide.  
-
-## Install Punch prerequisites
-
-You may want to configure servers for different use cases : build pp-punch, create a deployer or targets, install minikube  
-
-Some ansible roles are provided to install the necessary prerequisites 
-
-Refer to the [ansible](./ansible/README.md) guide.  
-
 
 ## Contribute
 
