@@ -12,7 +12,7 @@
         "--spark-master",
         "spark://{{spark_master}}:7077"
       ],
-      "cluster": "common",
+      "cluster": "local",
       "shiva_runner_tags": [
         "punchline"
       ],
@@ -32,7 +32,7 @@
         "--spark-master",
         "spark://{{spark_master}}:7077"
       ],
-      "cluster": "common",
+      "cluster": "local",
       "shiva_runner_tags": [
         "punchline"
       ],
@@ -52,7 +52,7 @@
         "--spark-master",
         "spark://{{spark_master}}:7077"
       ],
-      "cluster": "common",
+      "cluster": "local",
       "shiva_runner_tags": [
         "punchline"
       ],

@@ -13,7 +13,7 @@
             "resources": [
                 "config.yaml", "rules"
             ],
-            "cluster": "common",
+            "cluster": "local",
             "shiva_runner_tags": [
                 "punchline"
             ]

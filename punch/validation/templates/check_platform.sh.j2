@@ -7,9 +7,9 @@ BLUE="\033[34m"
 RESET="\033[0m"
 
 echo -e "${BLUE}INFO:${RESET} Put platform and tenants configurations in zookeeper"
-punchplatform-putconf.sh --zookeeper-cluster-name common --platform -v
-punchplatform-putconf.sh --zookeeper-cluster-name common --tenant mytenant -v
-punchplatform-putconf.sh --zookeeper-cluster-name common --tenant validation -v
+punchplatform-putconf.sh --zookeeper-cluster-name local --platform -v
+punchplatform-putconf.sh --zookeeper-cluster-name local --tenant mytenant -v
+punchplatform-putconf.sh --zookeeper-cluster-name local --tenant validation -v
 
 
 echo -e "${BLUE}INFO:${RESET} Push Elasticsearch templates"
