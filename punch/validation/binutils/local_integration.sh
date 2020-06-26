@@ -23,14 +23,13 @@ echo -e "${GREEN}INFO:${RESET} Build pp-punch branch $1"
 cd $PUNCH_DIR
 git checkout $1
 git pull
-mvn clean install -DskipTests -T 2C
-
+mvn clean install -DskipTests
 
 cd $PUNCHBOX_DIR
 git checkout $1
 git pull
 DEPLOYER_ZIP=$(ls -of $PUNCH_DIR/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-*.zip)
-PUNCHCONF=$(realpath $PUNCH_DIR/pp-packaging/punchplatform-standalone/punchplatform-standalone-linux/target/tmp/punchplatform-standalone-*/conf)
+PUNCHCONF=$(realpath $PUNCH_DIR/pp-packaging/punchplatform-standalone/target/tmp/punchplatform-resources-*/conf/)
 
 echo -e "${GREEN}INFO:${RESET} Launch punchbox with deployer : $DEPLOYER_ZIP and config : $PUNCHCONF"
 
