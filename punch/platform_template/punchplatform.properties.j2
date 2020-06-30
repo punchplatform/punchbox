@@ -20,7 +20,7 @@
         "punchplatform_root_node": "/punchplatform-primary"
       }
     },
-    "install_dir": "/data/opt/{{ version.zookeeper }}"
+    "install_dir": "{{ installation_directory }}/{{ version.zookeeper }}"
   },
   {% endif %}
 
@@ -203,7 +203,7 @@
         },
         "resources": {
           "resources_dir": "/home/{{ operator.username }}/pp-conf/resources",
-          "doc_dir": "/data/opt/punchplatform-docuementation-{{version.gateway}}/doc/html",
+          "doc_dir": "{{ installation_directory }}/punchplatform-docuementation-{{version.gateway}}/doc/html",
           "tmp_dir": "/tmp",
           "archives_dir": "/tmp"
         },
@@ -248,7 +248,7 @@
         "supervisor_cpu" : 2
       }
     },
-    "install_dir": "/data/opt/{{ version.storm }}"
+    "install_dir": "{{ installation_directory }}/{{ version.storm }}"
   },
   {% endif %} 
 
@@ -267,7 +267,7 @@
         "kafka_brokers_jvm_xmx": "{{ kafka.jvm_xmx }}"
       }
     },
-    "install_dir" : "/data/opt/{{ version.kafka }}"
+    "install_dir" : "{{ installation_directory }}/{{ version.kafka }}"
   },
   {% endif %}
 
@@ -292,7 +292,7 @@
         "plugins": [ "logstash", "spark", "storm" ]
       }
     },
-    "install_dir": "/data/opt/{{ version.shiva }}"
+    "install_dir": "{{ installation_directory }}/{{ version.shiva }}"
   },
   {% endif %}
 
@@ -327,13 +327,13 @@
         "slaves_memory" : "{{ spark.slaves_memory }}"
       }
     },
-    "install_dir": "/data/opt/{{ version.spark }}"
+    "install_dir": "{{ installation_directory }}/{{ version.spark }}"
   },
   {% endif %}
 
   {% if pyspark is defined %}
   "pyspark" : {
-    "install_dir": "/data/opt/punchplatform-pyspark-{{ version.pyspark }}",
+    "install_dir": "{{ installation_directory }}/punchplatform-pyspark-{{ version.pyspark }}",
         "servers": {{ pyspark.servers | tojson }}
   },
   {% endif %}
@@ -346,7 +346,7 @@
           "port": "9000"
         }
       },
-      "install_dir": "/data/opt/{{ version.minio }}"
+      "install_dir": "{{ installation_directory }}/{{ version.minio }}"
     },
   {% endif %}
   
