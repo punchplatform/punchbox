@@ -1,6 +1,6 @@
 {
-    "setups_root": "/data/opt",
-    "remote_data_root_directory": "/data",
+    "setups_root": "{{ installation_directory }}",
+    "remote_data_root_directory": "{{data_storage_directory}}",
     "remote_logs_root_directory": "/var/log/punchplatform",
     "punchplatform_daemons_user": "{{ operator.username }}",
     "punchplatform_group": "{{ operator.username }}",
