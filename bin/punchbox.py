@@ -257,8 +257,9 @@ def main():
                         action="store_true")
     parser.add_argument("--generate-playbook", help="Generate ansible playbook to launch Punch roles",
                         action="store_true")
-    parser.add_argument("--os", help="Operating system to deploy with Vagrant. If set, it overwrites configuration")
-    parser.add_argument("--interface", help="Interface to apply to deployed services")
+    parser.add_argument("--os", help="Operating system to deploy with Vagrant. Overwrite user configuration")
+    parser.add_argument("--interface", help="Interface used by every deployed services. This option does not change "
+                                            "interfaces on deployed machines")
 
     if parser.parse_args().destroy_vagrant is True:
         destroy_vagrant_boxes()
