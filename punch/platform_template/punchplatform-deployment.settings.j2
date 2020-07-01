@@ -99,12 +99,14 @@
    {% if kibana is defined %}
    "kibana_version" : "{{ version.elastic }}",
    "kibana_plugins":{
+      {% if gateway is defined %}
    	  "punchplatform": {
         "version": "{{ version.punch }}"
       },
       "punchplatform-feedback": {
         "version": "{{ version.punch }}"
       }
+      {% endif %}
       {% if kibana.security is defined and kibana.security == True %}
       ,
       "opendistro_security": {

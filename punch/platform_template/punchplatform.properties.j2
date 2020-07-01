@@ -120,12 +120,12 @@
       {% for server in gateway.servers  %}
       {% set server_ip = server_ip.append( "http://"+server+":"+port ) %}
       {% endfor %}
-      {% endif %} 
       "punchplatform": {
-      "rest_api": {
-        "hosts": {{ server_ip | tojson }}
+        "rest_api": {
+          "hosts": {{ server_ip | tojson }}
+        }
       }
-      }
+      {% endif %}
     }
   },
   {% endif %} 
