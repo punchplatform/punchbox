@@ -72,7 +72,8 @@ If you want to reset your environnement :
 make clean
 ```
 
-If you made a error in your user config file for example, you might want to regenerate configuration file without dealing another time with vagrant boxes. For that use `punchbox` without vagrant options: 
+If you made a mistake in your user config file for example, you might want to regenerate the configuration file without 
+dealing another time with vagrant boxes. For that use `punchbox` without vagrant options: 
 
 ```sh
 make install
@@ -106,6 +107,29 @@ punchbox --config configurations/32-full.json --generate-vagrantfile --start-vag
 | --generate-playbook | Generate an ansible playbook to mount VMs without vagrant. | --generate-playbook |
 | --os | OS name to mount on VMs during the vagrant phase. Used to overwrite the os name inside the user's configuration. | --os centos/7 |
 | --interface | Interface name used by the deployed punchplatform components. This value should match the production interface on the mounted VMs. This option does not overwrite or change the interfaces names for vagrant. | --interface eth1 |
+
+## Secured deployment
+
+To deploy the Punchplatform alongside security measures, use the `--security` option with a complete configuration file :
+
+```shell
+make install
+source activate.sh
+punchbox --deployer ../pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-6.0.0-SNAPSHOT.zip \
+    --config configurations/complete_punch_32G.json \
+    --punch-conf ../pp-punch/pp-packaging/punchplatform-standalone/punchplatform-standalone-linux/target/tmp/punchplatform-standalone-6.0.0-SNAPSHOT/conf
+    --security
+source activate 
+punchplatform-deployer.sh --generate-platform-config --templates-dir punch/platform_template/ --model punch/build/model.json
+punchplatform-deployer.sh -gi
+```
+
+A secured deployment enable :
+
+* Authentication to the Elasticsearch cluster
+* Authentication to the Kibana servers
+* SSL connexions to the Elasticsearch cluster
+* SSL connexions to the Kibana servers
 
 ## Punchplatform validation  
 

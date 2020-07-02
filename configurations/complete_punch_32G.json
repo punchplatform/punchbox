@@ -53,6 +53,12 @@
       ],
       "childopts": "-server -Xmx128m -Xms128m"
     },
+    "gateway": {
+      "servers": [
+        "server1"
+      ],
+      "inet_address": "172.28.128.21"
+    },
     "storm": {
       "master": {
         "servers": [
