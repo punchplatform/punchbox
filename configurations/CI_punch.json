@@ -84,7 +84,8 @@
       "shiva": {
         "servers": [
           "pbciserver4"
-        ]
+        ],
+        "mode": "kafka"
       },
       "spark": {
         "masters": [

@@ -84,7 +84,8 @@
     "shiva": {
       "servers": [
         "server2"
-      ]
+      ],
+      "mode": "kafka"
     },
     "zookeeper": {
       "servers": [

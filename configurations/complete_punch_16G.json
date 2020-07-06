@@ -75,7 +75,8 @@
     "shiva": {
       "servers": [
         "server2"
-      ]
+      ],
+      "mode": "kafka"
     },
     "spark": {
       "masters": [
