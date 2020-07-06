@@ -349,7 +349,22 @@
       "install_dir": "{{ installation_directory }}/{{ version.minio }}"
     },
   {% endif %}
-  
+
+  {% if clickhouse is defined %}
+    "clickhouse": {
+      "clusters": {
+        "common": {
+          "shards": {{ clickhouse.shards | tojson }},
+          "zk_cluster": "common",
+          "zk_root": "clickhouse",
+          "http_port": "8123",
+          "tcp_port": "9100"
+        }
+      },
+      "install_dir": "{{ installation_directory }}/{{ version.clickhouse }}"
+    },
+  {% endif %}
+
   "metricbeat" : {
     "modules" : {
       "system" : {

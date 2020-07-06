@@ -21,7 +21,7 @@
         "disksize": "40GB",
         "memory": 6144,
         "cpu": 2
-      }, 
+      },
       "server5": {
         "disksize": "40GB",
         "memory": 3072,
@@ -109,6 +109,16 @@
     "minio": {
       "servers": [
         "server2"
+      ]
+    },
+    "clickhouse": {
+      "shards": [
+        {
+          "servers": ["server3", "server5"]
+        },
+        {
+          "servers": ["server1"]
+        }
       ]
     },
     "operator": {

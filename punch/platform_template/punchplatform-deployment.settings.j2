@@ -5,7 +5,7 @@
     "punchplatform_daemons_user": "{{ operator.username }}",
     "punchplatform_group": "{{ operator.username }}",
     "ansible_remote_user": "{{ operator.username }}",
- 
+
     {% if shiva is defined %}
     "shiva_version": "{{ version.shiva }}",
     "shiva_plugins": {
@@ -40,7 +40,7 @@
       }
       {% if not loop.last %}
           ,
-        {% endif %} 
+        {% endif %}
       {% endfor %}
     },
     {% endif %}
@@ -53,13 +53,13 @@
    {% endif %}
    "punchplatform_analytics_deployment_version": "{{ version["analytics-deployment"] }}",
    "punchplatform_operator_environment_version": "{{ version.operator }}",
-   
+
    {% if zookeeper is defined %}
    "zookeeper_version": "{{ version.zookeeper }}",
    "zookeeper_nodes_production_interface": "{{ iface }}",
    "zookeeper_childopts": "{{ zookeeper.childopts }}",
    "zookeeper_admin_cluster_name": "common",
-   {% endif %}  
+   {% endif %}
 
    {% if gateway is defined %}
    "gateway_version": "{{ version.gateway }}",
@@ -94,6 +94,10 @@
     "minio_version": "{{ version.minio }}",
     "minio_access_key": "admin",
     "minio_secret_key": "punchplatform",
+   {% endif %}
+
+   {% if clickhouse is defined %}
+    "clickhouse_version": "{{ version.clickhouse }}",
    {% endif %}
 
    {% if kibana is defined %}

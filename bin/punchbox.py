@@ -17,7 +17,7 @@ import vagrant
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
 
-# Repository layout 
+# Repository layout
 top_dir = os.environ.get('PUNCHBOX_DIR')
 bin_dir = top_dir + '/bin'
 punch_dir = top_dir + '/punch/build'
@@ -43,7 +43,7 @@ generated_model = punch_dir + '/model.json'
 punchbox_inv_target = ansible_dir + '/punchbox.inv'
 punchbox_playbook_target = ansible_dir + '/punchbox.yml'
 
-cots = ["punch", "minio", "zookeeper", "spark", "pyspark", "elastic", "opendistro_security", "operator",
+cots = ["punch", "minio", "clickhouse", "zookeeper", "spark", "pyspark", "elastic", "opendistro_security", "operator",
         "analytics-deployment",
         "analytics-client", "shiva", "gateway", "storm", "kafka", "logstash", "metricbeat", "filebeat", "packetbeat",
         "auditbeat"]
@@ -80,7 +80,7 @@ def my_copy_tree(src, dst, symlinks=False, ignore: List[str] = None):
 
 ## VAGRANT MANAGEMENT ##
 def create_vagrantfile(user_config, vagrant_os: str=None):
-  if not vagrant_os: 
+  if not vagrant_os:
     vagrant_os=user_config["targets"]["meta"]["os"]
   file_loader = jinja2.FileSystemLoader(vagrant_dir)
   env = jinja2.Environment(loader=file_loader)
