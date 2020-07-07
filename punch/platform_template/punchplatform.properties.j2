@@ -304,8 +304,9 @@
         {% if shiva.mode == "file" %}
         "root" : "/data/opt/admin",
         {% else %}
-        "bootstrap_servers": {% for broker in kafka.brokers %}"{{ broker }}"{% endfor %},
+        "bootstrap.servers": {% for broker in kafka.brokers %}"{{ broker }}"{% endfor %},
         {% endif %} 
+        
         "servers": {
         {% for server in shiva.servers %}
           "{{ server }}": {
