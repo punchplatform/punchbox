@@ -136,7 +136,8 @@ def generate_playbook(deployer):
 
 
 ## GENERATE FILE MODEL ##
-def generate_model(user_config, deployer, vagrant_mode, vagrant_os: str = None, vagrant_interface: str = None):
+def generate_model(user_config, deployer, vagrant_mode, vagrant_os: str = None, vagrant_interface: str = None,
+                   security: bool = False):
     data = {}
     model = {}
     for component in cots:
@@ -161,13 +162,17 @@ def generate_model(user_config, deployer, vagrant_mode, vagrant_os: str = None, 
     else:
         model['iface'] = "ens4"
     # security model
-    local_es_certs = "{}/../resources/security/certs/elasticsearch".format(ROOT_DIR)
-    local_kibana_certs = "{}/../resources/security/certs/kibana".format(ROOT_DIR)
-    local_gateway_keystore = "{}/../resources/security/keystores/gateway/gateway.keystore".format(ROOT_DIR)
+    local_es_certs = "{}/../punch/resources/security/certs/elasticsearch".format(ROOT_DIR)
+    local_kibana_certs = "{}/../punch/resources/security/certs/kibana".format(ROOT_DIR)
+    local_gateway_keystore = "{}/../punch/resources/security/keystores/gateway/gateway.keystore".format(ROOT_DIR)
     model['security'] = {}
     model['security']['local_es_certs'] = local_es_certs
     model['security']['local_kibana_certs'] = local_kibana_certs
     model['security']['local_gateway_keystore'] = local_gateway_keystore
+    if security:
+        model['security']['elasticsearch'] = True
+        model['security']['kibana'] = True
+        model['security']['gateway'] = True
 
     model = json.dumps({**model, **user_config['punch']}, indent=4, sort_keys=True)
     model_file = open(generated_model, "w+")
@@ -191,7 +196,11 @@ def create_resolver(user_config, target_os):
   resolv_template = env.get_template(resolv_template_file)
   if not target_os:
     target_os=user_config["targets"]["meta"]["os"]
-  resolv_render = resolv_template.render(punch=user_config["punch"], webhook=os.getenv('SLACK_WEBHOOK', ''), proxy=os.getenv('SLACK_PROXY', ''), hostname=os.uname()[1], os=target_os)
+  resolv_render = resolv_template.render(punch=user_config["punch"],
+                                         webhook=os.getenv('SLACK_WEBHOOK', ''),
+                                         proxy=os.getenv('SLACK_PROXY', ''),
+                                         hostname=os.uname()[1],
+                                         os=target_os)
   resolv_file = open(resolv_target, "w+")
   resolv_file.write(resolv_render)
   resolv_file.close()
@@ -259,6 +268,7 @@ def main():
                         action="store_true")
     parser.add_argument("--os", help="Operating system to deploy with Vagrant. If set, it overwrites configuration")
     parser.add_argument("--interface", help="Interface to apply to deployed services")
+    parser.add_argument("--security", help="Enable security deployment", action="store_true")
 
     if parser.parse_args().destroy_vagrant is True:
         destroy_vagrant_boxes()
@@ -273,7 +283,7 @@ def main():
     if parser.parse_args().deployer is not None:
         unzip_punch_archive(parser.parse_args().deployer)
         generate_model(user_config, parser.parse_args().deployer, parser.parse_args().generate_vagrantfile,
-                       parser.parse_args().os, parser.parse_args().interface)
+                       parser.parse_args().os, parser.parse_args().interface, parser.parse_args().security)
         if parser.parse_args().generate_playbook is True:
             generate_playbook(parser.parse_args().deployer)
     if parser.parse_args().punch_conf is not None:

@@ -1,6 +1,6 @@
 {
-    "setups_root": "/data/opt",
-    "remote_data_root_directory": "/data",
+    "setups_root": "{{ installation_directory }}",
+    "remote_data_root_directory": "{{data_storage_directory}}",
     "remote_logs_root_directory": "/var/log/punchplatform",
     "punchplatform_daemons_user": "{{ operator.username }}",
     "punchplatform_group": "{{ operator.username }}",
@@ -74,7 +74,7 @@
    "elasticsearch_version" : "{{ version.elastic }}",
    {% endif %}
 
-   {% if elasticsearch.security is defined and elasticsearch.security == True %}
+   {% if security.elasticsearch is defined and security.elasticsearch == True %}
    "elasticsearch_plugins": {
      "opendistro_security": {
        "version": "{{ version.opendistro_security }}"
@@ -99,14 +99,18 @@
    {% if kibana is defined %}
    "kibana_version" : "{{ version.elastic }}",
    "kibana_plugins":{
+      {% if gateway is defined %}
    	  "punchplatform": {
         "version": "{{ version.punch }}"
       },
       "punchplatform-feedback": {
         "version": "{{ version.punch }}"
       }
-      {% if kibana.security is defined and kibana.security == True %}
+      {% endif %}
+      {% if security.kibana is defined and security.kibana == True %}
+      {% if gateway is defined %}
       ,
+      {% endif %}
       "opendistro_security": {
         "version": "{{ version.opendistro_security }}"
       },

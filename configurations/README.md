@@ -17,6 +17,8 @@ This file is composed as follow :
           - `os`: os for all boxes
 
   - `punch`: list of punch component
+      - `installation_directory` : path where the punch components binaries will be installed
+      - `data_storage_directory` : path where the punch components data will be stored
       - `elasticsearch`:
           - `servers`: list of elasticsearch hosts
           - `cluster_production_transport_address`: elasticsearch transport address

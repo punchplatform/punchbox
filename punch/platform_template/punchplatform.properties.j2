@@ -68,7 +68,7 @@
             "readonly" : true
           }
         }
-        {% if elasticsearch.security is defined and elasticsearch.security == True %}
+        {% if security.elasticsearch is defined and security.elasticsearch == True %}
         ,
         "plugins":{
           "opendistro_security": {
@@ -102,7 +102,7 @@
         "es_type_of_nodes_targeted": "data_node",
         "kibana_port" : 5601,
         "type" : "administration"
-        {% if kibana.security is defined and kibana.security == True %}
+        {% if security.kibana is defined and security.kibana == True %}
         ,
         "server_ssl_enabled": true,
         "local_ssl_certs_dir": "{{security.local_kibana_certs}}",
@@ -131,12 +131,12 @@
       {% for server in gateway.servers  %}
       {% set server_ip = server_ip.append( "http://"+server+":"+port ) %}
       {% endfor %}
-      {% endif %} 
       "punchplatform": {
-      "rest_api": {
-        "hosts": {{ server_ip | tojson }}
+        "rest_api": {
+          "hosts": {{ server_ip | tojson }}
+        }
       }
-      }
+      {% endif %}
     }
   },
   {% endif %} 
@@ -160,7 +160,7 @@
           "{{ server }}": {
             "inet_address": "{{ gateway.inet_address }}",
             "port": 4242
-            {% if gateway.security is defined and gateway.security == True %}
+            {% if security.gateway is defined and security.gateway == True %}
             ,
             "ssl": {
               "enabled": true,
@@ -174,27 +174,27 @@
           }
         {% if not loop.last %}
           ,
-        {% endif %} 
+        {% endif %}
       {% endfor %}
         },
         "elasticsearch": {
           "data_cluster": {
             "cluster_id": "es_search",
-           
+
             "hosts" : {{ server_ip | tojson }},
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
-            {% if gateway.security is defined and gateway.security == True %}
+            {% if security.gateway is defined and security.gateway == True %}
             ,
             "ssl_enabled": true
             {% endif %}
 
           },
           "metric_cluster": {
-            "cluster_id": "es_search",                             
+            "cluster_id": "es_search",
             "hosts": {{ server_ip | tojson }},
-            "index_name": "gateway-logs",                          
+            "index_name": "gateway-logs",
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
-            {% if gateway.security is defined and gateway.security == True %}
+            {% if security.gateway is defined and security.gateway == True %}
             ,
             "ssl_enabled": true
             {% endif %}
@@ -214,7 +214,7 @@
         },
         "resources": {
           "resources_dir": "/home/{{ operator.username }}/pp-conf/resources",
-          "doc_dir": "/data/opt/punchplatform-docuementation-{{version.gateway}}/doc/html",
+          "doc_dir": "{{ installation_directory }}/punchplatform-docuementation-{{version.gateway}}/doc/html",
           "tmp_dir": "/tmp",
           "archives_dir": "/tmp"
         },
