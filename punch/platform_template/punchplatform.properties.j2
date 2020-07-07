@@ -306,7 +306,7 @@
         {% else %}
         "bootstrap.servers": "{{ kafka.brokers | join(',') }}",
         {% endif %} 
-        
+        "data_dir" : "/data/opt/admin",
         "servers": {
         {% for server in shiva.servers %}
           "{{ server }}": {
