@@ -62,6 +62,9 @@ This file is composed as follow :
           - `servers`: list of pyspark hosts
       - `minio`:
           - `servers`: list of minio hosts
+      - `clickhouse`:
+          - `shards`: list of clickhouse shards
+             - `servers` : list of shard hosts
       - `operator`: 
           - `servers`: list of operator hosts
           - `username`: operator username
