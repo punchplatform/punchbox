@@ -1,0 +1,33 @@
+# Alert if metadata older than 9 min is present
+#
+# 9 min explanation :
+#
+# The housekeeper retention time is 3 min. The housekeeper execution period is 5 min.
+# After execution, the older valid metadata is 3 min old.
+# Right before next execution, 5 min later, the older valid metadata is 5+3 min old. 
+# We add 1 min for safety : result is 9 min. 
+
+name: Archive Housekeeping fail
+
+type: any
+
+index: mytenant-archive-*
+
+filter:
+- query:
+    range:
+      timestamp:
+        lt: now-9m
+
+realert:
+ minutes: 15
+
+alert_text_type: alert_text_only
+alert_text: "\n Archive Housekeeping ended with failure (At least one metadata older than 9 minutes)"
+
+alert:
+- command
+
+command: 
+  - "/bin/echo"
+  - "alert: Housekeeping of archive ended with failure (At least one metadata older than 9 minutes)"
