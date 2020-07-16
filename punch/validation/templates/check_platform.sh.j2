@@ -6,12 +6,6 @@ YELLOW="\033[33m"
 BLUE="\033[34m"
 RESET="\033[0m"
 
-echo -e "${BLUE}INFO:${RESET} Put platform and tenants configurations in zookeeper"
-punchplatform-putconf.sh --zookeeper-cluster-name local --platform -v
-punchplatform-putconf.sh --zookeeper-cluster-name local --tenant mytenant -v
-punchplatform-putconf.sh --zookeeper-cluster-name local --tenant validation -v
-
-
 echo -e "${BLUE}INFO:${RESET} Push Elasticsearch templates"
 punchplatform-push-es-templates.sh --directory $PUNCHPLATFORM_CONF_DIR/resources/elasticsearch/templates/ --url {{ punch.elasticsearch.cluster_production_transport_address }}:9200
 

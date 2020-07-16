@@ -120,9 +120,13 @@
          channel: admin
          runtime:*
       }
-      match:$.reporters[?(@.type=='elasticsearch')]
+      match:$.reporters[?(@.type=='kafka')]
       additional_values:{ 
-       cluster_name: es_search
+       bootstrap.servers:{{ punch.kafka.brokers[0] }}
+       topic: reporter-topic
+       metric_document_field_name: log
+       reporting_interval: 30
+       encoding: lumberjack
       }
    }
   
