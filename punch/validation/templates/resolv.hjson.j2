@@ -52,27 +52,6 @@
    }
    {% endif %}
 
-
-   {% if punch.elasticsearch is defined %}
-   // All ES reporters
-   es_reporter:{ 
-      selection:{ 
-         tenant:*
-         channel:*
-         runtime:*
-      }
-      match:$.metrics.reporters[?(@.type=='elasticsearch')]
-      additional_values:{ 
-         http_hosts:[ 
-            { 
-               host:{{ punch.elasticsearch.cluster_production_transport_address }}
-               port:9200
-            }
-         ]
-      }
-   }
-   {% endif %}
-
    {% if punch.kafka is defined %}
    // All Kafka reporters
    kafka_reporter:{ 
@@ -84,6 +63,10 @@
       match:$.metrics.reporters[?(@.type=='kafka')]
       additional_values:{ 
          bootstrap.servers:{{ punch.kafka.brokers[0] }}
+         topic: reporter-topic
+         metric_document_field_name: log
+         reporting_interval: 30
+         encoding: lumberjack
       }
    }
    {% endif %}
@@ -142,64 +125,6 @@
        cluster_name: es_search
       }
    }
-    // ES Housekeeping 
-   es_housekeeping:{ 
-      selection:{ 
-         tenant:*
-         channel: admin
-         runtime:*
-      }
-      match:$.clusters_settings[*]
-      additional_values:{ 
-       cluster_id: es_search
-      }
-   }
-   // Elastalert
-   elastalert:{ 
-      selection:{ 
-         tenant:*
-         channel:*
-         runtime:*
-      }
-      match:$.[?(@.writeback_index=='elastalert')]
-      additional_values:{ 
-         es_host: {{ punch.elasticsearch.cluster_production_transport_address }}
-         es_port: 9200
-      }
-   }
-   // Elastalert slack fail
-   elastalert_slack_fail:{ 
-      selection:{ 
-         tenant:*
-         channel:*
-         runtime:*
-      }
-      match:$.[?(@.name=~ /.*fail.*/i)]
-      additional_values:{ 
-         alert: slack
-         slack_webhook_url: "{{ webhook }}"
-         slack_proxy: "{{ proxy }}"
-         slack_emoji_override: ":punchlogo2:"
-         slack_msg_color: "danger"
-         slack_title: "6.0 validation from {{ hostname }} on {{os}}"
-      }
-   }
-     // Elastalert slack fail
-   elastalert_slack_success:{ 
-      selection:{ 
-         tenant:*
-         channel:*
-         runtime:*
-      }
-      match:$.[?(@.name=~ /.*success.*/i)]
-      additional_values:{ 
-        alert: slack
-        slack_webhook_url: "{{ webhook }}"
-        slack_proxy: "{{ proxy }}"
-        slack_emoji_override: ":punchlogo2:"
-        slack_msg_color: "good"
-        slack_title: "6.0 validation from {{ hostname }} on {{os}}"
-      }
-   }
+  
    {% endif %}
 }
