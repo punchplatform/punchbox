@@ -16,6 +16,12 @@
                port:9200
             }
          ]
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
 
@@ -31,6 +37,12 @@
          nodes:[ 
             {{ punch.elasticsearch.cluster_production_transport_address }}
          ]
+         {% if security %}
+         elastic_settings:{
+            es.net.http.auth.user: admin
+            es.net.http.auth.pass: admin
+         }
+         {% endif %}
       }
    }
    {% endif %}
@@ -69,6 +81,12 @@
                port:9200
             }
          ]
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
    {% endif %}
@@ -104,6 +122,12 @@
                port:9200
         	   } 
          ]
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
    // Archive houeskeeping
@@ -116,6 +140,12 @@
       match:$.archiving_pools[*]
       additional_values:{ 
          es_cluster_id: es_search
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
    // Channel monitoring 
@@ -128,6 +158,12 @@
       match: .elasticsearch
       additional_values:{ 
          es_cluster_id: es_search
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
    // Channel monitoring reporters 
@@ -140,6 +176,12 @@
       match:$.reporters[?(@.type=='elasticsearch')]
       additional_values:{ 
        cluster_name: es_search
+       {% if security %}
+       credentials: {
+          user: admin
+          password: admin
+       }
+       {% endif %}
       }
    }
     // ES Housekeeping 
@@ -152,6 +194,12 @@
       match:$.clusters_settings[*]
       additional_values:{ 
        cluster_id: es_search
+       {% if security %}
+       credentials: {
+          user: admin
+          password: admin
+       }
+       {% endif %}
       }
    }
    // Elastalert
@@ -177,6 +225,8 @@
       match:$.[?(@.name=~ /.*fail.*/i)]
       additional_values:{ 
          alert: slack
+         es_username: admin
+         es_password: admin
          slack_webhook_url: "{{ webhook }}"
          slack_proxy: "{{ proxy }}"
          slack_emoji_override: ":punchlogo2:"
@@ -194,6 +244,8 @@
       match:$.[?(@.name=~ /.*success.*/i)]
       additional_values:{ 
         alert: slack
+        es_username: admin
+        es_password: admin
         slack_webhook_url: "{{ webhook }}"
         slack_proxy: "{{ proxy }}"
         slack_emoji_override: ":punchlogo2:"

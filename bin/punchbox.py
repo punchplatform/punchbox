@@ -190,7 +190,7 @@ def create_ppconf():
 
 
 ## CREATE RESOLV FILE ##
-def create_resolver(user_config, target_os):
+def create_resolver(user_config, target_os, security=False):
   file_loader = jinja2.FileSystemLoader(template_dir)
   env = jinja2.Environment(loader=file_loader)
   resolv_template = env.get_template(resolv_template_file)
@@ -200,7 +200,8 @@ def create_resolver(user_config, target_os):
                                          webhook=os.getenv('SLACK_WEBHOOK', ''),
                                          proxy=os.getenv('SLACK_PROXY', ''),
                                          hostname=os.uname()[1],
-                                         os=target_os)
+                                         os=target_os,
+                                         security=security)
   resolv_file = open(resolv_target, "w+")
   resolv_file.write(resolv_render)
   resolv_file.close()
@@ -234,12 +235,12 @@ def import_resources(conf, user_config):
 
 
 ## CREATE A VALIDATION SHELL ##
-def create_platform_shell(user_config):
+def create_platform_shell(user_config, security=False):
     file_loader = jinja2.FileSystemLoader(template_dir)
     env = jinja2.Environment(loader=file_loader)
     platform_template = env.get_template(platform_template_shell)
     try:
-        platform_render = platform_template.render(punch=user_config["punch"])
+        platform_render = platform_template.render(punch=user_config["punch"], security=security)
         platform_shell = open(platform_shell_target, "w+")
         platform_shell.write(platform_render)
         platform_shell.close()
@@ -289,8 +290,8 @@ def main():
     if parser.parse_args().punch_conf is not None:
         import_resources(parser.parse_args().punch_conf, user_config)
         if "empty" not in parser.parse_args().config:
-            create_resolver(user_config,  parser.parse_args().os)
-            create_platform_shell(user_config)
+            create_resolver(user_config,  parser.parse_args().os, parser.parse_args().security)
+            create_platform_shell(user_config, parser.parse_args().security)
         else:
             logging.info(" empty configuration detected: skipping \'resolv.hjson\' and \'check_platform\' generation")
 
