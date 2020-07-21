@@ -11,28 +11,8 @@ using pyenv. As part of that environment the right version of ansible is install
 This is to ensure you all have the right ansible version. That particular version of ansible will be put in front of your 
 PATH environment variable so as to make sure it is the one used. 
 
-## File Organization
 
-```sh
-.
-├── Makefile
-├── README.md
-├── bin
-│   └── the punchbox utility plus a few extra commands including ansible
-├── configurations
-│   └── some ready to use boxes with or without punch layout models
-├── ansible
-│   └── some ready to use ansible roles
-├── kube
-│   └── the kubernetes resources to deploy a production-ready punch, or simply play with kube.
-├── punch
-│   └── the punch resources to deploy a production-ready punch
-├── requirements.txt
-└── vagrant
-    └── vagrant resource to create the server infrastructure
-```
-
-## Requirements 
+## Requirements
 
 This repository leverages python pex. We recommand the use of [pyenv](https://github.com/pyenv/pyenv). 
 If not familiar with python installation and best practices refer to 
@@ -53,7 +33,11 @@ pip install -U pip
 pip install -r requirements.txt
 ```
 
-You are all set. Install now the punchbox tool by simply typing :
+You are all set. 
+
+## Installation 
+
+Install the punchbox tool by simply typing :
 
 ```sh
 make install
@@ -63,6 +47,29 @@ source activate.sh
 Check everything is correctly setup by executing the punchbox command:
 ```sh
 punchbox -h
+```
+
+## File Organisation
+
+Here is the punchbox folder layout. 
+
+```sh
+.
+├── Makefile
+├── README.md
+├── bin
+│   └── the punchbox utility plus a few extra commands including ansible
+├── configurations
+│   └── some ready to use boxes with or without punch layout models
+├── ansible
+│   └── some ready to use ansible roles
+├── kube
+│   └── the kubernetes resources to deploy a production-ready punch, or simply play with kube.
+├── punch
+│   └── the punch resources to deploy a production-ready punch
+├── requirements.txt
+└── vagrant
+    └── vagrant resource to create the server infrastructure
 ```
 
 ## Generate Bare Linux VMs

@@ -20,13 +20,11 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Ro
 # Repository layout 
 top_dir = os.environ.get('PUNCHBOX_DIR')
 bin_dir = top_dir + '/bin'
-punch_dir = top_dir + '/punch/build'
+build_dir = top_dir + '/punch/build'
 vagrant_dir = top_dir + '/vagrant'
-conf_dir = punch_dir + '/pp-conf'
-template_dir = top_dir + '/punch/validation/templates'
+build_conf_dir = build_dir + '/pp-conf'
 ansible_dir = top_dir + '/ansible'
 ansible_templates_dir = ansible_dir + '/templates'
-validation_conf_dir = top_dir + '/punch/validation/conf'
 
 # Templates path
 vagrant_template_file = 'Vagrantfile.j2'
@@ -36,10 +34,9 @@ punchbox_inv_template = 'punchbox.inv.j2'
 punchbox_playbook_template = 'punchbox.yml.j2'
 
 # Targets path
-resolv_target = conf_dir + '/resolv.hjson'
+resolv_target = build_conf_dir + '/resolv.hjson'
 vagrantfile_target = vagrant_dir + '/Vagrantfile'
-platform_shell_target = conf_dir + '/check_platform.sh'
-generated_model = punch_dir + '/model.json'
+generated_model = build_dir + '/model.json'
 punchbox_inv_target = ansible_dir + '/punchbox.inv'
 punchbox_playbook_target = ansible_dir + '/punchbox.yml'
 
@@ -51,11 +48,11 @@ cots = ["punch", "minio", "zookeeper", "spark", "pyspark", "elastic", "opendistr
 
 def unzip_punch_archive(deployer):
     deployer_folder_name = os.path.splitext(os.path.basename(deployer))[0]
-    if not os.path.exists(punch_dir + "/" + deployer_folder_name):
-        cmd = 'unzip {0} -d {1}'.format(deployer, punch_dir)
+    if not os.path.exists(build_dir + "/" + deployer_folder_name):
+        cmd = 'unzip {0} -d {1}'.format(deployer, build_dir)
         os.system(cmd)
         with open(top_dir + "/activate.sh", "a") as activate:
-            activate.write("export PATH=${PATH}:" + punch_dir + "/" + deployer_folder_name + "/bin")
+            activate.write("export PATH=${PATH}:" + build_dir + "/" + deployer_folder_name + "/bin")
         logging.info(' punchplatform deployer archive successfully unzipped')
 
 
@@ -79,13 +76,13 @@ def my_copy_tree(src, dst, symlinks=False, ignore: List[str] = None):
 
 
 ## VAGRANT MANAGEMENT ##
-def create_vagrantfile(user_config, vagrant_os: str=None):
+def create_vagrantfile(platform_config, vagrant_os: str=None):
   if not vagrant_os: 
-    vagrant_os=user_config["targets"]["meta"]["os"]
+    vagrant_os=platform_config["targets"]["meta"]["os"]
   file_loader = jinja2.FileSystemLoader(vagrant_dir)
   env = jinja2.Environment(loader=file_loader)
   vagrantfile_template = env.get_template(vagrant_template_file)
-  vagrantfile_render = vagrantfile_template.render(targets=user_config["targets"], os=vagrant_os)
+  vagrantfile_render = vagrantfile_template.render(targets=platform_config["targets"], os=vagrant_os)
   vagrantfile = open(vagrantfile_target, "w+")
   vagrantfile.write(vagrantfile_render)
   vagrantfile.close()
@@ -109,12 +106,12 @@ def custom_uuid_filter(*args):
     return uuid.uuid4()
 
 
-def create_inventory(user_config):
+def create_inventory(platform_config):
     file_loader = jinja2.FileSystemLoader(ansible_templates_dir)
     env = jinja2.Environment(loader=file_loader)
     env.filters['custom_uuid'] = custom_uuid_filter
     inventory_template = env.get_template(punchbox_inv_template)
-    inventory_render = inventory_template.render(targets=user_config["targets"])
+    inventory_render = inventory_template.render(targets=platform_config["targets"])
     inventory = open(punchbox_inv_target, "w+")
     inventory.write(inventory_render)
     inventory.close()
@@ -122,7 +119,7 @@ def create_inventory(user_config):
 
 
 def generate_playbook(deployer):
-    version_of = punch_dir + "/" + os.path.splitext(os.path.basename(deployer))[0] + "/bin/punchplatform-versionof.sh"
+    version_of = build_dir + "/" + os.path.splitext(os.path.basename(deployer))[0] + "/bin/punchplatform-versionof.sh"
     cmd = "{0} --legacy {1}".format(version_of, "punch")
     result = subprocess.check_output(cmd, shell=True)
     file_loader = jinja2.FileSystemLoader(ansible_templates_dir)
@@ -136,12 +133,12 @@ def generate_playbook(deployer):
 
 
 ## GENERATE FILE MODEL ##
-def generate_model(user_config, deployer, vagrant_mode, vagrant_os: str = None, vagrant_interface: str = None,
+def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = None, vagrant_interface: str = None,
                    security: bool = False):
     data = {}
     model = {}
     for component in cots:
-        version_of = punch_dir + "/" + os.path.splitext(os.path.basename(deployer))[
+        version_of = build_dir + "/" + os.path.splitext(os.path.basename(deployer))[
             0] + "/bin/punchplatform-versionof.sh"
         cmd = "{0} --legacy {1}".format(version_of, component)
         result = subprocess.check_output(cmd, shell=True)
@@ -155,7 +152,7 @@ def generate_model(user_config, deployer, vagrant_mode, vagrant_os: str = None, 
     if vagrant_interface is not None:
         model['iface'] = vagrant_interface
     elif vagrant_mode is True:
-        if 'centos' in user_config['targets']['meta']['os']:
+        if 'centos' in platform_config['targets']['meta']['os']:
             model['iface'] = "eth1"
         else:
             model['iface'] = "enp0s8"
@@ -174,7 +171,7 @@ def generate_model(user_config, deployer, vagrant_mode, vagrant_os: str = None, 
         model['security']['kibana'] = True
         model['security']['gateway'] = True
 
-    model = json.dumps({**model, **user_config['punch']}, indent=4, sort_keys=True)
+    model = json.dumps({**model, **platform_config['punch']}, indent=4, sort_keys=True)
     model_file = open(generated_model, "w+")
     model_file.write(model)
     model_file.close()
@@ -184,19 +181,18 @@ def generate_model(user_config, deployer, vagrant_mode, vagrant_os: str = None, 
 
 ## CREATE PP-CONF ##
 def create_ppconf():
-    if not os.path.exists(conf_dir):
-        os.makedirs(conf_dir)
-        logging.info('Creating conf dir %s', conf_dir)
-
+    if not os.path.exists(build_conf_dir):
+        logging.info('creating build confifuration directory %s', build_conf_dir)
+        os.makedirs(build_conf_dir)
 
 ## CREATE RESOLV FILE ##
-def create_resolver(user_config, target_os):
+def create_resolver(validation_config, platform_config, target_os):
   file_loader = jinja2.FileSystemLoader(template_dir)
   env = jinja2.Environment(loader=file_loader)
   resolv_template = env.get_template(resolv_template_file)
   if not target_os:
     target_os=user_config["targets"]["meta"]["os"]
-  resolv_render = resolv_template.render(punch=user_config["punch"],
+  resolv_render = resolv_template.render(punch=platform_config["punch"],
                                          webhook=os.getenv('SLACK_WEBHOOK', ''),
                                          proxy=os.getenv('SLACK_PROXY', ''),
                                          hostname=os.uname()[1],
@@ -217,29 +213,38 @@ def find_replace(directory, find, replace, file_pattern):
             with open(filepath, "w") as f:
                 f.write(s)
 
+## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
+def import_user_resources(punch_user_config):
+    ignore = ["*.properties", "resolv.*"]
+    my_copy_tree(punch_user_config, build_conf_dir, ignore=ignore)
+    logging.info(' punch user configuration successfully imported in %s', build_conf_dir)
+
 
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
-def import_resources(conf, user_config):
+def import_validation_resources(validation_conf_dir, platform_config):
+    template_dir = validation_conf_dir + "/templates"
     ignore = ["*.properties", "resolv.*"]
-    my_copy_tree(conf, conf_dir, ignore=ignore)
-    copy_tree(validation_conf_dir, conf_dir)
+    my_copy_tree(validation_conf_dir, build_conf_dir, ignore=ignore)
+    copy_tree(validation_conf_dir, build_conf_dir)
+
+    ## HACK HACK HACK
     replace_key = "spark"
     try:
-        find_replace(conf_dir + "/tenants/validation", "{{spark_master}}",
-                     user_config["punch"][replace_key]["masters"][0], "*")
+        find_replace(build_conf_dir + "/tenants/validation", "{{spark_master}}",
+                     platform_config["punch"][replace_key]["masters"][0], "*")
     except KeyError:
         logging.warn(' key \"{}\" not found. Skipping key for replacement'.format(replace_key))
-
-    logging.info(' punchplatform configuration successfully imported in %s', conf_dir)
+    logging.info(' punch validation configuration successfully imported in %s', build_conf_dir)
 
 
 ## CREATE A VALIDATION SHELL ##
-def create_platform_shell(user_config):
+def create_platform_shell(validation_config, platform_config):
+    platform_shell_target = validation_config + "/check_platform.sh"
     file_loader = jinja2.FileSystemLoader(template_dir)
     env = jinja2.Environment(loader=file_loader)
     platform_template = env.get_template(platform_template_shell)
     try:
-        platform_render = platform_template.render(punch=user_config["punch"])
+        platform_render = platform_template.render(punch=platform_config["punch"])
         platform_shell = open(platform_shell_target, "w+")
         platform_shell.write(platform_render)
         platform_shell.close()
@@ -251,14 +256,26 @@ def create_platform_shell(user_config):
 
 def main():
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+
     if "PUNCHBOX_DIR" not in os.environ:
         logging.fatal(' PUNCHBOX_DIR environment variable is not set')
         exit(1)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--deployer", help="Path to the punch deployer zip archive")
-    parser.add_argument("--punch-conf", help="Path to Punchplatform conf folder with your channels and resources")
-    parser.add_argument("--config", help="Path to your configuration", required=True)
+    parser.add_argument(
+        "--deployer", 
+        help="Path to the punch deployer zip archive. Something like punchplatform-deployer-6.1.0.zip.")
+    parser.add_argument(
+        "--punch-user-config", 
+        help="Path to a punch configuration folder with your channels and resources."\
+        " If you have no idea, check and use the punchbox/punch/configurations/sample/conf folder.")
+    parser.add_argument(
+        "--punch-validation-config", 
+        help="Path to Punchplatform conf folder with your channels and resources.")
+    parser.add_argument(
+        "--platform-config-file", 
+        help="Path to your platform json configuration. Check the punchbox/configurations folder for ready to use configurations."\
+        " For example complete_punch_16G.json for a complete punch assuming 16Gb ram on your laptop.", required=True)
     parser.add_argument("--destroy-vagrant", help="Vagrant destroy", action="store_true")
     parser.add_argument("--generate-vagrantfile", help="Generate vagrantfile", action="store_true")
     parser.add_argument("--start-vagrant", help="Vagrant up", action="store_true")
@@ -272,27 +289,35 @@ def main():
 
     if parser.parse_args().destroy_vagrant is True:
         destroy_vagrant_boxes()
-    user_config = load_user_config(parser.parse_args().config)
+
+    platform_config = load_user_config(parser.parse_args().platform_config_file)
     create_ppconf()
+
     if parser.parse_args().generate_vagrantfile is True:
-        create_vagrantfile(user_config, parser.parse_args().os)
+        create_vagrantfile(platform_config, parser.parse_args().os)
+    
     if parser.parse_args().start_vagrant is True:
         launch_vagrant_boxes()
+    
     if parser.parse_args().generate_inventory is True:
-        create_inventory(user_config)
+        create_inventory(platform_config)
+    
     if parser.parse_args().deployer is not None:
         unzip_punch_archive(parser.parse_args().deployer)
-        generate_model(user_config, parser.parse_args().deployer, parser.parse_args().generate_vagrantfile,
+        generate_model(platform_config, parser.parse_args().deployer, parser.parse_args().generate_vagrantfile,
                        parser.parse_args().os, parser.parse_args().interface, parser.parse_args().security)
         if parser.parse_args().generate_playbook is True:
             generate_playbook(parser.parse_args().deployer)
-    if parser.parse_args().punch_conf is not None:
-        import_resources(parser.parse_args().punch_conf, user_config)
-        if "empty" not in parser.parse_args().config:
-            create_resolver(user_config,  parser.parse_args().os)
-            create_platform_shell(user_config)
+
+    if parser.parse_args().punch_validation_config is not None:
+        import_validation_resources(parser.parse_args().punch_validation_config, platform_config)
+        if "empty" not in parser.parse_args().platform_config_file:
+            create_resolver(punch_validation_config, platform_config,  parser.parse_args().os)
+            create_platform_shell(punch_validation_config, platform_config)
         else:
             logging.info(" empty configuration detected: skipping \'resolv.hjson\' and \'check_platform\' generation")
+    if parser.parse_args().punch_user_config is not None:
+        import_user_resources(parser.parse_args().punch_user_config)
 
 if __name__ == "__main__":
     main()

@@ -1,46 +1,58 @@
-# Punchplatform Integration
+# Punch Deployment
 
-This folder provides easy tools to deploy and to validate a complete Punchplatform with different configurations 
+## Before You Start 
 
-**Warning**
+This folder provides easy tools and samples to deploy and to validate a complete Punch with different configurations. It is necessary for you 
+to have an official punch deployer package, which only comes with a license. Get in touch with the punch team if you are interested in exploring the punch.
 
-  - This version is a Beta
-  - Alpha version named 6.1 will be released mid-June
-  - Validation section use standalone and punchbox resources, it will be fixed soon to be more flexible
-  - Requires hardcode configuration : SLACK_WEBHOOK environment variable set with specific slack webhook URL
+If you are new to the punch here a a few important and essential concepts :
 
-## File Organization
+* a punch **platform** is a punch you deploy on one or several servers. A food idea is to start with vagrant boxes. A platform only consists in the components you decided to deploy such as elasticsearch, clickhouse, S3 etc.. but has no application yet. I.e. it is empty. 
+* a punch *user configuration*  (simply referred to as *configuration*) is where you define your applications. A punch configuration consists in
+  - one or several *tenants*
+  - in each tenant, one or several *channels*
+  - in each channel, one or several *applications*
+* *resources* are static configuration files that are often used along with your configuration. Resources are:
+  - certificates
+  - kibana dashboards and elasticsearch mappings
+  - enrichment files like geoip database file
+  - machine learning models
+  - etc..
 
-```sh
-.
-├── README.md
-├── platform_template
-│   └── Punchplatform configuration template
-├── resources
-│   └── some resources necessary to deploy a Punchplatform
-├── validation
-│   └── validation tools and resources
-├── build
-    └── temp files 
-```
+The Punch applications are particular in that they are expressed using simple (json or hjson) configuration files. 
+Of course all these are explained in details on the punch [online documentation](https://doc.punchplatform.com).
 
-## Punchplatform deployment
+Have a look at the configurations/sample folder. It defines a minimalistic application that consists in a single *sample* tenant, that contains a single *sample* channel, that contains a sample application which receives logs on the 9999 tcp port, and simply print them to stdout.
 
-Assumming you also have a punchplatform deployer and your associated configuration somewhere
-type in the following command: (remove the --start-vagrant to no start the vagrant boxes)
+In the rest of this chapter we go through a complete deployment, assuming you have your vargant boxes ready. If you have reachable VMs somewhere you can of course use these instead vagrant boxes. 
+
+## Deployment
+
+Assuming you also have a punchplatform deployer and your associated configuration somewhere
+type in the following command:
 
 ```sh
 punchbox --config configurations/complete_punch_16G.json \
         --generate-vagrantfile \
-        --punch-conf <path_to_your_punchplatform_config_folder> \
-        --deployer <path_to_your_punchplatform_deployer_zip> \
-        --start-vagrant
+        --punch-user-config <path_to_your_punchplatform_config_folder> \
+        --deployer <path_to_your_punchplatform_deployer_zip>
+```
+
+Note: you can add the --start-vagrant to also start the vagrant boxes if not done yet.
+
+In case you do not know what to use for `path_to_your_punchplatform_config_folder`, simply use the sample configuration, i.e: 
+
+```sh
+punchbox --config configurations/complete_punch_16G.json \
+        --generate-vagrantfile \
+        --punch-user-config ./configurations/sample \
+        --deployer <path_to_your_punchplatform_deployer_zip>
 ```
 
 This will unzip the punch deployer archive, as well as the sample standalone channels so that you will have a complete
 sample application deployed on your punch.
 
-Once that done go on and generate the punch deployment files. You dop that using the `punchplatform-deployer.sh`
+Next generate the punch deployment files: You do that using the `punchplatform-deployer.sh`
 tool that is now available to you. 
 
 ```sh
