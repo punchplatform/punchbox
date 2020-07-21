@@ -79,13 +79,13 @@ simple models in the 'configurations' folder. For example to generate
 three servers for testing things on a 16Gb laptop use the following:
 
 ```sh
-punchbox --config configurations/empty_16G.json --generate-vagrantfile
+punchbox --platform-config-file configurations/empty_16G.json --generate-vagrantfile
 ```
 
 You then have you Vagrantfile generated. To also start these servers you can type in:
 
 ```sh
-punchbox --config configurations/empty_16G.json \
+punchbox --platform-config-file configurations/empty_16G.json \
         --generate-vagrantfile \
         --start-vagrant
 ```

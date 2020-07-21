@@ -129,10 +129,11 @@ To deploy the Punchplatform alongside security measures, use the `--security` op
 ```shell
 make install
 source activate.sh
-punchbox --deployer ../pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-6.0.0-SNAPSHOT.zip \
-    --platform-config-file configurations/complete_punch_32G.json \
-    --punch-user-config ../pp-punch/pp-packaging/punchplatform-standalone/punchplatform-standalone-linux/target/tmp/punchplatform-standalone-6.0.0-SNAPSHOT/conf
-    --security
+punchbox --platform-config-file configurations/complete_punch_16G.json \
+        --generate-vagrantfile \
+        --punch-user-config <path_to_your_punchplatform_config_folder> \
+        --deployer <path_to_your_punchplatform_deployer_zip>
+        --security
 source activate 
 punchplatform-deployer.sh --generate-platform-config --templates-dir punch/platform_template/ --model punch/build/model.json
 punchplatform-deployer.sh -gi
