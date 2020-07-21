@@ -35,6 +35,7 @@ punchbox_playbook_template = 'punchbox.yml.j2'
 
 # Targets path
 resolv_target = build_conf_dir + '/resolv.hjson'
+platform_shell_target = build_conf_dir + "/check_platform.sh"
 vagrantfile_target = vagrant_dir + '/Vagrantfile'
 generated_model = build_dir + '/model.json'
 punchbox_inv_target = ansible_dir + '/punchbox.inv'
@@ -62,17 +63,18 @@ def load_user_config(user_config_file):
         return json.load(f)
 
 
-def my_copy_tree(src, dst, symlinks=False, ignore: List[str] = None):
+def my_copy_tree(src, dst, ignore: List[str] = None):
     for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s):
-            try:
-                copytree(s, d, symlinks, ignore=ignore_patterns(*ignore))
-            except FileExistsError:
-                pass
-        else:
-            map(lambda x: copy2(s, d), filter(lambda y: y not in s, ignore))
+        if not item in ignore: 
+            s = os.path.join(src, item)
+            d = os.path.join(dst, item)
+            if os.path.isdir(s):
+                try:
+                    copytree(s, d, ignore=ignore_patterns(*ignore))
+                except FileExistsError:
+                    pass
+            else:
+                map(lambda x: copy2(s, d), filter(lambda y: y not in s, ignore))
 
 
 ## VAGRANT MANAGEMENT ##
@@ -187,11 +189,11 @@ def create_ppconf():
 
 ## CREATE RESOLV FILE ##
 def create_resolver(validation_config, platform_config, target_os):
-  file_loader = jinja2.FileSystemLoader(template_dir)
+  file_loader = jinja2.FileSystemLoader(validation_config + "/templates")
   env = jinja2.Environment(loader=file_loader)
   resolv_template = env.get_template(resolv_template_file)
   if not target_os:
-    target_os=user_config["targets"]["meta"]["os"]
+    target_os=platform_config["targets"]["meta"]["os"]
   resolv_render = resolv_template.render(punch=platform_config["punch"],
                                          webhook=os.getenv('SLACK_WEBHOOK', ''),
                                          proxy=os.getenv('SLACK_PROXY', ''),
@@ -222,10 +224,8 @@ def import_user_resources(punch_user_config):
 
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
 def import_validation_resources(validation_conf_dir, platform_config):
-    template_dir = validation_conf_dir + "/templates"
-    ignore = ["*.properties", "resolv.*"]
+    ignore = ["*.properties", "resolv.*", "binutils", "templates"]
     my_copy_tree(validation_conf_dir, build_conf_dir, ignore=ignore)
-    copy_tree(validation_conf_dir, build_conf_dir)
 
     ## HACK HACK HACK
     replace_key = "spark"
@@ -239,8 +239,7 @@ def import_validation_resources(validation_conf_dir, platform_config):
 
 ## CREATE A VALIDATION SHELL ##
 def create_platform_shell(validation_config, platform_config):
-    platform_shell_target = validation_config + "/check_platform.sh"
-    file_loader = jinja2.FileSystemLoader(template_dir)
+    file_loader = jinja2.FileSystemLoader(validation_config + "/templates")
     env = jinja2.Environment(loader=file_loader)
     platform_template = env.get_template(platform_template_shell)
     try:
@@ -312,8 +311,8 @@ def main():
     if parser.parse_args().punch_validation_config is not None:
         import_validation_resources(parser.parse_args().punch_validation_config, platform_config)
         if "empty" not in parser.parse_args().platform_config_file:
-            create_resolver(punch_validation_config, platform_config,  parser.parse_args().os)
-            create_platform_shell(punch_validation_config, platform_config)
+            create_resolver(parser.parse_args().punch_validation_config, platform_config,  parser.parse_args().os)
+            create_platform_shell(parser.parse_args().punch_validation_config, platform_config)
         else:
             logging.info(" empty configuration detected: skipping \'resolv.hjson\' and \'check_platform\' generation")
     if parser.parse_args().punch_user_config is not None:

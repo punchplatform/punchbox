@@ -5,6 +5,8 @@
   "applications": [
     {
       "args": [
+        "-t",
+        "validation",
         "--punchline",
         "dataset_generator_to_stdout_java.hjson",
         "--runtime",
@@ -14,17 +16,16 @@
       ],
       "cluster": "local",
       "shiva_runner_tags": [
-        "punchline"
+        "local"
       ],
       "name": "dataset_generator_to_stdout_java",
       "runtime": "shiva",
-      "resources": [
-        "dataset_generator_to_stdout_java.hjson"
-      ],
-      "command": "punchline"
+      "command": "punchlinectl"
     },
     {
       "args": [
+        "-t",
+        "validation",
         "--punchline",
         "dataset_generator_to_stdout_python.hjson",
         "--runtime",
@@ -34,17 +35,16 @@
       ],
       "cluster": "local",
       "shiva_runner_tags": [
-        "punchline"
+        "local"
       ],
       "name": "dataset_generator_to_stdout_python",
       "runtime": "shiva",
-      "resources": [
-        "dataset_generator_to_stdout_python.hjson"
-      ],
-      "command": "punchline"
+      "command": "punchlinectl"
     },
     {
       "args": [
+        "-t",
+        "validation",
         "--punchline",
         "punchline_java_python.hjson",
         "--runtime",
@@ -52,16 +52,13 @@
         "--spark-master",
         "spark://{{spark_master}}:7077"
       ],
-      "cluster": "colocalmmon",
+      "cluster": "local",
       "shiva_runner_tags": [
-        "punchline"
+        "local"
       ],
       "name": "punchline_java_python",
       "runtime": "shiva",
-      "resources": [
-        "punchline_java_python.hjson"
-      ],
-      "command": "punchline"
+      "command": "punchlinectl"
     }
   ]
 }

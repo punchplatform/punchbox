@@ -16,8 +16,6 @@ to your specific use case
 
 ## Punchplatform integration 
 
-**Watchout** : You must set 'SLACK_WEBHOOK' and 'SLACK_PROXY' environment variable with a valid slack webhook and proxy if needed to be able to publish results  
-
 ### Manual integration 
 
 Once your deployment is successful you can check your platform health. 
@@ -50,7 +48,6 @@ Then, under these lines add :
 ```sh
 PUNCHBOX_DIR=/home/punch/workspace/punchbox
 PUNCH_DIR=/home/punch/workspace/pp-punch
-SLACK_WEBHOOK=
 00 1  * *  * $PUNCHBOX_DIR/punch/validation/binutils/local_integration.sh 6.0 > /tmp/punchbox-6.0 2>&1
 ```
 

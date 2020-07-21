@@ -5,6 +5,8 @@
   "applications": [
     {
       "args": [
+        "-t",
+        "validation",
         "--punchline",
         "dataset_generator_fail_java.hjson",
         "--runtime",
@@ -14,17 +16,16 @@
       ],
       "cluster": "local",
       "shiva_runner_tags": [
-        "punchline"
+        "local"
       ],
       "name": "dataset_generator_fail_java",
       "runtime": "shiva",
-      "resources": [
-        "dataset_generator_fail_java.hjson"
-      ],
-      "command": "punchline"
+      "command": "punchlinectl"
     },
     {
       "args": [
+        "-t",
+        "validation",
         "--punchline",
         "dataset_generator_fail_python.hjson",
         "--runtime",
@@ -34,17 +35,16 @@
       ],
       "cluster": "local",
       "shiva_runner_tags": [
-        "punchline"
+        "local"
       ],
       "name": "dataset_generator_fail_python",
       "runtime": "shiva",
-      "resources": [
-        "dataset_generator_fail_python.hjson"
-      ],
-      "command": "punchline"
+      "command": "punchlinectl"
     },
     {
       "args": [
+        "-t",
+        "validation",
         "--punchline",
         "punchline_java_python_fail.hjson",
         "--runtime",
@@ -54,14 +54,11 @@
       ],
       "cluster": "local",
       "shiva_runner_tags": [
-        "punchline"
+        "local"
       ],
       "name": "punchline_java_python_fail",
       "runtime": "shiva",
-      "resources": [
-        "punchline_java_python_fail.hjson"
-      ],
-      "command": "punchline"
+      "command": "punchlinectl"
     }
   ]
 }

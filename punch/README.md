@@ -32,7 +32,7 @@ Assuming you also have a punchplatform deployer and your associated configuratio
 type in the following command:
 
 ```sh
-punchbox --config configurations/complete_punch_16G.json \
+punchbox --platform-config-file configurations/complete_punch_16G.json \
         --generate-vagrantfile \
         --punch-user-config <path_to_your_punchplatform_config_folder> \
         --deployer <path_to_your_punchplatform_deployer_zip>
@@ -43,7 +43,7 @@ Note: you can add the --start-vagrant to also start the vagrant boxes if not don
 In case you do not know what to use for `path_to_your_punchplatform_config_folder`, simply use the sample configuration, i.e: 
 
 ```sh
-punchbox --config configurations/complete_punch_16G.json \
+punchbox --platform-config-file configurations/complete_punch_16G.json \
         --generate-vagrantfile \
         --punch-user-config ./configurations/sample \
         --deployer <path_to_your_punchplatform_deployer_zip>
@@ -90,7 +90,7 @@ dealing another time with vagrant boxes. For that use `punchbox` without vagrant
 ```sh
 make install
 source activate.sh
-punchbox --deployer ../pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-6.0.0-SNAPSHOT.zip --config configurations/32-full.json --punch-conf ../pp-punch/pp-packaging/punchplatform-standalone/punchplatform-standalone-linux/target/tmp/punchplatform-standalone-6.0.0-SNAPSHOT/conf
+punchbox --deployer ../pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-6.0.0-SNAPSHOT.zip --platform-config-file configurations/32-full.json --punch-user-config ../pp-punch/pp-packaging/punchplatform-standalone/punchplatform-standalone-linux/target/tmp/punchplatform-standalone-6.0.0-SNAPSHOT/conf
 source activate 
 punchplatform-deployer.sh --generate-platform-config --templates-dir punch/platform_template/ --model punch/build/model.json
 punchplatform-deployer.sh -gi
@@ -99,7 +99,7 @@ punchplatform-deployer.sh -gi
 If you want to only deal with vagrant boxes, you must use vagrant options : 
 
 ```sh
-punchbox --config configurations/32-full.json --generate-vagrantfile --start-vagrant  
+punchbox --platform-config-file configurations/32-full.json --generate-vagrantfile --start-vagrant  
 ```
 
 **Note** : For each update on config or templates you must relaunch all these commands, you can only play with `punchbox` options to be more or less verbose
@@ -109,9 +109,10 @@ punchbox --config configurations/32-full.json --generate-vagrantfile --start-vag
 | Option | Details | Example |
 | --- | --- | --- |
 | --help | Usage summary. | --help |
-| --deployer | Path to the deployer's zip archive. This option is used to generate the configuration model with components versions and user properties. | --deployer /Downloads/punchplatform-deployer-6.0.0.zip |
-| --punch-conf | Path to a Punchpatform's configuration folder to import resources inside the shared folder. These resources will further be placed inside the configuration folder in operator nodes. | --punch-conf /home/user/punchplatform-standalone-linux-6.0.0/pp-conf |
-| --config | Path to the user configuration. | --config configurations/complete_punch_32G.json |
+| --deployer | Path to the punch deployer zip archive. Something like punchplatform-deployer-6.1.0.zip. | --deployer /Downloads/punchplatform-deployer-6.0.0.zip |
+| --punch-user-config | Path to a punch configuration folder with your channels and resources. If you have no idea, check and use the punchbox/punch/configurations/sample/conf folder. | punchbox/punch/configurations/sample/ |
+| --punch-validation-config | Path to Punchplatform conf folder with your channels and resources. | --punch-validation-config  punchbox/punch/configurations/sample/validation |
+| --platform-config-file |Path to your platform json configuration. Check the punchbox/configurations folder for ready to use configurations. For example complete_punch_16G.json for a complete punch assuming 16Gb ram on your laptop. | --platform-config-file configurations/complete_punch_32G.json |
 | --destroy-vagrant | Destroy the machines mounted from the Vagrantfile inside the current `vagrant` folder. | --destroy-vagrant |
 | --generate-vagrantfile | Generate a Vagrantfile inside the `vagrant` folder, from `targets.info` and `targets.meta` sections in user configuration. | --generate-vagrantfile |
 | --start-vagrant | Mount VMs right after the Vagrantfile generation. Same as `vagrant up` in vagrant folder. | --start-vagrant |
@@ -119,6 +120,7 @@ punchbox --config configurations/32-full.json --generate-vagrantfile --start-vag
 | --generate-playbook | Generate an ansible playbook to mount VMs without vagrant. | --generate-playbook |
 | --os | OS name to mount on VMs during the vagrant phase. Used to overwrite the os name inside the user's configuration. | --os centos/7 |
 | --interface | Interface name used by the deployed punchplatform components. This value should match the production interface on the mounted VMs. This option does not overwrite or change the interfaces names for vagrant. | --interface eth1 |
+| --security |Enable security deployment | --security |
 
 ## Secured deployment
 
@@ -128,8 +130,8 @@ To deploy the Punchplatform alongside security measures, use the `--security` op
 make install
 source activate.sh
 punchbox --deployer ../pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-6.0.0-SNAPSHOT.zip \
-    --config configurations/complete_punch_32G.json \
-    --punch-conf ../pp-punch/pp-packaging/punchplatform-standalone/punchplatform-standalone-linux/target/tmp/punchplatform-standalone-6.0.0-SNAPSHOT/conf
+    --platform-config-file configurations/complete_punch_32G.json \
+    --punch-user-config ../pp-punch/pp-packaging/punchplatform-standalone/punchplatform-standalone-linux/target/tmp/punchplatform-standalone-6.0.0-SNAPSHOT/conf
     --security
 source activate 
 punchplatform-deployer.sh --generate-platform-config --templates-dir punch/platform_template/ --model punch/build/model.json
@@ -147,4 +149,4 @@ A secured deployment enable :
 
 Once you have deployed your Punchplatform, you may be wondering how to check your platform health
 
-Refer to the [validation](./validation/README.md) guide. 
+Refer to the [validation](./configurations/validation/README.md) guide. 
