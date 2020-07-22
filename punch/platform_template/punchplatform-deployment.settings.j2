@@ -1,14 +1,14 @@
 {   
     "platform": {
-    "platform_id": "punchplatform-primary",
-    "setups_root": "{{ installation_directory }}",
-    "remote_data_root_directory": "{{data_storage_directory}}",
-    "remote_logs_root_directory": "/var/log/punchplatform",
-    "punchplatform_daemons_user": "{{ operator.username }}",
-    "punchplatform_group": "{{ operator.username }}",
-    "ansible_remote_user": "{{ operator.username }}",
-    "binaries_version": "{{ version.binaries }}",
-    "admin" : {
+        "platform_id": "punchplatform-primary",
+        "setups_root": "{{ installation_directory }}",
+        "remote_data_root_directory": "{{data_storage_directory}}",
+        "remote_logs_root_directory": "/var/log/punchplatform",
+        "punchplatform_daemons_user": "{{ operator.username }}",
+        "punchplatform_group": "{{ operator.username }}",
+        "ansible_remote_user": "{{ operator.username }}",
+        "binaries_version": "{{ version.binaries }}",
+        "admin" : {
             "type" : "file",
             "root" : "/data/opt/admin",
             "topics" : {
@@ -16,20 +16,18 @@
                     "name" : "platform-admin"
                 }
             }
+        },
+        "reporters" : [
+            {
+                "type": "kafka",
+                "bootstrap.servers": "{{ kafka.brokers | join(',') }}",
+                "topic": "reporter-topic",
+                "metric_document_field_name": "log",
+                "reporting_interval": 30,
+                "encoding": "lumberjack"
+            }
+        ]
     },
-    "reporters" : [
-     {
-      "type": "kafka",
-      "bootstrap.servers": "{{ kafka.brokers | join(',') }}",
-      "topic": "reporter-topic",
-      "metric_document_field_name": "log",
-      "reporting_interval": 30,
-      "encoding": "lumberjack"
-    }
-    ]
-    },
-    
- 
     {% if shiva is defined %}
     "shiva": {
     "shiva_version": "{{ version.shiva }}",
@@ -221,19 +219,10 @@
         "services": {
           "extraction": {
             "formats": ["csv", "json"]
-          },
-          "registry": {
-            "type": "file",
-            "settings": {
-              "root_path": "/home/{{ operator.username }}/pp-conf/tenants",
-              "create_root": true
-            }
           }
         },
         "resources": {
-          "resources_dir": "/home/{{ operator.username }}/pp-conf/resources",
           "doc_dir": "{{ installation_directory }}/punchplatform-docuementation-{{version.gateway}}/doc/html",
-          "tmp_dir": "/tmp",
           "archives_dir": "/tmp"
         },
         "reporters": [
