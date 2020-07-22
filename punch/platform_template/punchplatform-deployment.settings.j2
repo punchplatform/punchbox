@@ -28,6 +28,13 @@
             }
         ]
     },
+    {% if security is defined %}
+    "certificates": {
+        "server4": {
+            "local_certificates_dir": "{{security.local_user_certs}}"
+        }
+    },
+    {% endif %}
     {% if shiva is defined %}
     "shiva": {
     "shiva_version": "{{ version.shiva }}",
@@ -77,8 +84,6 @@
     }
   },
   {% endif %}
-
-
     {% if operator is defined %}
     "punchplatform_operator" : {
       "punchplatform_operator_environment_version": "{{ version.operator }}",
@@ -176,10 +181,10 @@
           "{{ server }}": {
             "inet_address": "{{ gateway.inet_address }}",
             "port": 4242
-            {% if security.gateway is defined and security.gateway == True %}
+            {% if security is defined %}
             ,
             "ssl": {
-              "enabled": true,
+              "enabled": false,
               "local_key_store_path": "{{security.local_gateway_keystore}}",
               "key_store_type": "jks",
               "key_store_password": "gateway",
@@ -199,9 +204,9 @@
 
             "hosts" : {{ server_ip | tojson }},
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
-            {% if security.gateway is defined and security.gateway == True %}
+            {% if security is defined %}
             ,
-            "ssl_enabled": true
+            "ssl_enabled": false
             {% endif %}
 
           },
@@ -210,9 +215,9 @@
             "hosts": {{ server_ip | tojson }},
             "index_name": "gateway-logs",
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
-            {% if security.gateway is defined and security.gateway == True %}
+            {% if security is defined %}
             ,
-            "ssl_enabled": true
+            "ssl_enabled": false
             {% endif %}
           }
         },
@@ -292,7 +297,7 @@
             "readonly" : true
           }
         }
-        {% if security.elasticsearch is defined and security.elasticsearch == True %}
+        {% if security is defined %}
         ,
         "plugins":{
           "opendistro_security": {
@@ -303,7 +308,7 @@
             "ssl_transport_pemkey_name": "node-key.pem",
             "ssl_transport_pemcert_name": "node-cert.pem",
             "ssl_transport_pemtrustedcas_name": "cachain.pem",
-            "ssl_http_enabled": true,
+            "ssl_http_enabled": false,
             "ssl_http_pemkey_name": "server2-key.pem",
             "ssl_http_pemcert_name": "server2-cert.pem",
             "ssl_http_pemtrustedcas_name": "server2-cachain.pem",
@@ -318,7 +323,7 @@
   },
    {% endif %}
 
-   {% if security.elasticsearch is defined and security.elasticsearch == True %}
+   {% if security is defined %}
    "elasticsearch_plugins": {
      "opendistro_security": {
        "version": "{{ version.opendistro_security }}"
@@ -381,7 +386,7 @@
         "version": "{{ version.punch }}"
       }
       {% endif %}
-      {% if security.kibana is defined and security.kibana == True %}
+      {% if security is defined %}
       {% if gateway is defined %}
       ,
       {% endif %}
@@ -399,9 +404,9 @@
         "es_type_of_nodes_targeted": "data_node",
         "kibana_port" : 5601,
         "type" : "administration"
-        {% if security.kibana is defined and security.kibana == True %}
+        {% if security is defined %}
         ,
-        "server_ssl_enabled": true,
+        "server_ssl_enabled": false,
         "local_ssl_certs_dir": "{{security.local_kibana_certs}}",
         "server_ssl_key_name": "kibana-server-key.pem",
         "server_ssl_certificate_name": "kibana-server-cert.pem",

@@ -8,7 +8,7 @@ import uuid
 from distutils.dir_util import copy_tree
 from shutil import copy2, copytree, ignore_patterns
 from sys import exit
-from typing import List
+from typing import List, Dict
 
 import jinja2
 from jinja2.exceptions import UndefinedError
@@ -134,6 +134,20 @@ def generate_playbook(deployer):
     logging.info('Successful generation of playbook in %s', punchbox_playbook_target)
 
 
+def patch_security_model(model: Dict):
+    local_es_certs = "{}/../punch/resources/security/certs/elasticsearch".format(ROOT_DIR)
+    local_kibana_certs = "{}/../punch/resources/security/certs/kibana".format(ROOT_DIR)
+    local_user_certs = "{}/../punch/resources/security/certs/user".format(ROOT_DIR)
+    local_gateway_keystore = "{}/../punch/resources/security/keystores/gateway/gateway.keystore".format(ROOT_DIR)
+    model['security'] = {}
+    model['security']['local_es_certs'] = local_es_certs
+    model['security']['local_kibana_certs'] = local_kibana_certs
+    model['security']['local_user_certs'] = local_user_certs
+    model['security']['local_gateway_keystore'] = local_gateway_keystore
+
+    return model
+
+
 ## GENERATE FILE MODEL ##
 def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = None, vagrant_interface: str = None,
                    security: bool = False):
@@ -161,17 +175,8 @@ def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = No
     else:
         model['iface'] = "ens4"
     # security model
-    local_es_certs = "{}/../punch/resources/security/certs/elasticsearch".format(ROOT_DIR)
-    local_kibana_certs = "{}/../punch/resources/security/certs/kibana".format(ROOT_DIR)
-    local_gateway_keystore = "{}/../punch/resources/security/keystores/gateway/gateway.keystore".format(ROOT_DIR)
-    model['security'] = {}
-    model['security']['local_es_certs'] = local_es_certs
-    model['security']['local_kibana_certs'] = local_kibana_certs
-    model['security']['local_gateway_keystore'] = local_gateway_keystore
     if security:
-        model['security']['elasticsearch'] = True
-        model['security']['kibana'] = True
-        model['security']['gateway'] = True
+        model = patch_security_model(model)
 
     model = json.dumps({**model, **platform_config['punch']}, indent=4, sort_keys=True)
     model_file = open(generated_model, "w+")
