@@ -76,6 +76,10 @@ Before deploy a Kubernetes cluster please check Kubernetes [prerequisites](https
 -   At least 2 CPUs on the machine that you use as a control-plane node.
 -   Full network connectivity among all machines in the cluster. You can use either a public or a private network.
 
+### Kubernetes Ports
+
+
+![](./images/kubernetes_prerequisites_port.png)
 
 ### 1. Create a Ansible hosts file
 
@@ -159,6 +163,10 @@ export KUBECONFIG=$HOME/.kube/config
 ```sh
 kubectl get pods --all-namespaces -o wide
 ```
+
+#### Expected result
+
+![](./images/test_kube.gif)
 
 ### 4. Run Kubernetes from your laptop
 
