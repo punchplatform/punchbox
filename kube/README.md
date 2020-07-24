@@ -61,11 +61,11 @@ ssh vagrant@server1 -i path/to/your/ssh/key
 > We recommend to test connection to all servers.
 
 
-##  Deploy Kubernetes with XKS
+##  Deploy Kubernetes with KAST
 
-XKS (eXtended Kube Stack) is a Thales private project that allow you to bootstrap a Kubernetes cluster on cloud or on premise based on kubeadm tool.
-For more informations you can check the [Gitlab repository](https://gitlab.thalesdigital.io/sixdt/xks/-/tree/develop).
-To following this tutorial you need to clone the project XKS and move on the folder XKS.
+KAST (Kubernetes Analytics Stack) is a Thales private project that allow you to bootstrap a Kubernetes cluster on cloud or on premise based on kubeadm tool.
+For more informations you can check the [Gitlab repository](https://gitlab.thalesdigital.io/sixdt/kast).
+To following this tutorial you need to clone the project KAST and move on the folder KAST.
 
 Before deploy a Kubernetes cluster please check Kubernetes [prerequisites](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/).
 
