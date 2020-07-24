@@ -6,63 +6,52 @@
     "remote_logs_root_directory": "/var/log/punchplatform",
     "punchplatform_daemons_user": "{{ operator.username }}",
     "punchplatform_group": "{{ operator.username }}",
-    "ansible_remote_user": "{{ operator.username }}",
-    "binaries_version": "{{ version.binaries }}",
-    "admin" : {
-            "type" : "file",
-            "root" : "/data/opt/admin",
-            "topics" : {
-                "admin_topic" : {
-                    "name" : "platform-admin"
-                }
-            }
-    },
-    "reporters" : [
-     {
-      "type": "kafka",
-      "bootstrap.servers": "{{ kafka.brokers | join(',') }}",
-      "topic": "reporter-topic",
-      "metric_document_field_name": "log",
-      "reporting_interval": 30,
-      "encoding": "lumberjack"
-    }
-    ]
+    "binaries_version": "{{ version.binaries }}", 
+    "reporters" : ["myreporter"]
     },
     
+    "reporters": {
+      "myreporter" : {
+        "type": "kafka",
+        "bootstrap.servers": "{{ kafka.brokers | join(',') }}",
+        "topic": "reporter-topic",
+        "metric_document_field_name": "log",
+        "reporting_interval": 30,
+        "encoding": "lumberjack"
+      },
+      "my-reporter2" : {
+        "type": "elasticsearch",
+        "cluster_name": "es_search"
+      }
+   },
+
  
     {% if shiva is defined %}
     "shiva": {
     "shiva_version": "{{ version.shiva }}",
     "clusters": {
       "local": {
-        "reporters": [
-          {
-            "type": "kafka",
-            "bootstrap.servers": "{{ kafka.brokers | join(',') }}",
-            "topic": "reporter-topic",
-            "metric_document_field_name": "log",
-            "reporting_interval": 30,
-            "encoding": "lumberjack"
-          }
-        ],
-        "topics" : {
-                    "control_topic" : {
-                        "name" : "shiva-local-ctl"
-                    },
-                    "data_topic" : {
-                        "name" : "shiva-local-data"
-                    },
-                    "assignement_topic" : {
-                        "name" : "shiva-local-assignement"
-                    }
-                },
-        "type" : "{{ shiva.mode }}",
-        {% if shiva.mode == "file" %}
-        "root" : "/data/opt/admin",
-        {% else %}
-        "bootstrap.servers": "{{ kafka.brokers | join(',') }}",
-        {% endif %} 
-        "data_dir" : "/data/opt/admin",
+        "reporters" : ["myreporter"],
+        "storage": {
+          "topics" : {
+                      "control_topic" : {
+                          "name" : "shiva-local-ctl"
+                      },
+                      "data_topic" : {
+                          "name" : "shiva-local-data"
+                      },
+                      "assignement_topic" : {
+                          "name" : "shiva-local-assignement"
+                      }
+                  },
+          "type" : "{{ shiva.mode }}",
+          {% if shiva.mode == "file" %}
+          "root" : "/data/opt/admin",
+          {% else %}
+          "kafka_cluster": "local",
+          {% endif %} 
+          "data_dir" : "/data/opt/admin"
+        },
         "servers": {
         {% for server in shiva.servers %}
           "{{ server }}": {
@@ -89,8 +78,16 @@
         {%- for server in zookeeper.servers %}
            {%- do temp_servers.append(server + ":2181/punchplatform-primary") %}
         {%- endfor %}
-      "punchplatform_conf_url" : "{{temp_servers | join(',') }}",
       "operators_username" : ["{{ operator.username }}"],
+      "storage" : {
+            "type" : "kafka",
+            "kafka_cluster": "local",
+            "topics" : {
+                "admin_topic" : {
+                    "name" : "platform-admin"
+                }
+            }
+      },
       "servers" : {
       {% for server in operator.servers %}
          "{{server}}" : {}
@@ -236,16 +233,7 @@
           "tmp_dir": "/tmp",
           "archives_dir": "/tmp"
         },
-        "reporters": [
-          {
-            "type": "kafka",
-            "bootstrap.servers": "{{ kafka.brokers | join(',') }}",
-            "topic": "reporter-topic",
-            "metric_document_field_name": "log",
-            "reporting_interval": 30,
-            "encoding": "lumberjack"
-          }
-        ]
+        "reporters": ["myreporter"]
       }
     }
   },
@@ -257,7 +245,14 @@
    "kafka_brokers_production_interface" : "{{ iface }}",
     "clusters" : {
       "local" : {
-        "brokers" : {{ kafka.brokers | tojson }},
+        "brokers_with_ids" : [
+              {%- for broker in kafka.brokers %}
+              {"id" : {{ loop.index }}, "broker" : "{{broker}}" }
+              {% if not loop.last %}
+              ,
+              {% endif %} 
+              {%- endfor %}
+        ],
         "zk_cluster" : "local",
         "zk_root" : "kafka-local",
         "brokers_config" : "punchplatform-local-server.properties",
@@ -307,6 +302,7 @@
         ,
         "plugins":{
           "opendistro_security": {
+            "opendistro_security_version": "{{ version.opendistro_security }}",
             "local_ssl_certs_dir": "{{security.local_es_certs}}",
             "admin_pemkey_name": "admin-key.pem",
             "admin_pemcert_name": "admin-cert.pem",
@@ -321,23 +317,15 @@
             "authcz_admin_dn": ["emailAddress=nodesuper1@thales.com,CN=nodesuper1,OU=ts,O=thales,L=paris,ST=idf,C=fr"],
             "nodes_dn": ["emailAddress=nodesuper2@thales.com,CN=nodesuper2,OU=ts,O=thales,L=paris,ST=idf,C=fr"],
             "kibana_index": ".kibana-admin"
+          },
+          "opendistro_alerting": {
+            "opendistro_alerting_version": "{{ version.opendistro_security }}"
           }
         }
         {% endif %}
       }
     }
   },
-   {% endif %}
-
-   {% if security.elasticsearch is defined and security.elasticsearch == True %}
-   "elasticsearch_plugins": {
-     "opendistro_security": {
-       "version": "{{ version.opendistro_security }}"
-     },
-     "opendistro_alerting": {
-       "version": "{{ version.opendistro_security }}"
-     }
-   },
    {% endif %}
 
    {% if storm is defined %}
@@ -383,27 +371,6 @@
    {% if kibana is defined %}
    "kibana" : {
   "kibana_version" : "{{ version.elastic }}",
-   "kibana_plugins":{
-      {% if gateway is defined %}
-   	  "punchplatform": {
-        "version": "{{ version.punch }}"
-      },
-      "punchplatform-feedback": {
-        "version": "{{ version.punch }}"
-      }
-      {% endif %}
-      {% if security.kibana is defined and security.kibana == True %}
-      {% if gateway is defined %}
-      ,
-      {% endif %}
-      "opendistro_security": {
-        "version": "{{ version.opendistro_security }}"
-      },
-      "opendistro_alerting": {
-        "version": "{{ version.opendistro_security }}"
-      }
-      {% endif %}
-		},
     "domains" : {
       "admin" : {
         "es_cluster_target": "es_search",
@@ -440,9 +407,24 @@
       {% set server_ip = server_ip.append( "http://"+server+":"+port ) %}
       {% endfor %}
       "punchplatform": {
+        "punchplatform_version": "{{ version.punch }}",
         "rest_api": {
           "hosts": {{ server_ip | tojson }}
         }
+      },
+      "punchplatform_feedback": {
+        "punchplatform_feedback_version": "{{ version.punch }}"
+      }
+      {% endif %}
+      {% if security.kibana is defined and security.kibana == True %}
+      {% if gateway is defined %}
+      ,
+      {% endif %}
+      "opendistro_security": {
+        "opendistro_security_version": "{{ version.opendistro_security }}"
+      },
+      "opendistro_alerting": {
+        "opendistro_alerting_version": "{{ version.opendistro_security }}"
       }
       {% endif %}
     }
