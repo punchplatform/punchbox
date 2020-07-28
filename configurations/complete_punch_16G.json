@@ -1,6 +1,6 @@
 {
-  "vagrant": {
-    "boxes": {
+  "targets": {
+    "info": {
       "server1": {
         "disksize": "20GB",
         "memory": 3000,
@@ -23,6 +23,8 @@
     }
   },
   "punch": {
+    "installation_directory": "/data/opt",
+    "data_storage_directory": "/data",
     "elasticsearch": {
       "servers": [
         "server3"
@@ -75,7 +77,8 @@
     "shiva": {
       "servers": [
         "server2"
-      ]
+      ],
+      "mode": "kafka"
     },
     "spark": {
       "masters": [
@@ -89,7 +92,8 @@
     "operator": {
       "servers": [
         "server1"
-      ]
+      ],
+      "username": "vagrant"
     }
   }
 }

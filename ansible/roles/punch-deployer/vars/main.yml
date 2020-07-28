@@ -1,0 +1,20 @@
+---
+
+deployer_version_root: "punchplatform-deployer-{{pp_deployer_version}}"
+deployer_filename: "{{deployer_version_root}}.zip"
+deployer_local_file: "{{pp_local_deployers_dir}}/{{deployer_filename}}"
+pp_remote_distribs_dir: "{{pp_remote_setups_dir}}/punchplatform-dists"
+deployer_remote_file: "{{pp_remote_distribs_dir}}/{{deployer_filename}}"
+deployer_remote_dir: "{{pp_remote_setups_dir}}/{{deployer_version_root}}"
+deployer_checksum_local_file: "{{deployer_local_file}}.checksum"
+deployer_checksum_remote_file: "{{deployer_remote_dir}}/.checksum"
+en_locale: en_US.UTF-8
+deployer_user_home: '{{pp_deployment_user_home_dir | default ("/home/"+pp_remote_deployment_user) }}'
+deployer_bin_dir: "{{deployer_remote_dir}}/bin"
+
+ansible_setup: "{{deployer_remote_dir}}/deployment_dependencies/setup_ansible"
+
+#Specific for punch conf 
+
+conf_local_path: "{{pp_local_conf_dir}}/{{pp_conf_name}}"
+conf_remote_path: "{{pp_remote_setups_dir}}"

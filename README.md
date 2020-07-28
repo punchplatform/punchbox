@@ -11,30 +11,12 @@ using pyenv. As part of that environment the right version of ansible is install
 This is to ensure you all have the right ansible version. That particular version of ansible will be put in front of your 
 PATH environment variable so as to make sure it is the one used. 
 
-## File Organization
 
-```sh
-.
-├── Makefile
-├── README.md
-├── bin
-│   └── the punchbox utility plus a few extra commands including ansible
-├── configurations
-│   └── some ready to use boxes with or without punch layout models
-├── kube
-│   └── the kubernetes resources to deploy a production-ready punch, or simply play with kube.
-├── punch
-│   └── the punch resources to deploy a production-ready punch
-├── requirements.txt
-└── vagrant
-    └── vagrant resource to create the server infrastructure
-```
-
-## Requirements 
+## Requirements
 
 This repository leverages python pex. We recommand the use of [pyenv](https://github.com/pyenv/pyenv). 
 If not familiar with python installation and best practices refer to 
-[Setup Python](https://gitlab.thalesdigital.io/punch/product/pp-punch/-/blob/6.x/pp-documentation/docs/Contribution_Guide/Setup_Python.md). 
+[Setup Python](https://doc.punchplatform.com/Contribution_Guide/Setup_Python.html). 
 
 Here is a safe and clean procedure to setup your python environment: first 
 create and activates a new virtualenv and call it (say) punchbox
@@ -51,7 +33,11 @@ pip install -U pip
 pip install -r requirements.txt
 ```
 
-You are all set. Install now the punchbox tool by simply typing :
+You are all set. 
+
+## Installation 
+
+Install the punchbox tool by simply typing :
 
 ```sh
 make install
@@ -63,20 +49,43 @@ Check everything is correctly setup by executing the punchbox command:
 punchbox -h
 ```
 
-## Generate Bare Linux Servers
+## File Organisation
+
+Here is the punchbox folder layout. 
+
+```sh
+.
+├── Makefile
+├── README.md
+├── bin
+│   └── the punchbox utility plus a few extra commands including ansible
+├── configurations
+│   └── some ready to use boxes with or without punch layout models
+├── ansible
+│   └── some ready to use ansible roles
+├── kube
+│   └── the kubernetes resources to deploy a production-ready punch, or simply play with kube.
+├── punch
+│   └── the punch resources to deploy a production-ready punch
+├── requirements.txt
+└── vagrant
+    └── vagrant resource to create the server infrastructure
+```
+
+## Generate Bare Linux VMs
 
 A first basic requirement is to generate one or several linux boxes. You will find some
 simple models in the 'configurations' folder. For example to generate 
 three servers for testing things on a 16Gb laptop use the following:
 
 ```sh
-punchbox --config configurations/empty_16G.json --generate-vagrantfile
+punchbox --platform-config-file configurations/empty_16G.json --generate-vagrantfile
 ```
 
 You then have you Vagrantfile generated. To also start these servers you can type in:
 
 ```sh
-punchbox --config configurations/empty_16G.json \
+punchbox --platform-config-file configurations/empty_16G.json \
         --generate-vagrantfile \
         --start-vagrant
 ```
@@ -92,8 +101,8 @@ Here the configurations/empty_16G.json example:
 
 ```json
 {
-  "vagrant": {
-    "boxes": {
+  "targets": {
+    "info": {
       "server1": {
         "disksize": "20GB",
         "memory": 3000,
@@ -125,7 +134,19 @@ Checkout the [kube](./kube/README.md) guide to install such a production kube eq
 Note that this is fun even if you do not want to put a punch on top of it. It shows how simple it is to
 deploy a complete kube platform using [kube_spray](https://github.com/kubernetes-sigs/kubespray).
 
-## Deploy a complete Punch
+***info*** : this part is subjected to hot activities. It will soon become an integrated part of the punch. 
+
+## Create Punch-Ready Bare OS servers
+
+This part lets you create plain unix servers with all the prerequisites to (i) setup a punch deployer server and/or (ii) setup a punch platform target server.
+
+Depending on your goal the prerequisites are differnt. A punch deployer server needs for example ansible, jq, unzip python etc .. Instead a punch target server (i.e. where you deploy and run punch apps and services) requires  mainly python 3. 
+
+The ansible roles defined in this part are free to use and lets you setup these target in minutes. 
+
+Refer to the [ansible](./ansible/README.md) guide.  
+
+## Deploy a Complete Punch
 
 The punch deployment is performed in a way similar than what is just explained to deploy empty servers.
 You simply use layout configuration file with the punch components you need. This repository provides
@@ -133,8 +154,9 @@ three ready-to-use complete punch configurations to accomodate 16Gb, 32Gb laptop
 
 Also provided is a great tool to perform an end-to-end validation of the punch. 
 
-Refer to the [punch](./punch/README.md) guide.  
+**warning**: this part requires you have an official punch deployer package. 
 
+Refer to the [punch](./punch/README.md) guide.  
 
 ## Contribute
 
@@ -142,4 +164,6 @@ This repository is licensed under the ApacheV2 license, please feel free to cont
 Only the punch itself is submitted to license, but is not necessary to use the vagrant or kube 
 parts.
 
+## Troubleshooting
 
+Refer to the [troubleshooting](./Troubleshooting.md) documentation if you encounter some problems:

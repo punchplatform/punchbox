@@ -1,0 +1,21 @@
+---
+# Vars for punch-development role
+
+## MAVEN
+maven_version: apache-maven-3.6.3
+maven_source_url: https://www-us.apache.org/dist/maven/maven-3/3.6.3/binaries/{{maven_version}}-bin.tar.gz
+
+## PYENV
+pyenv_root: "{{ pp_remote_data_dir }}/.pyenv"
+pyenv_home: "{{ ansible_env.HOME }}"
+pyenv_version: "v1.2.18"
+pyenv_virtualenv_version: "v1.1.5"
+pyenv_python36_version: "3.6.8"
+pyenv_python_versions:
+  - "{{ pyenv_python36_version }}"
+pyenv_global: "{{ pyenv_python36_version }}"
+
+## JAVA
+openjdk_package: "openjdk-8-jdk"
+openjdk_alternative: "java-8-openjdk-amd64"
+

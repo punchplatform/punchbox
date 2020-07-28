@@ -1,0 +1,28 @@
+name: Exit code 1 on java/python punchline success
+
+type: frequency
+
+index: platform-logs-*
+
+filter:
+- query:
+    query_string:
+      query: "platform.job:punchline_java_python_fail AND content.return_code: 1"
+
+num_events: 1
+timeframe: 
+  minutes: 10
+doc_type: _doc
+
+realert:
+ minutes: 15
+
+alert_text_type: alert_text_only
+alert_text: "\n Spark execution in client mode for a malformed java/python punchline ended with success (Exit 1 code received)"
+
+alert:
+- command
+
+command: 
+  - "/bin/echo"
+  - "alert: Spark execution in client mode for a malformed java/python punchline ended with success (Exit 1 code received)"

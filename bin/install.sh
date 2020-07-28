@@ -9,11 +9,6 @@ deployerName=''
 green "cleaning any previous installation"
 punchBoxPex="bin/pex/punchbox_pex/punchbox.pex"
 ansibleBoxPex="bin/pex/ansible_pex/ansible.pex"
-rm -rf "${punchBoxPex}"
-rm -rf "${ansibleBoxPex}"
-rm -rf ./punch/build
-rm -rf ./vagrant/Vagrantfile
-rm -rf ./activate.sh
 
 green "generating ${punchBoxPex}"
 pex -r ./bin/pex/punchbox_pex/requirements.txt --disable-cache --inherit-path -v -o ./bin/pex/punchbox_pex/punchbox.pex

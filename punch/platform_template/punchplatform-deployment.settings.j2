@@ -1,39 +1,91 @@
-{
-    "setups_root": "/data/opt",
-    "remote_data_root_directory": "/data",
+{   
+    "platform": {
+    "platform_id": "punchplatform-primary",
+    "setups_root": "{{ installation_directory }}",
+    "remote_data_root_directory": "{{data_storage_directory}}",
     "remote_logs_root_directory": "/var/log/punchplatform",
-    "punchplatform_daemons_user": "vagrant",
-    "punchplatform_group": "vagrant",
-    "ansible_remote_user": "vagrant",
+    "punchplatform_daemons_user": "{{ operator.username }}",
+    "punchplatform_group": "{{ operator.username }}",
+    "binaries_version": "{{ version.binaries }}", 
+    "reporters" : ["myreporter"]
+    },
+    
+    "reporters": {
+      "myreporter" : {
+        "type": "kafka",
+        "bootstrap.servers": "{{ kafka.brokers | join(',') }}",
+        "topic": "reporter-topic",
+        "metric_document_field_name": "log",
+        "reporting_interval": 30,
+        "encoding": "lumberjack"
+      },
+      "my-reporter2" : {
+        "type": "elasticsearch",
+        "cluster_name": "es_search"
+      }
+   },
+
  
     {% if shiva is defined %}
+    "shiva": {
     "shiva_version": "{{ version.shiva }}",
-    "shiva_plugins": {
-      "spark": {
-          "version": "{{ version.spark }}",
-          "analytics_deployment_version": "{{ version["analytics-deployment"] }}",
-          "analytics_client_version": "{{ version["analytics-client"] }}"
-      },
-      "logstash": {
-          "version": "{{ version.logstash }}"
-      },
-      "storm": {
-          "version": "{{ version.storm }}",
-          "topology_jar_version": "punchplatform-topology-{{ version.punch }}"
+    "clusters": {
+      "local": {
+        "reporters" : ["myreporter"],
+        "storage": {
+          "topics" : {
+                      "control_topic" : {
+                          "name" : "shiva-local-ctl"
+                      },
+                      "data_topic" : {
+                          "name" : "shiva-local-data"
+                      },
+                      "assignement_topic" : {
+                          "name" : "shiva-local-assignement"
+                      }
+                  },
+          "type" : "{{ shiva.mode }}",
+          {% if shiva.mode == "file" %}
+          "root" : "/data/opt/admin",
+          {% else %}
+          "kafka_cluster": "local",
+          {% endif %} 
+          "data_dir" : "/data/opt/admin"
+        },
+        "servers": {
+        {% for server in shiva.servers %}
+          "{{ server }}": {
+            "runner": true,
+            "can_be_master": true,
+            "tags": [ "local" ]
+          }
+      {% if not loop.last %}
+      ,
+      {% endif %} 
+      {% endfor %}
+        }
       }
-    },
-    {% endif %}
-
-
+    }
+  },
+  {% endif %}
     {% if operator is defined %}
     "punchplatform_operator" : {
+      "punchplatform_operator_environment_version": "{{ version.operator }}",
       "configuration_name_dir_from_home" : "pp-conf",
         {%- set temp_servers = [] %}
         {%- for server in zookeeper.servers %}
            {%- do temp_servers.append(server + ":2181/punchplatform-primary") %}
         {%- endfor %}
-      "punchplatform_conf_url" : "{{temp_servers | join(',') }}",
-      "operators_username" : ["vagrant"],
+      "operators_username" : ["{{ operator.username }}"],
+      "storage" : {
+            "type" : "kafka",
+            "kafka_cluster": "local",
+            "topics" : {
+                "admin_topic" : {
+                    "name" : "platform-admin"
+                }
+            }
+      },
       "servers" : {
       {% for server in operator.servers %}
          "{{server}}" : {}
@@ -46,65 +98,350 @@
     {% endif %}
 
     {% if spark is defined %}
-   "spark_version" : "{{ version.spark }}",
+   "spark" : {
+    "spark_version" : "{{ version.spark }}",
+    "punchplatform_analytics_deployment_version": "{{ version["analytics-deployment"] }}",
+    "clusters" : {
+      "local": {
+        "master" : {
+          "servers" : {{ spark.masters | tojson }},
+          "listen_interface" : "{{ iface }}",
+          "master_port" : 7077,
+          "rest_port": 6066,
+          "ui_port" : 8081
+        },
+        "slaves" : {
+        {% for server in spark.slaves %}
+          "{{ server }}" : {
+            "listen_interface" : "{{ iface }}",
+            "slave_port" : 7078,
+            "webui_port" : 8084
+          }
+          {% if not loop.last %}
+          ,
+          {% endif %} 
+        {% endfor %}
+        },
+        "spark_workers_by_punchplatform_spark": 1,
+        "zk_cluster" : "local",
+        "zk_root" : "spark-main",
+        "slaves_cpu" : 2,
+        "slaves_memory" : "{{ spark.slaves_memory }}"
+      }
+    }
+  },
    {% endif %}
-   "punchplatform_analytics_deployment_version": "{{ version["analytics-deployment"] }}",
-   "punchplatform_operator_environment_version": "{{ version.operator }}",
+   {% if pyspark is defined %}
+   "pyspark" : {
+        "pyspark_version" : "{{ version.pyspark }}",
+        "servers": {{ pyspark.servers | tojson }}
+  },
+   {% endif %}
    
    {% if zookeeper is defined %}
-   "zookeeper_version": "{{ version.zookeeper }}",
+   "zookeeper": {
+  "zookeeper_version": "{{ version.zookeeper }}",
    "zookeeper_nodes_production_interface": "{{ iface }}",
    "zookeeper_childopts": "{{ zookeeper.childopts }}",
-   "zookeeper_admin_cluster_name": "common",
+   "zookeeper_admin_cluster_name": "local",
+    "clusters": {
+      "local": {
+        "hosts": {{ zookeeper.servers | tojson }},
+        "cluster_port": 2181,
+        "punchplatform_root_node": "/punchplatform-primary"
+      }
+    }
+    },
+  
    {% endif %}  
 
    {% if gateway is defined %}
-   "gateway_version": "{{ version.gateway }}",
+   {% set server_ip = [] %}
+  {% set port = "9200" %}
+  {% for server in elasticsearch.servers  %}
+  {% set server_ip = server_ip.append( server+":"+port ) %}
+  {% endfor %}
+
+  "gateway": {
+    "gateway_version": "{{ version.gateway }}",
+    "clusters": {
+      "gateway_32g": {
+        "tenant": "mytenant",
+        "modsecurity_enabled": false,
+        "servers": {
+        {% for server in gateway.servers %}
+          "{{ server }}": {
+            "inet_address": "{{ gateway.inet_address }}",
+            "port": 4242
+            {% if security is defined %}
+            ,
+            "ssl": {
+              "enabled": false,
+              "local_key_store_path": "{{security.local_gateway_keystore}}",
+              "key_store_type": "jks",
+              "key_store_password": "gateway",
+              "key_alias": "gateway",
+              "key_password": "gateway"
+            }
+            {% endif %}
+          }
+        {% if not loop.last %}
+          ,
+        {% endif %}
+      {% endfor %}
+        },
+        "elasticsearch": {
+          "data_cluster": {
+            "cluster_id": "es_search",
+
+            "hosts" : {{ server_ip | tojson }},
+            "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
+            {% if security is defined %}
+            ,
+            "ssl_enabled": false
+            {% endif %}
+
+          },
+          "metric_cluster": {
+            "cluster_id": "es_search",
+            "hosts": {{ server_ip | tojson }},
+            "index_name": "gateway-logs",
+            "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
+            {% if security is defined %}
+            ,
+            "ssl_enabled": false
+            {% endif %}
+          }
+        },
+        "services": {
+          "extraction": {
+            "formats": ["csv", "json"]
+          }
+        },
+        "resources": {
+          "doc_dir": "{{ installation_directory }}/punchplatform-documentation-{{version.gateway}}/doc/html",
+          "archives_dir": "/tmp"
+        },
+        "reporters": ["myreporter"]
+      }
+    }
+  },
    {% endif %}
 
    {% if kafka is defined %}
+   "kafka" : {
    "kafka_version" : "{{ version.kafka }}",
    "kafka_brokers_production_interface" : "{{ iface }}",
+    "clusters" : {
+      "local" : {
+        "brokers_with_ids" : [
+              {%- for broker in kafka.brokers %}
+              {"id" : {{ loop.index }}, "broker" : "{{broker}}" }
+              {% if not loop.last %}
+              ,
+              {% endif %} 
+              {%- endfor %}
+        ],
+        "zk_cluster" : "local",
+        "zk_root" : "kafka-local",
+        "brokers_config" : "punchplatform-local-server.properties",
+        "default_replication_factor" : 1,
+        "default_partitions" : 2,
+        "partition_retention_bytes" : 1073741824,
+        "partition_retention_hours" : 24,
+        "kafka_brokers_jvm_xmx": "{{ kafka.jvm_xmx }}"
+      }
+    }
+  },
    {% endif %}
 
    {% if elasticsearch is defined %}
-   "elasticsearch_version" : "{{ version.elastic }}",
-   {% endif %}
-
-   {% if elasticsearch.security is defined and elasticsearch.security == True %}
-   "elasticsearch_plugins": {
-     "opendistro_security": {
-       "version": "{{ version.opendistro_security }}"
-     },
-     "opendistro_alerting": {
-       "version": "{{ version.opendistro_security }}"
-     }
-   },
+   "elasticsearch" : {
+    "elasticsearch_version" : "{{ version.elastic }}",
+    "clusters" : {
+      "es_search" : {
+        "nodes" : {
+          {% for server in elasticsearch.servers %}
+          "{{ server }}" : {
+            "http_api_address" : "{{ server }}",
+            "transport_address" : "{{ server }}",
+            "bind_address" : "_{{ iface }}_",
+            "rack_id" : "{{ loop.index }}"
+          }
+          {% if not loop.last %}
+          ,
+          {% endif %} 
+          {% endfor %}
+        },
+        "http_api_port" : 9200,
+        "cluster_production_transport_address" : "{{ elasticsearch.cluster_production_transport_address }}",
+        "transport_port" : 9300,
+        "minimum_master_nodes": {{ elasticsearch.servers|length }},
+        "settings_by_type" : {
+          "data_node": {
+            "max_memory": "{{ elasticsearch.memory }}",
+            "modsecurity_enabled": false,
+            "modsecurity_blocking_requests": false,
+            "script_execution_authorized": true,
+            "http_cors_enabled" : true,
+            "readonly" : true
+          }
+        }
+        {% if security is defined %}
+        ,
+        "plugins":{
+          "opendistro_security": {
+            "opendistro_security_version": "{{ version.opendistro_security }}",
+            "local_ssl_certs_dir": "{{security.local_es_certs}}",
+            "admin_pemkey_name": "admin-key.pem",
+            "admin_pemcert_name": "admin-cert.pem",
+            "admin_pemtrustedcas_name": "cachain.pem",
+            "ssl_transport_pemkey_name": "node-key.pem",
+            "ssl_transport_pemcert_name": "node-cert.pem",
+            "ssl_transport_pemtrustedcas_name": "cachain.pem",
+            "ssl_http_enabled": false,
+            "ssl_http_pemkey_name": "server2-key.pem",
+            "ssl_http_pemcert_name": "server2-cert.pem",
+            "ssl_http_pemtrustedcas_name": "server2-cachain.pem",
+            "authcz_admin_dn": ["emailAddress=nodesuper1@thales.com,CN=nodesuper1,OU=ts,O=thales,L=paris,ST=idf,C=fr"],
+            "nodes_dn": ["emailAddress=nodesuper2@thales.com,CN=nodesuper2,OU=ts,O=thales,L=paris,ST=idf,C=fr"],
+            "kibana_index": ".kibana-admin"
+          },
+          "opendistro_alerting": {
+            "opendistro_alerting_version": "{{ version.opendistro_security }}"
+          }
+        }
+        {% endif %}
+      }
+    }
+  },
    {% endif %}
 
    {% if storm is defined %}
+   "storm" : {
    "storm_version" : "{{ version.storm }}",
    "storm_nimbus_nodes_production_interface" : "{{ iface }}",
+    "clusters" : {
+      "local": {
+        "master" : {
+          "servers" : {{ storm.master.servers | tojson }},
+          "cluster_production_address" : "{{ storm.master.cluster_production_address }}"
+        },
+        "ui" : {
+          "servers" : {{ storm.ui.servers | tojson }},
+          "cluster_admin_url": "{{ storm.ui.cluster_admin_url }}:8080"
+        },
+        "slaves" : {{ storm.slaves | tojson }},
+        "zk_cluster" : "local",
+        "zk_root" : "storm-1.2.2-main",
+        "storm_workers_by_punchplatform_supervisor" : 10,
+        "workers_childopts" : "{{ storm.workers_childopts }}",
+        "supervisor_memory_mb" : {{ storm.supervisor_memory_mb }},
+        "supervisor_cpu" : 2
+      }
+    }
+  },
+   {% endif %}
+
+   {% if minio is defined %}
+   "minio": {
+    "minio_version": "{{ version.minio }}",
+    "minio_access_key": "admin",
+    "minio_secret_key": "punchplatform",
+      "clusters": {
+        "local": {
+          "hosts": {{ minio.servers | tojson }},
+          "port": "9000"
+        }
+      }
+    },
    {% endif %}
 
    {% if kibana is defined %}
-   "kibana_version" : "{{ version.elastic }}",
-   "kibana_plugins":{
-   	  "punchplatform": {
-        "version": "{{ version.punch }}"
+   "kibana" : {
+  "kibana_version" : "{{ version.elastic }}",
+    "domains" : {
+      "admin" : {
+        "es_cluster_target": "es_search",
+        "es_type_of_nodes_targeted": "data_node",
+        "kibana_port" : 5601,
+        "type" : "administration"
+        {% if security is defined %}
+        ,
+        "server_ssl_enabled": false,
+        "local_ssl_certs_dir": "{{security.local_kibana_certs}}",
+        "server_ssl_key_name": "kibana-server-key.pem",
+        "server_ssl_certificate_name": "kibana-server-cert.pem",
+        "elasticsearch_ssl_enabled": true,
+        "elasticsearch_ssl_verificationMode": "none",
+        "elasticsearch_ssl_certificateAuthorities_names": ["cachain.pem"]
+        {% endif %}
       }
-      {% if kibana.security is defined and kibana.security == True %}
+    },
+    "servers" : {
+    {% for server in kibana.servers %}
+      "{{ server }}" : {
+        "address" : "{{ server }}"
+      }
+      {% if not loop.last %}
       ,
-      "opendistro_security": {
-        "version": "{{ version.opendistro_security }}"
+      {% endif %} 
+    {% endfor %}
+    },
+    "plugins":{
+      {% if gateway is defined %}
+      {% set server_ip = [] %}
+      {% set port = "4242" %}
+      {% for server in gateway.servers  %}
+      {% set server_ip = server_ip.append( "http://"+server+":"+port ) %}
+      {% endfor %}
+      "punchplatform": {
+        "punchplatform_version": "{{ version.punch }}",
+        "rest_api": {
+          "hosts": {{ server_ip | tojson }}
+        }
       },
-      "opendistro_alerting": {
-        "version": "{{ version.opendistro_security }}"
+      "punchplatform_feedback": {
+        "punchplatform_feedback_version": "{{ version.punch }}"
       }
       {% endif %}
-		},
+      {% if security.kibana is defined and security.kibana == True %}
+      {% if gateway is defined %}
+      ,
+      {% endif %}
+      "opendistro_security": {
+        "opendistro_security_version": "{{ version.opendistro_security }}"
+      },
+      "opendistro_alerting": {
+        "opendistro_alerting_version": "{{ version.opendistro_security }}"
+      }
+      {% endif %}
+    }
+  },
+
     {% endif %}
-    "metricbeat_version" : "{{ version.metricbeat }}"
+    "metricbeat" : {
+    "metricbeat_version" : "{{ version.metricbeat }}",
+    "modules" : {
+      "system" : {
+        "high_frequency_system_metrics": {
+          "metricsets" : ["cpu","load","memory"],
+          "reporting_interval" : "30s"
+        },
+        "normal_frequency_system_metrics": {
+          "metricsets" : ["fsstat"],
+          "reporting_interval" : "5m"
+        },
+        "slow_frequency_system_metrics": {
+          "metricsets" : ["uptime"],
+          "reporting_interval" : "1h"
+        }
+      }
+    },
+    "elasticsearch" : {
+      "cluster_id" : "es_search"
+    }
+  }
 
 }
 

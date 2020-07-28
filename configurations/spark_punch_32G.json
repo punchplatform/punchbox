@@ -1,0 +1,117 @@
+{
+  "targets": {
+    "info": {
+      "server1": {
+        "disksize": "40GB",
+        "memory": 5000,
+        "cpu": 2,
+        "synced_pp_conf_folder": true
+      },
+      "server2": {
+        "disksize": "20GB",
+        "memory": 2048,
+        "cpu": 2
+      },
+      "server3": {
+        "disksize": "20GB",
+        "memory": 2048,
+        "cpu": 2
+      },
+      "server4": {
+        "disksize": "20GB",
+        "memory": 2048,
+        "cpu": 2
+      },
+      "server5": {
+        "disksize": "20GB",
+        "memory": 2048,
+        "cpu": 2
+      },
+      "server6": {
+        "disksize": "20GB",
+        "memory": 2048,
+        "cpu": 2
+      }
+    },
+    "meta": {
+      "os": "ubuntu/bionic64"
+    }
+  },
+  "punch": {
+    "installation_directory": "/data/opt",
+    "data_storage_directory": "/data",
+    "elasticsearch": {
+      "servers": [
+        "server3"
+      ],
+      "cluster_production_transport_address": "server3",
+      "memory": "512m"
+    },
+    "kibana": {
+      "servers": [
+        "server1"
+      ]
+    },
+    "gateway": {
+      "servers": [
+        "server1"
+      ],
+      "inet_address": "172.28.128.21"
+    },
+    "storm": {
+      "master": {
+        "servers": [
+          "server2"
+        ],
+        "cluster_production_address": "server2"
+      },
+      "ui": {
+        "servers": [
+          "server2"
+        ],
+        "cluster_admin_url": "server2"
+      },
+      "slaves": [
+        "server2"
+      ],
+      "workers_childopts": "-Xmx128m",
+      "supervisor_memory_mb": 256
+    },
+    "kafka": {
+      "brokers": [
+        "server3:9092"
+      ],
+      "jvm_xmx": "512M"
+    },
+    "shiva": {
+      "servers": [
+        "server2"
+      ],
+      "mode": "kafka"
+    },
+    "zookeeper": {
+      "servers": [
+        "server1"
+      ],
+      "childopts": "-server -Xmx128m -Xms128m"
+    },
+    "operator": {
+      "servers": [
+        "server1"
+      ],
+      "username": "vagrant"
+    },
+    "spark": {
+      "masters": [
+        "server2",
+        "server3"
+      ],
+      "slaves": [
+        "server4",
+        "server5",
+        "server6"
+      ],
+      "slaves_memory": "1200M"
+    }
+  }
+}

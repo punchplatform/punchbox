@@ -1,0 +1,134 @@
+{ 
+
+   {% if punch.elasticsearch is defined %}
+   // All ES input/output nodes (Storm nodes)
+   elasticsearch_nodes:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='elasticsearch_input' || @.type=='elasticsearch_output')].settings
+      additional_values:{ 
+         http_hosts:[ 
+            { 
+               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               port:9200
+            }
+         ]
+      }
+   }
+
+   // All ES spark nodes 
+   elastic_nodes:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='elastic_batch_input' || @.type=='elastic_batch_output' || @.type=='elastic_stream_output' || @.type=='elastic_input' || @.type=='elastic_query_stats' || @.type=='python_elastic_input' || @.type=='python_elastic_output')].settings
+      additional_values:{ 
+         nodes:[ 
+            {{ punch.elasticsearch.cluster_production_transport_address }}
+         ]
+      }
+   }
+   {% endif %}
+
+
+   {% if punch.kafka is defined %}
+   // All Kafka input/output nodes (Storm nodes)
+   kafka_input:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='kafka_input' || @.type=='kafka_output')].settings
+      additional_values:{ 
+         bootstrap.servers:{{ punch.kafka.brokers[0] }}
+         metric_cluster_id:local
+      }
+   }
+   {% endif %}
+
+   {% if punch.kafka is defined %}
+   // All Kafka reporters
+   kafka_reporter:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.metrics.reporters[?(@.type=='kafka')]
+      additional_values:{ 
+         bootstrap.servers:{{ punch.kafka.brokers[0] }}
+         topic: reporter-topic
+         metric_document_field_name: log
+         reporting_interval: 30
+         encoding: lumberjack
+      }
+   }
+   {% endif %}
+
+   {% if punch.elasticsearch is defined %}
+   // All plan persistence
+   persistence_plan_resolver:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.plan_settings.persistence[?(@.type=='elasticsearch')]
+      additional_values:{ 
+         nodes:[ 
+           	{
+               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               port:9200
+        	   } 
+         ]
+      }
+   }
+   // Archive houeskeeping
+   archive_housekeeping:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.archiving_pools[*]
+      additional_values:{ 
+         es_cluster_id: es_search
+      }
+   }
+   // Channel monitoring 
+   channel_monitoring:{ 
+      selection:{ 
+         tenant:*
+         channel: admin
+         runtime:*
+      }
+      match: .elasticsearch
+      additional_values:{ 
+         es_cluster_id: es_search
+      }
+   }
+   // Channel monitoring reporters 
+   channel_monitoring_reporters:{ 
+      selection:{ 
+         tenant:*
+         channel: admin
+         runtime:*
+      }
+      match:$.reporters[?(@.type=='kafka')]
+      additional_values:{ 
+       bootstrap.servers:{{ punch.kafka.brokers[0] }}
+       topic: reporter-topic
+       metric_document_field_name: log
+       reporting_interval: 30
+       encoding: lumberjack
+      }
+   }
+  
+   {% endif %}
+}

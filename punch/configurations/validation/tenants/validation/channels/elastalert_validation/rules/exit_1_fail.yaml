@@ -1,0 +1,29 @@
+name: Exit code 1 fail
+
+type: frequency
+
+index: platform-logs-*
+
+filter:
+- query:
+    query_string:
+      query: "platform.channel: spark_client_fail AND content.return_code: 0"
+
+num_events: 1
+timeframe: 
+  minutes: 10
+doc_type: _doc
+
+realert:
+ minutes: 15
+
+alert_text_type: alert_text_only
+alert_text: "\n At least one exit 0 code have been received during malformed punchlines execution in spark client mode"
+
+alert:
+- command
+
+command: 
+  - "/bin/echo"
+  - "alert: At least one exit 0 code have been received during malformed punchlines execution in spark client mode"
+

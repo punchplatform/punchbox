@@ -1,0 +1,22 @@
+{
+    "version": "6.0",
+    "start_by_tenant" : false,
+    "stop_by_tenant" : true,
+    "applications": [
+        {
+            "name": "elastalert_validation",
+            "runtime" : "shiva",
+            "command": "elastalert",
+            "args": [
+                "--config", "config.yaml", "--verbose"
+            ],
+            "resources": [
+                "config.yaml", "rules"
+            ],
+            "cluster": "local",
+            "shiva_runner_tags": [
+                "local"
+            ]
+        }
+    ]
+}

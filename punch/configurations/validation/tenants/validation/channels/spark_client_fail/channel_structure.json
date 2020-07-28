@@ -1,0 +1,64 @@
+{
+  "stop_by_tenant": true,
+  "version": "6.0",
+  "start_by_tenant": true,
+  "applications": [
+    {
+      "args": [
+        "-t",
+        "validation",
+        "--punchline",
+        "dataset_generator_fail_java.hjson",
+        "--runtime",
+        "spark",
+        "--spark-master",
+        "spark://{{spark_master}}:7077"
+      ],
+      "cluster": "local",
+      "shiva_runner_tags": [
+        "local"
+      ],
+      "name": "dataset_generator_fail_java",
+      "runtime": "shiva",
+      "command": "punchlinectl"
+    },
+    {
+      "args": [
+        "-t",
+        "validation",
+        "--punchline",
+        "dataset_generator_fail_python.hjson",
+        "--runtime",
+        "pyspark",
+        "--spark-master",
+        "spark://{{spark_master}}:7077"
+      ],
+      "cluster": "local",
+      "shiva_runner_tags": [
+        "local"
+      ],
+      "name": "dataset_generator_fail_python",
+      "runtime": "shiva",
+      "command": "punchlinectl"
+    },
+    {
+      "args": [
+        "-t",
+        "validation",
+        "--punchline",
+        "punchline_java_python_fail.hjson",
+        "--runtime",
+        "pyspark",
+        "--spark-master",
+        "spark://{{spark_master}}:7077"
+      ],
+      "cluster": "local",
+      "shiva_runner_tags": [
+        "local"
+      ],
+      "name": "punchline_java_python_fail",
+      "runtime": "shiva",
+      "command": "punchlinectl"
+    }
+  ]
+}

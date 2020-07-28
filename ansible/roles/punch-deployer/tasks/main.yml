@@ -1,0 +1,118 @@
+---
+# tasks to setup a punchplatform deployer station, from a deployer package.
+
+# This role supports ubuntu 18.04, without internet access, but with standard repositories access
+
+
+- name: Ensure deployment dependencies system packages are installed
+  apt: name={{item}}
+  become: yes
+  loop:
+       - unzip
+       - curl
+       - git
+       - jq
+       - python3
+       - sshpass
+       - python3-pip
+
+- name: Create a symbolic link between python & python3
+  file:
+    src: /usr/bin/python3
+    dest: /usr/bin/python
+    state: link
+  become: true
+
+- name: Ensure LANG={{en_locale}} locale exists
+  become: yes
+  locale_gen:
+    name: "{{en_locale}}"
+    state: present
+
+- name: Check current system locale
+  shell: localectl status | sed -n 's/.*System Locale.*LANG=//p'
+  changed_when: false
+  register: system_locale_check
+
+
+- debug: msg="Current locale is {{system_locale_check.stdout}}"
+
+- name: Set system locale
+  become: true
+  shell: update-locale LANG={{en_locale}}
+  when: system_locale_check.stdout != en_locale
+
+- name: ensure {{pp_remote_deployment_user}} user exists
+  user: name={{pp_remote_deployment_user}} home={{deployer_user_home}} shell=/bin/bash
+  become: true
+
+- name: Ensure deployment user home exists
+  file: path={{deployer_user_home}} state=directory owner={{pp_remote_deployment_user}}
+
+
+- name: Retrieve up to date checksum of local deployer package
+  local_action: shell { [ {{ deployer_checksum_local_file}} -nt {{deployer_local_file}} ] || sha1sum {{deployer_local_file}} >> {{deployer_checksum_local_file}} ; } && cat {{deployer_checksum_local_file}}
+  check_mode: no
+  changed_when: false
+  throttle: 1
+  register:  local_deployer_checksum
+
+- name: Ensure remote directory exists to contain deployer
+  file: state=directory path={{item}} owner={{pp_remote_deployment_user}} recurse=no
+  loop:
+    - "{{pp_remote_setups_dir}}"
+    - "{{pp_remote_distribs_dir}}"
+
+  become: true
+
+- name: Retrieve checksum of remote deployer archive
+  check_mode: no
+  changed_when: false
+  shell: cat {{deployer_checksum_remote_file}} || echo ""
+  become: true
+  register: remote_deployer_checksum
+
+- name: Upload deployer archive if not up to date
+  copy: src={{deployer_local_file}} dest={{deployer_remote_file}} owner={{pp_remote_deployment_user}}
+  become: true
+  when: remote_deployer_checksum.stdout != local_deployer_checksum.stdout
+
+- name: Uncompress deployer archive
+  unarchive: src={{deployer_remote_file}} dest={{pp_remote_setups_dir}} copy=no owner={{pp_remote_deployment_user}}
+  become: true
+
+
+- name: Register remotely the checksum of the unarchived deployer
+  copy: content={{local_deployer_checksum.stdout}} dest={{deployer_checksum_remote_file}} owner={{pp_remote_deployment_user}}
+  become: true
+
+- name: Ensure deployment user path uses the right deployer (.bashrc file of this user)
+  become: true
+  lineinfile:
+    dest: "{{deployer_user_home}}/.bashrc"
+    line: "export PATH={{deployer_bin_dir}}:$PATH"
+    regex: "export PATH.*punchplatform-deployer"
+
+- name: Check if ansible is installed
+  check_mode: false
+  shell: which ansible
+  failed_when: false
+  register: ansible_check
+  changed_when: ansible_check.rc != 0
+
+- name: Unzip ansible offline setup if ansible not already installed
+  become: true
+  shell: unzip -o -d setup_ansible ansible*.zip 
+  args:
+    chdir: "{{deployer_remote_dir}}/deployment_dependencies"
+  when: ansible_check.changed
+
+
+- name: Install ansible from offline package if not already installed
+  become: true
+  shell: cd {{ansible_setup}}/ansible* && ./install.sh && cd && rm -rf {{ansible_setup}}
+  when: ansible_check.changed
+
+- name: Copy punchplatform configuration
+  import_tasks: conf.yml
+  when: pp_local_conf_dir is defined 
