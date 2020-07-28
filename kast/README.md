@@ -1,94 +1,82 @@
-﻿#  Kubernetes Deployment
+﻿#  Kast Deployment
 
+This guide helps deploying a kast cluster onto vagrant boxes. Kast requires a cluster of
+centos or redhat servers. We will simply use the punchbox tool to create that cluster, then
+install kast onto it. 
 
-To deploy your Kubernetes cluster you need a cluster of Linux VM. We recommend to use Punchbox to easily bootstrap a VM cluster.
+## Prepare the VMs
 
-With punchbox you just need to configured a json file with your requirements RAM, CPU or an use sample ready-to-use. Punchbox will automatically build a VM cluster based on this requirement.
+Simply follow the punchbox vagrant guide to deploy a linux cluster. 
+Make sure you have a ssh key. You can disable the ssh host key checking
+as explained [here](../vagrant/README.md). 
 
-So the first step is to create a config file or use a sample already provided.
-If you don't know how to use punchbox please read this [readme](../README.md).
+As an example select the 16G template, make sure you use a
+supported os (for example "bento/centos-8") amd generate your vagrantfile using :
 
-## Generate VM Cluster with Punchbox
-
-### 1. Create a ssh key without password
-
-If you don't have a ssh key on the laptop that will be use to deploy your cluster, you can generate a ssh key with following command.
-
-```ssh
-ssh-keygen
-```
-if you have create a ssh key pair with a custom name, you need to update the the file ``vagrant/Vagrantfile.j2``
-
-```jinja
-PUBLIC_KEY = File.read("#{Dir.home}/.ssh/<your_ssh_key>.pub")
-```
-
-### 2. Activate punchbox pyenv
-
- ```sh
-pyenv activate punchbox
-```
-
-> Pyenv punchbox contains ansible commandes
-
-### 3. Activate punchbox commandes
-
- ```sh
-source activate.sh
-```
-
-
-### 4. Generate Bare Linux Servers
 ```sh
-punchbox --config configurations/empty_16G.json
- --generate-vagrantfile \
- --start-vagrant
+punchbox -platform-config-file configurations/empty_16G.json --generate-vagrantfile
 ```
 
+That create a vagrant/Vagrantfile file. Start your servers:
 
-### 5. Testing connection to your cluster
+```sh
+cd vagrant
+vagrant up
+```
+
+Check you can reach your boxes without passwords.
 
 ```sh
 ssh vagrant@server1
+ssh vagrant@server2
+ssh vagrant@server3
 ```
 
-if your a custom ssh key :
+##  Deploy Kast
+
+[Kast](https://gitlab.thalesdigital.io/sixdt/kast)) stands for Kubernetes Analytics Stack. 
+It is a Thales project that allows you to bootstrap a Kubernetes cluster on cloud or on premise using the native kubeadm tool. To move on clone that repository :
 
 ```sh
-ssh vagrant@server1 -i path/to/your/ssh/key
+git clone https://gitlab.thalesdigital.io/sixdt/kast
+cd kast
 ```
 
-> We recommend to test connection to all servers.
-
-
-##  Deploy Kubernetes with KAST
-
-KAST (Kubernetes Analytics Stack) is a Thales private project that allow you to bootstrap a Kubernetes cluster on cloud or on premise based on kubeadm tool.
-For more informations you can check the [Gitlab repository](https://gitlab.thalesdigital.io/sixdt/kast).
-To following this tutorial you need to clone the project KAST and move on the folder KAST.
-
-Before deploy a Kubernetes cluster please check Kubernetes [prerequisites](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/).
-
-### Prequisites
+Check out the [production kubernetes prerequisites](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/). Here are the essential minimal recommended setup:
 
 -   One or more machines running a deb/rpm-compatible Linux OS; for example: Ubuntu or CentOS.
 -   2 GiB or more of RAM per machine--any less leaves little room for your apps.
 -   At least 2 CPUs on the machine that you use as a control-plane node.
 -   Full network connectivity among all machines in the cluster. You can use either a public or a private network.
 
-### Kubernetes Ports
+Once deployed the kubernetes core infrastructure will use the following networking configuration:
 
+```/bin/sh
+Control-plane node(s)
 
-![](./images/kubernetes_prerequisites_port.png)
+Protocol Direction Port Range Purpose Used By
+TCP      Inbound   6443*      Kubernetes API server All
+TCP      Inbound   2379-2380  etcd server client API kube-apiserver, etcd
+TCP      Inbound   10250      Kubelet API Self, Control plane
+TCP      Inbound   10251      kube-scheduler Self
+TCP      Inbound   10252      kube-controller-manager Self
+TCP      Inbound   10249      kube-proxy metrics port
 
-### 1. Create a Ansible hosts file
+Worker node(s)
 
- ```sh
+Protocol Direction Port Range  Purpose Used By
+TCP      Inbound   10250       Kubelet API Self, Control plane
+TCP      Inbound   30000-32767 NodePort Services† All
+```
+
+### Step 1. Create the Kast Ansible hosts file
+
+```sh
 touch hosts
 vim hosts
 ```
 
-If your nodes have multiple network interface you need to specify the advertise address for this particular control-plane node's API server, you can do this with the argument ``ìnternal_address``
+If your nodes have multiple network interface you need to specify the advertise address for this particular control-plane node API server, you can do this with the argument ``ìnternal_address``
 
 example  :
 
@@ -113,7 +101,8 @@ To bootstrap your Kubernetes cluster you need to run 3 ansible role :
 You can choose Kubernetes composants like Pod network add-on by modify the file ``role/kube/boot/default/main.yml``
 
 
-#### Run role preflight 
+#### Run role preflight
+
 ```sh
 ansible-playbook -i hosts preflight.yml -u vagrant
 ```
@@ -139,7 +128,6 @@ If your use a custom ssh key pair :
 ```sh
 ansible-playbook -i hosts kube.yml -u vagrant --private-key=path/to/your/ssh/private/key
 ```
-
 
 ### 3. Test your Kubernetes cluster
 

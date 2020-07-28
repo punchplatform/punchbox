@@ -34,6 +34,13 @@ pip install -U pip
 pip install -r requirements.txt
 ```
 
+If you plan to use vagrant install [vagrant](https://www.vagrantup.com/downloads.html) and [virtualbox](https://www.virtualbox.org/). 
+
+```ssh
+vagrant plugin install vagrant-disksize
+vagrant plugin install vagrant-vbguest
+```
+
 You are all set. 
 
 ## Installation 
@@ -73,11 +80,11 @@ Here is the punchbox folder layout.
     └── vagrant resource to create the server infrastructure
 ```
 
-## Generate Bare Linux VMs
+## Generate Bare Linux Vagrant Boxes
 
 A first basic requirement is to generate one or several linux boxes. You will find some
 simple models in the configurations folder. For example to generate 
-three servers for testing things on a 16Gb laptop use the following:
+three ubuntu servers for testing things on a 16Gb laptop use the following:
 
 ```sh
 punchbox --platform-config-file configurations/empty_16G.json --generate-vagrantfile
@@ -127,15 +134,17 @@ Here the configurations/empty_16G.json example:
 }
 ```
 
+For another os simply update the meta os properties. For example "bento/centos-8". 
+
 ## Deploy a KAST Kubernetes cluster
 
-[Kast](https://gitlab.thalesdigital.io/sixdt/kast) is a  thales initiative taht provides an easy to deploy production kube stack that includes
+[Kast](https://gitlab.thalesdigital.io/sixdt/kast) is a thales initiative taht provides an easy to deploy production kube stack that includes
 many useful cots such as elasticsearch, kafka, spark etc.. 
 
-Checkout the [kube](./kube/README.md) guide to deploy a Kast cluster onto vagrant. In turn you will be
+Checkout the [kast](./kast/README.md) guide to deploy a Kast cluster onto vagrant. In turn you will be
 able to install a punch on top of it. 
 
-***info*** : this part is subjected to hot activities. The punch is in the process of integrating kast as its
+***info*** : this part is subject to hot activities. The punch is in the process of integrating kast as its
 core runtime stack. It will soon become an integrated part of the punch. 
 
 ## Punch Reference Servers
