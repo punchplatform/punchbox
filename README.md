@@ -1,9 +1,10 @@
 # Punch Integration Tools
 
 This repository provides easy tools to deploy plain servers, kubernetes clusters and/or
-punchplatforms in production-ready setups. It is designed to do all that on a single laptop.
+punchplatforms in production-ready setups. It is designed to do all that on a single laptop. 
+But is very useful should you have VMs or physical servers as well.
 
-Note that this repository follows the punch branch naming convention. The 5.7 branch should be used to deploy 5.7 punch, the 6.0 to deploy a 6.0 etc. If you do not plan to install punch but only kube or vagrant boxe this does not matter to you. Simply stick to the
+This repository follows the punch branch naming convention. The 5.7 branch should be used to deploy 5.7 punch, the 6.0 to deploy a 6.0 etc. If you do not plan to install punch but only kube or vagrant boxe this does not matter to you. Simply stick to the
 default branch. 
 
 WATCHOUT: there is realy only one thing to understand : once installed, this repository will install a local python environment
@@ -62,11 +63,11 @@ Here is the punchbox folder layout.
 ├── configurations
 │   └── some ready to use boxes with or without punch layout models
 ├── ansible
-│   └── some ready to use ansible roles
-├── kube
-│   └── the kubernetes resources to deploy a production-ready punch, or simply play with kube.
+│   └── some ready to use ansible roles to create reference servers
+├── kast
+│   └── the kubernetes resources to deploy a production-ready punch, or simply play with kast.
 ├── punch
-│   └── the punch resources to deploy a production-ready punch
+│   └── the punch resources to deploy a production-ready punch in minutes
 ├── requirements.txt
 └── vagrant
     └── vagrant resource to create the server infrastructure
@@ -75,7 +76,7 @@ Here is the punchbox folder layout.
 ## Generate Bare Linux VMs
 
 A first basic requirement is to generate one or several linux boxes. You will find some
-simple models in the 'configurations' folder. For example to generate 
+simple models in the configurations folder. For example to generate 
 three servers for testing things on a 16Gb laptop use the following:
 
 ```sh
@@ -126,21 +127,22 @@ Here the configurations/empty_16G.json example:
 }
 ```
 
-## Deploy a production Kubernetes Cluster
+## Deploy a KAST Kubernetes cluster
 
-Punch can be deployed on a kube platform as long as it contains the required Kafka, Elasticsearch etc.. 
-Checkout the [kube](./kube/README.md) guide to install such a production kube equipped with the required COTS.
+[Kast](https://gitlab.thalesdigital.io/sixdt/kast) is a  thales initiative taht provides an easy to deploy production kube stack that includes
+many useful cots such as elasticsearch, kafka, spark etc.. 
 
-Note that this is fun even if you do not want to put a punch on top of it. It shows how simple it is to
-deploy a complete kube platform using [kube_spray](https://github.com/kubernetes-sigs/kubespray).
+Checkout the [kube](./kube/README.md) guide to deploy a Kast cluster onto vagrant. In turn you will be
+able to install a punch on top of it. 
 
-***info*** : this part is subjected to hot activities. It will soon become an integrated part of the punch. 
+***info*** : this part is subjected to hot activities. The punch is in the process of integrating kast as its
+core runtime stack. It will soon become an integrated part of the punch. 
 
-## Create Punch-Ready Bare OS servers
+## Punch Reference Servers
 
 This part lets you create plain unix servers with all the prerequisites to (i) setup a punch deployer server and/or (ii) setup a punch platform target server.
 
-Depending on your goal the prerequisites are differnt. A punch deployer server needs for example ansible, jq, unzip python etc .. Instead a punch target server (i.e. where you deploy and run punch apps and services) requires  mainly python 3. 
+Depending on your goal the prerequisites are differnt. A punch deployer server needs for example ansible, jq, unzip python etc .. Instead a punch target server (i.e. where you deploy and run punch apps and services) require  mainly python 3. 
 
 The ansible roles defined in this part are free to use and lets you setup these target in minutes. 
 

@@ -1,4 +1,4 @@
-# Ansible roles 
+# Ansible Roles 
 
 Here you can find some useful ansible roles. Each is autonomous. 
 Each role contains a specific README which describes mandatory variables to declare in your ansible inventory. 
@@ -11,13 +11,13 @@ Use the "punch-development"  role to equip a server, laptop or vm with the punch
 
 ## MiniKube
 
-Install quickly a mono kube on your laptop. For developers or testers. 
+Install quickly a mini kube on your laptop. For developers or testers. 
 
 ## Punch Deployer 
 
 Use the "punch-deployer" role to install the necessary requirements for deploying a punch. These are thus what you need on your deployer server (laptop or vm). Not the target punch servers. 
 
-## Punch Raw Node 
+## Punch Raw Target Server 
 
 Use the "punch-node" role to generate the raw unix node with the required punch prerequisite. 
 These raw nodes are they ready to be used for deploying a complete punch. 
