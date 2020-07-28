@@ -79,7 +79,7 @@
          channel:*
          runtime:*
       }
-      match:$.plan_settings.persistence[?(@.type=='elasticsearch')]
+      match:$.settings.persistence[?(@.type=='elasticsearch')]
       additional_values:{ 
          nodes:[ 
            	{

@@ -5,8 +5,7 @@
   "applications": [
     {
       "args": [
-        "-t",
-        "validation",
+        "start",
         "--punchline",
         "dataset_generator_fail_java.hjson",
         "--runtime",
@@ -24,8 +23,7 @@
     },
     {
       "args": [
-        "-t",
-        "validation",
+        "start",
         "--punchline",
         "dataset_generator_fail_python.hjson",
         "--runtime",
@@ -43,8 +41,7 @@
     },
     {
       "args": [
-        "-t",
-        "validation",
+        "start",
         "--punchline",
         "punchline_java_python_fail.hjson",
         "--runtime",

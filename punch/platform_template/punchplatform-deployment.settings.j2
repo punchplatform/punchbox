@@ -18,10 +18,6 @@
         "metric_document_field_name": "log",
         "reporting_interval": 30,
         "encoding": "lumberjack"
-      },
-      "my-reporter2" : {
-        "type": "elasticsearch",
-        "cluster_name": "es_search"
       }
    },
 
@@ -405,7 +401,7 @@
         "punchplatform_feedback_version": "{{ version.punch }}"
       }
       {% endif %}
-      {% if security.kibana is defined and security.kibana == True %}
+      {% if security is defined and security.kibana == True %}
       {% if gateway is defined %}
       ,
       {% endif %}
