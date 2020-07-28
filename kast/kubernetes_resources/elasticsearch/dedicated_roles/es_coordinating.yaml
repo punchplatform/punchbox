@@ -1,0 +1,104 @@
+---
+  kind: Service
+  apiVersion: v1
+  metadata:
+    name: es-routing
+    namespace: elk
+    labels:
+      app: elasticsearch
+      role: coordinating
+  spec:
+    selector:
+      app: elasticsearch
+      role: coordinating
+    ports:
+      - name: inter-node
+        port: 9300
+      - name: rest
+        port: 9200
+  
+---
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: es-coordinating
+    namespace: elk
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: elasticsearch
+        role: coordinating
+        
+    template:
+      metadata:
+        labels:
+          app: elasticsearch
+          role: coordinating
+      spec:
+        volumes:
+        - name: data
+          emptyDir: {}
+        initContainers:
+        - name: increase-vm-max-map
+          image: busybox
+          command: ["sysctl", "-w", "vm.max_map_count=262144"]
+          securityContext:
+            privileged: true
+  
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+          securityContext:
+            privileged: true
+          volumeMounts:
+          - name: data
+            mountPath: /usr/share/elasticsearch/data
+  
+        - name: increase-fd-ulimit
+          image: busybox
+          command: ["sh", "-c", "ulimit -n 65536"]
+          securityContext:
+            privileged: true
+     
+        containers:
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
+          resources:
+              limits:
+                cpu: 1
+              requests:
+                cpu: 1
+          ports:
+          - name: inter-node
+            containerPort: 9300
+            protocol: TCP
+          - name: rest
+            containerPort: 9200
+            protocol: TCP
+
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+          env:
+            - name: cluster.name
+              value: elasticsearch-cluster
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: discovery.seed_hosts
+              value: "es-master-0.es-ms-ds,es-master-1.es-ms-ds,es-master-2.es-ms-ds"
+            - name: cluster.initial_master_nodes
+              value: "es-master-0,es-master-1,es-master-2"
+            - name: ES_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+            - name: node.master
+              value: "false"
+            - name: node.ingest
+              value: "false"
+            - name: node.data
+              value: "false"
+            - name: node.ml
+              value: "false"
+         

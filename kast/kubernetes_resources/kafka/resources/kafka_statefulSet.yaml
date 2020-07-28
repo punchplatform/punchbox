@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+spec:
+  selector:
+    matchLabels:
+      app: kafka
+  serviceName: kafka-headless
+  replicas: 3
+  podManagementPolicy: OrderedReady 
+  updateStrategy:
+    type: RollingUpdate
+    
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      volumes:
+       - name: data
+         emptyDir: {}
+       - name: config
+         configMap:
+          name: kafka-config
+
+      containers:
+      - name: k8skafka
+        imagePullPolicy: Always
+        image: gcr.io/google_containers/kubernetes-kafka:1.0-10.2.1
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "0.5"
+        ports:
+        - containerPort: 9092
+          name: server
+        command:
+        - sh
+        - -c
+        - "exec kafka-server-start.sh /opt/kafka/config/server.properties 
+          --override broker.id=${HOSTNAME##*-} \
+          --override zookeeper.connect=zookeeper-client.default.svc.cluster.local:2181 \
+          --override log.dir=/var/lib/kafka \
+          --override inter.broker.protocol.version=0.10.2-IV0"
+        env:
+        - name: KAFKA_HEAP_OPTS
+          value : "-Xmx512M -Xms512M"
+        - name: KAFKA_OPTS
+          value: "-Dlogging.level=INFO"
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/kafka
+        - name: config
+          mountPath: /opt/kafka/config
+        readinessProbe:
+          exec:
+           command:
+            - sh
+            - -c
+            - "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server=localhost:9092"
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+
