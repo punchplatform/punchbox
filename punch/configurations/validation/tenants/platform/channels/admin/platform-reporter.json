@@ -1,0 +1,63 @@
+{
+    "version": "6.0",
+    "tenant": "platform",
+    "channel": "admin",
+    "type": "punchline",
+    "runtime": "storm",
+    "name": "platform-reporter",
+    "meta": {
+      "tenant": "platform",
+      "channel": "admin",
+      "vendor": "admin"
+    },
+    "dag": [
+      {
+        "type": "kafka_input",
+        "settings": {
+          "topic": "reporter-topic",
+          "start_offset_strategy": "last_committed"
+        },
+          "executors": 1,
+          "fail_action": "exit",
+          "publish": [
+            {
+              "stream": "logs",
+              "fields": [
+                "log"
+              ]
+            }
+          ]
+      },
+      {
+        "type": "elasticsearch_output",
+        "settings": {
+          "index": {
+            "type": "daily",
+            "prefix": "platform-logs-"
+          },
+          "document_json_field": "log",
+          "batch_size": 1,
+          "reindex_failed_documents": true,
+             "error_index": { "type": "daily", "prefix": "platform-logs-errors-"}
+  
+        },
+          "subscribe": [
+            {
+              "component": "kafka_input",
+              "stream": "logs"
+            }
+          ]
+      }
+    ],
+    "metrics": {
+      "reporters": [
+        {
+          "type": "kafka"
+        }
+      ]
+    },
+    "settings": {
+      "topology.worker.childopts": "-server -Xms256m -Xmx256m"
+    }
+  }
+  

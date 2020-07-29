@@ -46,7 +46,7 @@
           {% else %}
           "kafka_cluster": "local",
           {% endif %} 
-          "data_dir" : "/data/opt/admin"
+          "data_dir" : "/data/opt/shiva"
         },
         "servers": {
         {% for server in shiva.servers %}
@@ -209,11 +209,6 @@
             {% endif %}
           }
         },
-        "services": {
-          "extraction": {
-            "formats": ["csv", "json"]
-          }
-        },
         "resources": {
           "doc_dir": "{{ installation_directory }}/punchplatform-documentation-{{version.gateway}}/doc/html",
           "archives_dir": "/tmp"
@@ -353,6 +348,25 @@
     },
    {% endif %}
 
+   {% if clickhouse is defined %}
+  "clickhouse": {
+    "clickhouse_version": "20.4.6.53",
+    "clusters": {
+      "common": {
+        "shards": [
+          {
+            "servers": {{ clickhouse.servers | tojson }}
+          }
+        ],
+        "zk_cluster": "local",
+        "zk_root": "clickhouse",
+        "http_port": "8123",
+        "tcp_port": "9100"
+      }
+    }
+  },
+   {% endif %}
+
    {% if kibana is defined %}
    "kibana" : {
   "kibana_version" : "{{ version.elastic }}",
@@ -414,8 +428,8 @@
       {% endif %}
     }
   },
-
     {% endif %}
+    
     "metricbeat" : {
     "metricbeat_version" : "{{ version.metricbeat }}",
     "modules" : {

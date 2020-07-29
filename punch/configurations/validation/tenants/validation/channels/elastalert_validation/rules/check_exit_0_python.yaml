@@ -7,7 +7,7 @@ index: platform-logs-*
 filter:
 - query:
     query_string:
-      query: "platform.job:dataset_generator_to_stdout_python AND content.return_code: 0"
+      query: "platform.application:dataset_generator_to_stdout_python AND content.return_code: 0"
 
 num_events: 1
 timeframe: 

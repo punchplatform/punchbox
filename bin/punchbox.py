@@ -229,16 +229,24 @@ def import_user_resources(punch_user_config):
 
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
 def import_validation_resources(validation_conf_dir, platform_config):
-    ignore = ["*.properties", "resolv.*", "binutils", "templates"]
+    ignore = ["*.properties", "resolv.*", "binutils", "*.j2"]
     my_copy_tree(validation_conf_dir, build_conf_dir, ignore=ignore)
 
     ## HACK HACK HACK
-    replace_key = "spark"
+    replace_spark = "spark"
+    replace_es = "elasticsearch"
+
     try:
         find_replace(build_conf_dir + "/tenants/validation", "{{spark_master}}",
-                     platform_config["punch"][replace_key]["masters"][0], "*")
+                     platform_config["punch"][replace_spark]["masters"][0], "*")
     except KeyError:
-        logging.warn(' key \"{}\" not found. Skipping key for replacement'.format(replace_key))
+        logging.warn(' key \"{}\" not found. Skipping key for replacement'.format(replace_spark))
+    try:
+        find_replace(build_conf_dir + "/tenants", "{{elasticsearch_host}}",
+                     platform_config["punch"][replace_es]["servers"][0], "*.yaml")
+    except KeyError:
+        logging.warn(' key \"{}\" not found. Skipping key for replacement'.format(replace_es))
+
     logging.info(' punch validation configuration successfully imported in %s', build_conf_dir)
 
 

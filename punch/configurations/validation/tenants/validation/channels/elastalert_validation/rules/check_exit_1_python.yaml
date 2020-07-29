@@ -7,7 +7,7 @@ index: platform-logs-*
 filter:
 - query:
     query_string:
-      query: "platform.job:dataset_generator_fail_python AND content.return_code: 1"
+      query: "platform.application:dataset_generator_fail_python AND content.return_code: 1"
 
 num_events: 1
 timeframe: 

@@ -7,7 +7,7 @@ index: platform-logs-*
 filter:
 - query:
     query_string:
-      query: "platform.job:punchline_java_python AND content.return_code: 0"
+      query: "platform.application:punchline_java_python AND content.return_code: 0"
 
 num_events: 1
 timeframe: 

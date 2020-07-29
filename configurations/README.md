@@ -62,6 +62,8 @@ This file is composed as follow :
           - `servers`: list of pyspark hosts
       - `minio`:
           - `servers`: list of minio hosts
+      - `clickhouse`:
+          - `servers`: list of clickhouse hosts
       - `operator`: 
           - `servers`: list of operator hosts
           - `username`: operator username

@@ -1,0 +1,45 @@
+{
+    "clusters_settings": [
+      {
+        "cluster_id": "es_search",
+        "actions": [
+          {
+            "type": "close_indices",
+            "indices_prefix": "platform-logs-",
+            "older_than_days": 7,
+            "indices_naming_time_format": "%Y.%m.%d"
+          },
+          {
+            "type": "delete_indices",
+            "indices_prefix": "platform-logs-",
+            "older_than_days": 12,
+            "indices_naming_time_format": "%Y.%m.%d"
+          },
+          {
+            "type": "close_indices",
+            "indices_prefix": "platform-health-",
+            "older_than_days": 7,
+            "indices_naming_time_format": "%Y.%m.%d"
+          },
+          {
+            "type": "delete_indices",
+            "indices_prefix": "platform-health-",
+            "older_than_days": 12,
+            "indices_naming_time_format": "%Y.%m.%d"
+          },
+          {
+            "type": "close_indices",
+            "indices_prefix": "platform-monitoring-",
+            "older_than_days": 7,
+            "indices_naming_time_format": "%Y.%m.%d"
+          },
+          {
+            "type": "delete_indices",
+            "indices_prefix": "platform-monitoring-",
+            "older_than_days": 12,
+            "indices_naming_time_format": "%Y.%m.%d"
+          }
+        ]
+      }
+    ]
+}
