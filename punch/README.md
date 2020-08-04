@@ -45,7 +45,7 @@ In case you do not know what to use for `path_to_your_punchplatform_config_folde
 ```sh
 punchbox --platform-config-file configurations/complete_punch_16G.json \
         --generate-vagrantfile \
-        --punch-user-config ./configurations/sample \
+        --punch-user-config $PUNCHBOX_DIR/punch/configurations/sample \
         --deployer <path_to_your_punchplatform_deployer_zip>
 ```
 
