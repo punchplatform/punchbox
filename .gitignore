@@ -47,3 +47,4 @@ ansible/punchbox.*
 .idea
 .idea/**
 punch/build
+venv
