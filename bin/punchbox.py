@@ -189,7 +189,7 @@ def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = No
 ## CREATE PP-CONF ##
 def create_ppconf():
     if not os.path.exists(build_conf_dir):
-        logging.info('creating build confifuration directory %s', build_conf_dir)
+        logging.info(' creating build configuration directory %s', build_conf_dir)
         os.makedirs(build_conf_dir)
 
 ## CREATE RESOLV FILE ##
