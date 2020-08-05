@@ -88,7 +88,7 @@ touch hosts
 vim hosts
 ```
 
-If your nodes have multiple network interface you need to specify the advertise address for this particular control-plane node's API server, you can do this with the argument ``ìnternal_address``
+If your nodes have multiple network interfaces you need to specify the advertise address for this particular control-plane node's API server, you can do this with the argument ``ìnternal_address``
 
 example  :
 
@@ -110,8 +110,13 @@ To bootstrap your Kubernetes cluster you need to run 3 ansible role :
  - `containerd_runtime_install.yml` : This role will basically run accross all worker and master nodes and setup a container runtime for kubernetes
  - `kube.yml` : it will install Kubernetes composant
 
-You can choose Kubernetes composants like Pod network add-on by modify the file ``role/kube/boot/default/main.yml``
+You can choose Kubernetes composants like Pod network add-on by modify the file ``role/kube/boot/default/main.yml``.
+If your nodes have multiple network interfaces you need update the field `nic` with your network interface name in the yaml file ``role/kube/boot/default/main.yml``.
+If you have used punchbox you need to set `nic` field with following value
 
+```yaml
+nic: enp0s8
+```
 
 #### Run role preflight 
 ```sh
