@@ -6,6 +6,13 @@
         "type": "elasticsearch",
         "cluster_name": "es_search",
         "index_prefix": "platform-logs"
+        {% if security.elasticsearch is defined and security.elasticsearch == True %}
+        ,
+        "credentials": {
+            "user": "admin",
+            "password": "admin"
+        }
+        {% endif %}
       }
     ]
   },
@@ -68,7 +75,7 @@
             "ssl_transport_pemkey_name": "node-key.pem",
             "ssl_transport_pemcert_name": "node-cert.pem",
             "ssl_transport_pemtrustedcas_name": "cachain.pem",
-            "ssl_http_enabled": true,
+            "ssl_http_enabled": false,
             "ssl_http_pemkey_name": "server2-key.pem",
             "ssl_http_pemcert_name": "server2-cert.pem",
             "ssl_http_pemtrustedcas_name": "server2-cachain.pem",
@@ -93,11 +100,11 @@
         "type" : "administration"
         {% if security.kibana is defined and security.kibana == True %}
         ,
-        "server_ssl_enabled": true,
+        "server_ssl_enabled": false,
         "local_ssl_certs_dir": "{{security.local_kibana_certs}}",
         "server_ssl_key_name": "kibana-server-key.pem",
         "server_ssl_certificate_name": "kibana-server-cert.pem",
-        "elasticsearch_ssl_enabled": true,
+        "elasticsearch_ssl_enabled": false,
         "elasticsearch_ssl_verificationMode": "none",
         "elasticsearch_ssl_certificateAuthorities_names": ["cachain.pem"]
         {% endif %}
@@ -152,7 +159,7 @@
             {% if security.gateway is defined and security.gateway == True %}
             ,
             "ssl": {
-              "enabled": true,
+              "enabled": false,
               "local_key_store_path": "{{security.local_gateway_keystore}}",
               "key_store_type": "jks",
               "key_store_password": "gateway",
@@ -174,7 +181,7 @@
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
             {% if security.gateway is defined and security.gateway == True %}
             ,
-            "ssl_enabled": true
+            "ssl_enabled": false
             {% endif %}
 
           },
@@ -185,7 +192,7 @@
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
             {% if security.gateway is defined and security.gateway == True %}
             ,
-            "ssl_enabled": true
+            "ssl_enabled": false
             {% endif %}
           }
         },
@@ -217,7 +224,7 @@
               "user": "admin",
               "password": "admin"
             },
-            "ssl_enabled": true
+            "ssl_enabled": false
             {% endif %}
 
           }
