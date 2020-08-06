@@ -1,0 +1,16 @@
+{
+  "order": 5,
+  "index_patterns": "*",
+  "settings": {
+    "index": {
+      "refresh_interval": "5s",
+      "number_of_shards": "1",
+      "number_of_replicas": 0,
+      "unassigned.node_left.delayed_timeout": "5m",
+      "mapping.total_fields.limit": 10000,
+      "query": {
+        "default_field": "_type"
+      }
+    }
+  }
+}

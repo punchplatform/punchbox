@@ -1,0 +1,95 @@
+{
+	# Set here where you want to send your samples. It must be the input point of 
+	# point of your topology
+	"destination" : { "proto" : "tcp", "host" : "127.0.0.1", "port" : 9903 },
+
+	# The input load characteristics. Here injection will stop after
+	# 100000 messages have been sent with a rate of 1000 messages per seconds
+	"load" :{
+		"total_messages" : 1000000,
+		"stats_publish_interval" : "2s",
+		"message_throughput" : 59
+	},
+
+	# In this section you define what you inject
+	"message" : {
+
+		# the payloads are template of what you inject. In there, %{src} will be replaced by a "src" field
+		# that you define below. 
+		"payloads" : [
+			"%{syslog_timestamp} host%{syslog_host_counter} id=firewall time=\"2017-02-03 12:12:13\" fw=\"THSPUNCHFWL01P\" tz=+0100 startime=\"2017-02-03 12:12:13\" pri=5 confid=00 slotlevel=2 ruleid=17 srcif=4 srcifname=\"eth2\" ipproto=tcp dstif=\"Ethernet6\" dstifname=\"eth4\" proto=http src=%{src_ip} srcport=%{src_port} srcportname=AK_tcp-factory srcname=H_10.33.242.2 dst=%{dst_ip} dstport=%{dst_port} dstportname=http_factory ipv=4 action=pass logtype=\"filter\""
+		],
+ 		
+ 		# Each field must be defined here. 
+ 		# You can use the following field types: 
+ 		#   ipv4 : to generate ipv4 addresses
+ 		#   list : to loop over a set of items
+ 		#   counter : an iterating numeric value
+ 		#   random : a random numeric value
+ 		#   timestamp : a timestamp, for which you fully control the format, the start time, and the
+ 		#               tick interval. 
+		"fields" : {
+			"syslog_timestamp" : {
+				"type" : "timestamp",
+				"format" : 	"MMM dd HH:mm:ss"
+			},
+			"syslog_host_counter" : {
+				"type" : "counter",
+				"min" : 0,
+				"max" : 256
+			},
+			"src_ip" : {
+				"type" : "ipv4",
+				"format" : "192.168.99.[0-255]"
+			},
+			"dst_ip" : {
+				"type" : "ipv4",
+				"format" : "189.[0-255].[0-255].[0-255]"
+			},
+			"owner" : {
+				"type" : "list",
+				"content" : ["frank", "bob", "alice", "ted", "dimi", "ced", "phil", "julien", "jerome", "hacker"]
+			},
+			"uri" : {
+				"type" : "list",
+				"content" : [
+					"GET /style2.css HTTP/1.1", 
+					"GET /ref/index.html HTTP/1.1", 
+					"GET /yet/another.html.css HTTP/1.1"
+					]
+			},
+			"url" : {
+				"type" : "list",
+				"content" : [
+					"http://www.example.com/start.html", 
+					"http://www.semicomplete.com/blog/geekery/bypassing-captive-portals.html"
+					]
+			},
+			"useragent" : {
+				"type" : "list",
+				"content" : [
+					"Mozilla/5.0 (iPad; U; CPU OS 4_3_5 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8L1 Safari/6533.18.5", 
+					"Mozilla/5.0 (Windows; U; Windows NT 6.0; sv-SE) AppleWebKit/525.27.1 (KHTML, like Gecko) Version/3.2.1 Safari/525.27.1", 
+					"Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48B; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/43.0.2357.65 Mobile Safari/537.36",
+					"Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko",
+					"Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.0; Trident/4.0; GTB7.4; InfoPath.3; SV1; .NET CLR 3.1.76908; WOW64; en-US)",
+					"Windows-RSS-Platform/2.0 (IE 11.0; Windows NT 6.1)"
+					]
+			},
+			"src_port" : {
+				"type" : "random",
+				"min" : 1024,
+				"max" : 32769
+			},
+			"bytes" : {
+				"type" : "random",
+				"min" : 1000,
+				"max" : 30000
+			},
+			"timestamp" : {
+				"type" : "timestamp",
+				"format" : 	"ddMMMyyyy HH:mm:ss"
+			}
+		}
+	}
+}

@@ -1,0 +1,43 @@
+{
+  "order": 10,
+  "mappings": {
+      "dynamic": true,
+      "dynamic_templates": [
+        {
+          "health-code": {
+            "match": "health_code",
+            "mapping": {
+              "type": "byte"
+            }
+          }
+        },
+        {
+          "health-name": {
+            "match": "health_name",
+            "mapping": {
+              "type": "keyword",
+              "ignore_above": 20
+            }
+          }
+        },
+        {
+          "strings": {
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "keyword",
+              "ignore_above": 1024
+            }
+          }
+        }
+      ],
+      "properties": {
+        "@timestamp": {
+          "format": "dateOptionalTime",
+          "type": "date"
+        }
+      }
+  },
+  "index_patterns": [
+    "platform-monitoring-*"
+  ]
+}

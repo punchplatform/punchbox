@@ -1,0 +1,30 @@
+{
+  "order": 10,
+  "index_patterns": [
+    "*resources-metadata*"
+  ],
+  "mappings": {
+    "date_detection": true,
+    "numeric_detection": false,
+    "dynamic_templates": [
+      {
+        "strings_as_keywords": {
+          "match_mapping_type": "string",
+          "mapping": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      }
+    ],
+    "properties": {
+      "@timestamp": {
+        "type": "date",
+        "format": "epoch_millis||strictDateOptionalTime"
+      },
+      "name": {
+        "type": "keyword"
+      }
+    }
+  }
+}

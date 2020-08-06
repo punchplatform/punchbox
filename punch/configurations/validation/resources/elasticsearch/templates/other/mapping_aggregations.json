@@ -1,0 +1,71 @@
+{
+  "order": 10,
+  "index_patterns": "*-agg-*",
+  "mappings": {
+    "dynamic": true,
+    "dynamic_templates": [
+      {
+        "tags_strings": {
+          "path_match": "aggregation.*",
+          "match_mapping_type": "string",
+          "mapping": {
+            "index": "not_analyzed"
+          }
+        }
+      }
+    ],
+    "properties": {
+      "ts": {
+        "format": "dateOptionalTime",
+        "type": "date"
+      },
+      "meta": {
+        "type": "object",
+        "dynamic": false,
+        "properties": {
+          "model": {
+            "type": "keyword"
+          },
+          "name": {
+            "type": "keyword"
+          },
+          "date": {
+            "type": "object",
+            "properties": {
+              "agg": {
+                "type": "date",
+                "format": "dateOptionalTime"
+              },
+              "start": {
+                "type": "date",
+                "format": "dateOptionalTime"
+              },
+              "stop": {
+                "type": "date",
+                "format": "dateOptionalTime"
+              }
+            }
+          },
+          "index": {
+            "type": "keyword"
+          },
+          "input": {
+            "type": "keyword"
+          }
+        }
+      },
+      "error": {
+        "type": "keyword"
+      },
+      "aggregation": {
+        "type": "object",
+        "properties": {
+          "agg_histo_val": {
+            "format": "epoch_millis||strictDateOptionalTime",
+            "type": "date"
+          }
+        }
+      }
+    }
+  }
+}

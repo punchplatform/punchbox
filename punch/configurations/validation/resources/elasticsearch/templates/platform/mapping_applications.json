@@ -1,0 +1,15 @@
+{
+  "order": 10,
+  "index_patterns": [
+    "*-applications"
+  ],
+  "mappings": {
+      "dynamic": true,
+      "dynamic_templates": [],
+      "properties": {
+        "dag": {
+          "type": "text"
+        }
+      }
+  }
+}

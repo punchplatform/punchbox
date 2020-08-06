@@ -1,0 +1,28 @@
+{
+  "order": 10,
+  "mappings": {
+      "date_detection": true,
+      "numeric_detection": true,
+      "dynamic_templates": [
+        {
+          "strings_as_keywords": {
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        }
+      ],
+      "properties": {
+        "ts": {
+          "type": "date",
+          "format": "epoch_millis||strictDateOptionalTime"
+        }
+      }
+  },
+  "index_patterns": [
+    "*platform-applicative-monitoring*"
+  ]
+}
+

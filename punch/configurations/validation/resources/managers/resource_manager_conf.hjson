@@ -1,0 +1,16 @@
+{
+    metadata_storages : [
+        {
+            type: elasticsearch
+            hosts: [ "localhost:9200" ]
+            index_name: resources-metadata
+        }
+    ]
+    data_storages:
+    [
+        {
+            type:file
+            root_path: /tmp/punchplatform/manager/resources
+        }
+    ]
+}
