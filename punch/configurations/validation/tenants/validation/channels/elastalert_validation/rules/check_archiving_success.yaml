@@ -1,0 +1,20 @@
+# Alert if some metadata is detected
+
+name: Archiving success
+
+type: any
+
+index: mytenant-archive-*
+
+realert:
+ minutes: 15
+
+alert_text_type: alert_text_only
+alert_text: "\n Archiving ended with success (At least one metadata found)"
+
+alert:
+- command
+
+command: 
+  - "/bin/echo"
+  - "alert: Archiving ended with success (At least one metadata found)"

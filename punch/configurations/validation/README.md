@@ -64,6 +64,8 @@ Launch aggregation and apache channels from Punchplatform standalone and then us
   - Push some templates to Elasticsearch
   - Import Kibana dashboards 
   - Storm execution 
+  - Archiving : Checking some metadata is created by archiving
+  - Housekeeping : Checking metadata are removed by housekeeper
   - Plan and spark in foreground mode  
   - Log injectors 
   - Elasticsearch 

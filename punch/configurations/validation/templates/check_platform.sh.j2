@@ -16,6 +16,8 @@ echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
 punchctl -t mytenant start --channel stormshield_networksecurity
 punchctl -t mytenant start --channel aggregation
 punchctl -t mytenant start --channel elastalert  
+punchctl -t mytenant start --channel apache_httpd
+punchctl -t mytenant start --channel admin
 
 echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
 punchctl -t validation start 
@@ -25,6 +27,11 @@ echo -e "${BLUE}INFO:${RESET} Launch log injectors"
 
 {% for server in punch.shiva.servers %}
 nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/mytenant/stormshield_networksecurity_injector.json -H {{ server }} &
+{% endfor %}
+
+// Send logs to all servers to match single unknown listening server. No logs actually injected to non-listening servers.
+{% for server in punch.storm.slaves %}
+nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/mytenant/apache_httpd_injector.json -H {{ server }} &
 {% endfor %}
 
 echo -e "${BLUE}INFO:${RESET} Wait for 15 min, logs are being inserted in platform"

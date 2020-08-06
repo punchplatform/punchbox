@@ -1,0 +1,25 @@
+# Alert if no metadata is present after 10 min 
+
+name: Archiving fail
+
+type: flatline
+
+index: mytenant-archive-*
+
+threshold: 1
+timeframe: 
+  minutes: 10
+doc_type: _doc
+
+realert:
+ minutes: 15
+
+alert_text_type: alert_text_only
+alert_text: "\n Archiving ended with failure (No metadata found)"
+
+alert:
+- command
+
+command: 
+  - "/bin/echo"
+  - "alert: Archiving ended with failure (No metadata found)"
