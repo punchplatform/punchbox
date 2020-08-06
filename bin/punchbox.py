@@ -25,6 +25,7 @@ vagrant_dir = top_dir + '/vagrant'
 build_conf_dir = build_dir + '/pp-conf'
 ansible_dir = top_dir + '/ansible'
 ansible_templates_dir = ansible_dir + '/templates'
+rules_target_dir = build_conf_dir + '/tenants/validation/channels/elastalert_validation/rules/'
 
 # Templates path
 vagrant_template_file = 'Vagrantfile.j2'
@@ -209,6 +210,29 @@ def create_resolver(validation_config, platform_config, target_os):
   resolv_file.close()
   logging.info(' platform resolv.hjson successfully generated in %s', resolv_target)
 
+# GENERATE ELASTALERT RULES
+def create_elastalert_rules(validation_conf_dir, platform_config_file):
+    platform_config= load_user_config(platform_config_file)
+    loader = jinja2.FileSystemLoader(validation_conf_dir + '/tenants/validation/channels/elastalert_validation/rules/')
+    env = jinja2.Environment(loader=loader)
+    ltemplates = env.list_templates()
+    for t in ltemplates: 
+        rule_template = env.get_template(t)
+        rule_render = rule_template.render(
+            livedemo_api_url= os.getenv('LIVEDEMO_API_URL', default=''),
+            user= os.getenv('USER', default='anonymous'),
+            sysname= os.uname().sysname,
+            release= os.uname().release,
+            machine= os.uname().machine,
+            vagrant_config= os.path.basename(platform_config_file),
+            vagrant_os= platform_config["targets"]["meta"]["os"],
+            branch= subprocess.check_output(["git", "branch", "--show-current"], cwd=os.environ.get('PP_PUNCH_DIR')).strip().decode(),
+            commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=os.environ.get('PP_PUNCH_DIR')).strip().decode())
+        rule_file = open(rules_target_dir + t, "w+")
+        rule_file.write(rule_render)
+        rule_file.close()
+        logging.info('rule %s successfully generated in build dir', t)
+
 ## FIND AND REPLACE - RESOLVER ALTERNATIVE FOR 5.* BRANCHES"
 def find_replace(directory, find, replace, file_pattern):
     for path, dirs, files in os.walk(os.path.abspath(directory)):
@@ -326,6 +350,7 @@ def main():
         if "empty" not in parser.parse_args().platform_config_file:
             create_resolver(parser.parse_args().punch_validation_config, platform_config,  parser.parse_args().os)
             create_platform_shell(parser.parse_args().punch_validation_config, platform_config)
+            create_elastalert_rules(parser.parse_args().punch_validation_config, parser.parse_args().platform_config_file)
         else:
             logging.info(" empty configuration detected: skipping \'resolv.hjson\' and \'check_platform\' generation")
     if parser.parse_args().punch_user_config is not None:
