@@ -22,7 +22,23 @@ alert_text: "\n Spark execution in client mode for a malformed java/python punch
 
 alert:
 - command
+- post
 
 command: 
   - "/bin/echo"
   - "alert: Spark execution in client mode for a malformed java/python punchline ended with success (Exit 1 code received)"
+
+post:
+http_post_url: {{ livedemo_api_url }}
+http_post_all_values: True
+http_post_static_payload:
+  rule_name: Exit code 1 on java/python punchline success
+  rule_description: Spark execution in client mode for a malformed java/python punchline ended with success (Exit 1 code received)
+  user: {{ user }}
+  sysname: {{ sysname }}
+  release: {{ release }}
+  machine: {{ machine }}
+  vagrant_config: {{ vagrant_config }}
+  vagrant_os: {{ vagrant_os }}
+  branch: {{ branch }}
+  commit: {{ commit }}
