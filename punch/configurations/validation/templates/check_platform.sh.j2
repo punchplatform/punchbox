@@ -7,10 +7,18 @@ BLUE="\033[34m"
 RESET="\033[0m"
 
 echo -e "${BLUE}INFO:${RESET} Push Elasticsearch templates"
+{% if security %}
+punchplatform-push-es-templates.sh --directory $PUNCHPLATFORM_CONF_DIR/resources/elasticsearch/templates/ --url {{ punch.elasticsearch.cluster_production_transport_address }}:9200 --username admin --password admin
+{% else %}
 punchplatform-push-es-templates.sh --directory $PUNCHPLATFORM_CONF_DIR/resources/elasticsearch/templates/ --url {{ punch.elasticsearch.cluster_production_transport_address }}:9200
+{% endif %}
 
 echo -e "${BLUE}INFO:${RESET} Push Kibana dashboards"
+{% if security %}
+punchplatform-setup-kibana.sh --import --url {{ punch.kibana.servers[0] }}:5601 -u admin:admin
+{% else %}
 punchplatform-setup-kibana.sh --import --url {{ punch.kibana.servers[0] }}:5601
+{% endif %}
 
 echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
 punchctl -t mytenant start --channel stormshield_networksecurity

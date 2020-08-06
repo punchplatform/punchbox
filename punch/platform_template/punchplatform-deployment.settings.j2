@@ -88,7 +88,7 @@
       }
       {% if not loop.last %}
           ,
-        {% endif %} 
+        {% endif %}
       {% endfor %}
     },
     {% endif %}
@@ -382,7 +382,7 @@
         "local_ssl_certs_dir": "{{security.local_kibana_certs}}",
         "server_ssl_key_name": "kibana-server-key.pem",
         "server_ssl_certificate_name": "kibana-server-cert.pem",
-        "elasticsearch_ssl_enabled": true,
+        "elasticsearch_ssl_enabled": false,
         "elasticsearch_ssl_verificationMode": "none",
         "elasticsearch_ssl_certificateAuthorities_names": ["cachain.pem"]
         {% endif %}

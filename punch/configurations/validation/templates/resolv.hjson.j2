@@ -16,6 +16,12 @@
                port:9200
             }
          ]
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
 
@@ -31,6 +37,12 @@
          nodes:[ 
             {{ punch.elasticsearch.cluster_production_transport_address }}
          ]
+         {% if security %}
+         elastic_settings:{
+            es.net.http.auth.user: admin
+            es.net.http.auth.pass: admin
+         }
+         {% endif %}
       }
    }
    {% endif %}
@@ -52,6 +64,36 @@
    }
    {% endif %}
 
+<<<<<<< HEAD:punch/configurations/validation/templates/resolv.hjson.j2
+=======
+
+   {% if punch.elasticsearch is defined %}
+   // All ES reporters
+   es_reporter:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.metrics.reporters[?(@.type=='elasticsearch')]
+      additional_values:{ 
+         http_hosts:[ 
+            { 
+               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               port:9200
+            }
+         ]
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
+      }
+   }
+   {% endif %}
+
+>>>>>>> origin/6.0:punch/validation/templates/resolv.hjson.j2
    {% if punch.kafka is defined %}
    // All Kafka reporters
    kafka_reporter:{ 
@@ -87,6 +129,12 @@
                port:9200
         	   } 
          ]
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
    // Archive houeskeeping
@@ -99,6 +147,12 @@
       match:$.archiving_pools[*]
       additional_values:{ 
          es_cluster_id: es_search
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
    // Channel monitoring 
@@ -111,6 +165,12 @@
       match: .elasticsearch
       additional_values:{ 
          es_cluster_id: es_search
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
    // Channel monitoring reporters 

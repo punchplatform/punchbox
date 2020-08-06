@@ -17,7 +17,7 @@ import vagrant
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
 
-# Repository layout 
+# Repository layout
 top_dir = os.environ.get('PUNCHBOX_DIR')
 bin_dir = top_dir + '/bin'
 build_dir = top_dir + '/punch/build'
@@ -193,7 +193,7 @@ def create_ppconf():
         os.makedirs(build_conf_dir)
 
 ## CREATE RESOLV FILE ##
-def create_resolver(validation_config, platform_config, target_os):
+def create_resolver(validation_config, platform_config, target_os, security=False):
   file_loader = jinja2.FileSystemLoader(validation_config + "/templates")
   env = jinja2.Environment(loader=file_loader)
   resolv_template = env.get_template(resolv_template_file)
@@ -203,7 +203,8 @@ def create_resolver(validation_config, platform_config, target_os):
                                          webhook=os.getenv('SLACK_WEBHOOK', ''),
                                          proxy=os.getenv('SLACK_PROXY', ''),
                                          hostname=os.uname()[1],
-                                         os=target_os)
+                                         os=target_os,
+                                         security=security)
   resolv_file = open(resolv_target, "w+")
   resolv_file.write(resolv_render)
   resolv_file.close()
@@ -251,7 +252,7 @@ def import_validation_resources(validation_conf_dir, platform_config):
 
 
 ## CREATE A VALIDATION SHELL ##
-def create_platform_shell(validation_config, platform_config):
+def create_platform_shell(validation_config, platform_config, security=False):
     file_loader = jinja2.FileSystemLoader(validation_config + "/templates")
     env = jinja2.Environment(loader=file_loader)
     platform_template = env.get_template(platform_template_shell)
@@ -324,8 +325,8 @@ def main():
     if parser.parse_args().punch_validation_config is not None:
         import_validation_resources(parser.parse_args().punch_validation_config, platform_config)
         if "empty" not in parser.parse_args().platform_config_file:
-            create_resolver(parser.parse_args().punch_validation_config, platform_config,  parser.parse_args().os)
-            create_platform_shell(parser.parse_args().punch_validation_config, platform_config)
+            create_resolver(parser.parse_args().punch_validation_config, platform_config,  parser.parse_args().os, parser.parse_args().security)
+            create_platform_shell(parser.parse_args().punch_validation_config, platform_config, parser.parse_args().security)
         else:
             logging.info(" empty configuration detected: skipping \'resolv.hjson\' and \'check_platform\' generation")
     if parser.parse_args().punch_user_config is not None:
