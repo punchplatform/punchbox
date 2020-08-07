@@ -28,11 +28,27 @@ realert:
  minutes: 15
 
 alert_text_type: alert_text_only
-alert_text: "\n Archvie Housekeeping ended with success (No metadata older than 9 minutes)"
+alert_text: "\n Archive Housekeeping ended with success (No metadata older than 9 minutes)"
 
 alert:
 - command
+- post
 
 command: 
   - "/bin/echo"
   - "alert: Archive Housekeeping ended with success (No metadata older than 9 minutes)"
+
+post:
+http_post_url: {{ livedemo_api_url }}
+http_post_all_values: True
+http_post_static_payload:
+  rule_name: Archive Housekeeping success
+  rule_description: Archive Housekeeping ended with success (No metadata older than 9 minutes)
+  user: {{ user }}
+  sysname: {{ sysname }}
+  release: {{ release }}
+  machine: {{ machine }}
+  vagrant_config: {{ vagrant_config }}
+  vagrant_os: {{ vagrant_os }}
+  branch: {{ branch }}
+  commit: {{ commit }}
