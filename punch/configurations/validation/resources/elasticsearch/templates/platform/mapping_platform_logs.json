@@ -1,0 +1,42 @@
+{
+  "order": 10,
+  "mappings": {
+      "dynamic": true,
+      "dynamic_templates": [
+        {
+          "strings": {
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "keyword",
+              "ignore_above": 1024
+            }
+          }
+        }
+      ],
+      "properties": {
+        "@timestamp": {
+          "format": "dateOptionalTime",
+          "type": "date"
+        },
+        "content": {
+          "properties": {
+            "message": {
+              "type": "text"
+            },
+            "event_type": {
+              "type": "keyword"
+            },
+            "return_code": {
+              "type": "integer"
+            },
+            "num_workers": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+  },
+  "index_patterns": [
+    "platform-*logs-*"
+  ]
+}

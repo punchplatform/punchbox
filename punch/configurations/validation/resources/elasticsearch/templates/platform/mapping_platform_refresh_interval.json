@@ -1,0 +1,11 @@
+{
+  "order": 3,
+  "settings": {
+    "index": {
+      "refresh_interval": "60s"
+    }
+  },
+  "index_patterns": [
+    "platform-*"
+  ]
+}

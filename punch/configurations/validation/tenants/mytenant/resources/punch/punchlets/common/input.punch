@@ -1,0 +1,56 @@
+{
+  // However this require the punchlet ot be deployed upfront in your channel,
+  // before the very first Kafka. And that in turn can require a punchlet only for that,
+  // which is costly (refer to the best practice section in the documentation).
+  // Instead you can require the first entry syslog spout to add a unique id. That id
+  // is vehiculated using a dedicated Storm field. You can see it traversing your punchlet. Do this:
+  // 
+  // print(root);
+  // 
+  // or activate a log4j logger. In this example we rely on that efficient scheme to transport
+  // the uniqie id, if you check the topology configuration file you will find it published by all spouts
+  // and bolts (local_uuid)
+  
+  // To avoid redundant copy, and allow fast forwarding of raw log (Correlator, archiving/extraction...), raw log is moved
+  // To a separate Storm Field
+  [logs][log][raw_log] = [logs][log];
+
+  [logs][log][size] = [logs][log][raw_log].length();
+   
+  //
+  // The SyslogSpout sends that information using dedicated Storm
+  // fields. Make sure you subscribe to these fields in your topology 
+  // configuration.
+  //
+
+  if ([logs][_ppf_timestamp]) {
+    [logs][log][lmc][input][ts] = date("iso").on([logs][_ppf_timestamp].toString()).get();
+  } 
+
+  [logs][log][col][host][name] = getHostName();
+  [logs][log][col][host][ip]   = [logs][_ppf_local_host];
+  [logs][log][col][host][port] = [logs][_ppf_local_port];
+  [logs][log][rep][host][ip]   = [logs][_ppf_remote_host];
+  [logs][log][type] = "unknown";
+
+  //
+  // In you topology file, you can define arbitrary fields under "meta". 
+  // Here we use this to set the tenant and vendor.
+  //
+  if (world:[meta][tenant]) {
+    [logs][log][tenant] = world:[meta][tenant];
+  } else {
+    [logs][log][tenant] = "unknown";
+  }
+  if (world:[meta][vendor]) {
+    [logs][log][vendor] = world:[meta][vendor];
+  } else {
+    [logs][log][vendor] = "unknown";
+  }
+  if (world:[meta][channel]) {
+    [logs][log][channel] = world:[meta][channel];
+  } else {
+    [logs][log][channel] = "unknown";
+  }
+
+}

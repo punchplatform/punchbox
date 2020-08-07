@@ -16,6 +16,12 @@
                port:9200
             }
          ]
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
 
@@ -31,6 +37,12 @@
          nodes:[ 
             {{ punch.elasticsearch.cluster_production_transport_address }}
          ]
+         {% if security %}
+         elastic_settings:{
+            es.net.http.auth.user: admin
+            es.net.http.auth.pass: admin
+         }
+         {% endif %}
       }
    }
    {% endif %}
@@ -87,6 +99,12 @@
                port:9200
         	   } 
          ]
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
    // Archive houeskeeping
@@ -99,6 +117,12 @@
       match:$.archiving_pools[*]
       additional_values:{ 
          es_cluster_id: es_search
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
    // Channel monitoring 
@@ -111,6 +135,12 @@
       match: .elasticsearch
       additional_values:{ 
          es_cluster_id: es_search
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         {% endif %}
       }
    }
    // Channel monitoring reporters 

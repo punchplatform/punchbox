@@ -1,0 +1,111 @@
+{
+  "order": 10,
+  "index_patterns": [
+    "*-archive-*"
+  ],
+  "mappings": {
+      "dynamic": true,
+      "dynamic_templates": [
+      ],
+      "properties": {
+        "archive": {
+          "properties": {
+            "devices_addresses": {
+              "type": "text"
+            },
+            "pool": {
+              "type": "keyword"
+            }
+          }
+        },
+        "batch": {
+          "properties": {
+            "bloom_filter": {
+              "type": "text"
+            },
+            "digest": {
+              "type": "keyword"
+            },
+            "earliest_ts": {
+              "format": "dateOptionalTime",
+              "type": "date"
+            },
+            "latest_ts": {
+              "format": "dateOptionalTime",
+              "type": "date"
+            },
+            "initialization_ts": {
+              "type": "date",
+              "format": "epoch_millis||strictDateOptionalTime"
+            },
+            "tuples_count": {
+              "type": "integer"
+            },
+            "fields": {
+              "properties": {
+                "names": {
+                  "type": "text"
+                },
+                "separator": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
+        "debug": {
+          "properties": {
+            "input_partition": {
+              "type": "integer"
+            },
+            "component_id": {
+              "type": "keyword"
+            },
+            "offset": {
+              "type": "long"
+            }
+          }
+        },
+        "file": {
+          "properties": {
+            "name": {
+              "type": "keyword"
+            },
+            "size": {
+              "type": "integer"
+            },
+            "uncompressed_size": {
+              "type": "integer"
+            },
+            "compression": {
+              "properties": {
+                "format": {
+                  "type": "keyword"
+                },
+                "ratio": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "platform": {
+          "properties": {
+            "channel": {
+              "type": "keyword"
+            },
+            "tenant": {
+              "type": "keyword"
+            }
+          }
+        },
+        "tags": {
+          "properties": {
+            "topic": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+  }
+}

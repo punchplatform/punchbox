@@ -1,0 +1,14 @@
+{
+   "tenant": "mytenant",
+   "channel": "admin",
+   "archiving_pools": [
+    {
+      "devices_addresses": ["file:///tmp/archive-logs/storage"],
+      "pool": "mytenant",
+      "retention": "3m",
+      "max_deletion_percentage": 100,
+      "es_index": "mytenant-archive",
+      "user": "admin"
+    }
+  ]
+}

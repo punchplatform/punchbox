@@ -1,0 +1,16 @@
+{
+    "version" : "6.0",
+    "start_by_tenant" : true,
+    "stop_by_tenant" : true,
+    "applications": [
+        {
+            "name": "input",
+            "runtime" : "shiva",
+            "command" : "punchlinectl",
+            "args": [ "start", "--punchline", "input.json" ],
+            "shiva_runner_tags": [ "local" ],
+            "cluster": "local",
+            "reload_action": "kill_then_start"
+        }
+    ]
+}
