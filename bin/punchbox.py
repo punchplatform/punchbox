@@ -201,10 +201,6 @@ def create_resolver(validation_config, platform_config, target_os, security=Fals
   if not target_os:
     target_os=platform_config["targets"]["meta"]["os"]
   resolv_render = resolv_template.render(punch=platform_config["punch"],
-                                         webhook=os.getenv('SLACK_WEBHOOK', ''),
-                                         proxy=os.getenv('SLACK_PROXY', ''),
-                                         hostname=os.uname()[1],
-                                         os=target_os,
                                          security=security)
   resolv_file = open(resolv_target, "w+")
   resolv_file.write(resolv_render)
@@ -227,7 +223,7 @@ def create_elastalert_rules(validation_conf_dir, platform_config_file):
             machine= os.uname().machine,
             vagrant_config= os.path.basename(platform_config_file),
             vagrant_os= platform_config["targets"]["meta"]["os"],
-            branch= subprocess.check_output(["git", "branch", "--show-current"], cwd=os.environ.get('PP_PUNCH_DIR')).strip().decode(),
+            branch= subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=os.environ.get('PP_PUNCH_DIR')).strip().decode(),
             commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=os.environ.get('PP_PUNCH_DIR')).strip().decode())
         rule_file = open(rules_target_dir + t, "w+")
         rule_file.write(rule_render)
