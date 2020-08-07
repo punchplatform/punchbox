@@ -22,5 +22,5 @@ alert_time_limit:
 # Any .yaml file will be loaded as a rule
 rules_folder: rules/
 
-es_host: {{elasticsearch_host}}
+es_host: {{ elasticsearch_host }}
 es_port: 9200
