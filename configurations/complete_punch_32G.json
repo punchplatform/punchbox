@@ -9,12 +9,12 @@
       },
       "server2": {
         "disksize": "40GB",
-        "memory": 4096,
+        "memory": 3072,
         "cpu": 2
       },
       "server3": {
         "disksize": "40GB",
-        "memory": 4096,
+        "memory": 6144,
         "cpu": 2
       },
       "server4": {
@@ -86,7 +86,8 @@
     },
     "shiva": {
       "servers": [
-        "server4"
+        "server4",
+        "server3"
       ],
       "mode": "kafka"
     },
