@@ -23,7 +23,6 @@ punchplatform-setup-kibana.sh --import --url {{ punch.kibana.servers[0] }}:5601
 echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
 punchctl -t mytenant start --channel stormshield_networksecurity
 punchctl -t mytenant start --channel aggregation
-punchctl -t mytenant start --channel elastalert  
 punchctl -t mytenant start --channel apache_httpd
 punchctl -t mytenant start --channel admin
 
