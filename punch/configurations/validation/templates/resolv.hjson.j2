@@ -64,36 +64,6 @@
    }
    {% endif %}
 
-<<<<<<< HEAD:punch/configurations/validation/templates/resolv.hjson.j2
-=======
-
-   {% if punch.elasticsearch is defined %}
-   // All ES reporters
-   es_reporter:{ 
-      selection:{ 
-         tenant:*
-         channel:*
-         runtime:*
-      }
-      match:$.metrics.reporters[?(@.type=='elasticsearch')]
-      additional_values:{ 
-         http_hosts:[ 
-            { 
-               host:{{ punch.elasticsearch.cluster_production_transport_address }}
-               port:9200
-            }
-         ]
-         {% if security %}
-         credentials: {
-            user: admin
-            password: admin
-         }
-         {% endif %}
-      }
-   }
-   {% endif %}
-
->>>>>>> origin/6.0:punch/validation/templates/resolv.hjson.j2
    {% if punch.kafka is defined %}
    // All Kafka reporters
    kafka_reporter:{ 

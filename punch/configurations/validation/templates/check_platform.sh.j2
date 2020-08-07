@@ -37,7 +37,7 @@ echo -e "${BLUE}INFO:${RESET} Launch log injectors"
 nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/mytenant/stormshield_networksecurity_injector.json -H {{ server }} &
 {% endfor %}
 
-// Send logs to all servers to match single unknown listening server. No logs actually injected to non-listening servers.
+# Send logs to all servers to match single unknown listening server. No logs actually injected to non-listening servers.
 {% for server in punch.storm.slaves %}
 nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/mytenant/apache_httpd_injector.json -H {{ server }} &
 {% endfor %}
