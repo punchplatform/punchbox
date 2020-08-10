@@ -24,13 +24,18 @@ post:
 http_post_url: {{ livedemo_api_url }}
 http_post_all_values: True
 http_post_static_payload:
-  rule_name: Archiving success
-  rule_description: Archiving ended with success (At least one metadata found)
-  user: {{ user }}
-  sysname: {{ sysname }}
-  release: {{ release }}
-  machine: {{ machine }}
-  vagrant_config: {{ vagrant_config }}
-  vagrant_os: {{ vagrant_os }}
-  branch: {{ branch }}
-  commit: {{ commit }}
+  rule:
+    name: Archiving
+    type: success
+    description: Archiving ended with success (At least one metadata found)
+  host:
+    user: {{ user }}
+    sysname: {{ sysname }}
+    release: {{ release }}
+    machine: {{ machine }}
+  vagrant:
+    config: {{ vagrant_config }}
+    os: {{ vagrant_os }}
+  punchplatform:
+    branch: {{ branch }}
+    commit: {{ commit }}
