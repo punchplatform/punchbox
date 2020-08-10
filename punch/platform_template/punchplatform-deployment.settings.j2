@@ -29,24 +29,10 @@
       "local": {
         "reporters" : ["myreporter"],
         "storage": {
-          "topics" : {
-                      "control_topic" : {
-                          "name" : "shiva-local-ctl"
-                      },
-                      "data_topic" : {
-                          "name" : "shiva-local-data"
-                      },
-                      "assignement_topic" : {
-                          "name" : "shiva-local-assignement"
-                      }
-                  },
           "type" : "{{ shiva.mode }}",
-          {% if shiva.mode == "file" %}
-          "root" : "/data/opt/admin",
-          {% else %}
+          {% if shiva.mode == "kafka" %}
           "kafka_cluster": "local",
           {% endif %} 
-          "data_dir" : "/data/opt/shiva"
         },
         "servers": {
         {% for server in shiva.servers %}
@@ -75,12 +61,7 @@
       "operators_username" : ["{{ operator.username }}"],
       "storage" : {
             "type" : "kafka",
-            "kafka_cluster": "local",
-            "topics" : {
-                "admin_topic" : {
-                    "name" : "platform-admin"
-                }
-            }
+            "kafka_cluster": "local"
       },
       "servers" : {
       {% for server in operator.servers %}
