@@ -235,8 +235,6 @@ def import_validation_resources(validation_conf_dir, platform_config_file):
     env = jinja2.Environment(loader=loader)
     livedemo_api_url=os.getenv('LIVEDEMO_API_URL', default="http://test")
     ppunch_dir = os.getenv('PP_PUNCH_DIR', default=top_dir)
-    print(platform_config["punch"]["elasticsearch"]["servers"][0])
-    print(platform_config["punch"]["spark"]["masters"][0])
     ltemplates = env.list_templates()
     for t in ltemplates: 
         rule_template = env.get_template(t)

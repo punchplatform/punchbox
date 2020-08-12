@@ -29,9 +29,10 @@
       "local": {
         "reporters" : ["myreporter"],
         "storage": {
-          "type" : "{{ shiva.mode }}",
+          "type" : "{{ shiva.mode }}"
           {% if shiva.mode == "kafka" %}
-          "kafka_cluster": "local",
+          ,
+          "kafka_cluster": "local"
           {% endif %} 
         },
         "servers": {
