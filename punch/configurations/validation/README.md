@@ -51,6 +51,17 @@ PUNCH_DIR=/home/punch/workspace/pp-punch
 00 1  * *  * $PUNCHBOX_DIR/punch/validation/binutils/local_integration.sh 6.0 > /tmp/punchbox-6.0 2>&1
 ```
 
+### Reporting to Livedemo
+
+You can send your tests results to the Punchplatform Livedemo with ElastAlert HTTP POST.
+
+Only two environment variables are required to do so : 
+
+```sh
+PUNCH_DIR=/home/punch/workspace/pp-punch
+LIVEDEMO_API_URL=http://xxxx
+```
+
 ## Punchplatform tests 
 
 This section describes tests done during Punchplatform team validation :
