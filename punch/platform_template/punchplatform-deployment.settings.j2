@@ -397,7 +397,7 @@
         "punchplatform_feedback_version": "{{ version.punch }}"
       }
       {% endif %}
-      {% if security is defined and security.kibana == True %}
+      {% if security is defined %}
       {% if gateway is defined %}
       ,
       {% endif %}
