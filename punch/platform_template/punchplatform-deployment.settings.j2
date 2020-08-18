@@ -193,7 +193,22 @@
         },
         "resources": {
           "doc_dir": "{{ installation_directory }}/punchplatform-documentation-{{version.gateway}}/doc/html",
-          "archives_dir": "/tmp"
+          "archives_dir": "/tmp",
+          "manager": {
+            "metadata": [
+              {
+                "type": "elasticsearch",
+                "hosts": {{ server_ip | tojson }},
+                "index": "resources-metadata"
+              }
+            ],
+            "data": [
+              {
+                "type": "file",
+                "root_path": "/tmp/punchplatform/resources"
+              }
+            ]
+          }
         },
         "reporters": ["myreporter"]
       }
