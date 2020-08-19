@@ -25,7 +25,7 @@ vagrant_dir = top_dir + '/vagrant'
 build_conf_dir = build_dir + '/pp-conf'
 ansible_dir = top_dir + '/ansible'
 ansible_templates_dir = ansible_dir + '/templates'
-rules_target_dir = build_conf_dir + '/tenants/'
+tenants_target_dir = build_conf_dir + '/tenants/'
 
 # Templates path
 vagrant_template_file = 'Vagrantfile.j2'
@@ -207,17 +207,6 @@ def create_resolver(validation_config, platform_config, target_os, security=Fals
   resolv_file.close()
   logging.info(' platform resolv.hjson successfully generated in %s', resolv_target)
 
-## FIND AND REPLACE - RESOLVER ALTERNATIVE FOR 5.* BRANCHES"
-def find_replace(directory, find, replace, file_pattern):
-    for path, dirs, files in os.walk(os.path.abspath(directory)):
-        for filename in fnmatch.filter(files, file_pattern):
-            filepath = os.path.join(path, filename)
-            with open(filepath) as f:
-                s = f.read()
-            s = s.replace(find, replace)
-            with open(filepath, "w") as f:
-                f.write(s)
-
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
 def import_user_resources(punch_user_config):
     ignore = ["*.properties", "resolv.*"]
@@ -227,19 +216,19 @@ def import_user_resources(punch_user_config):
 
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
 def import_validation_resources(validation_conf_dir, platform_config_file):
-
     ignore = ["*.properties", "resolv.*", "binutils", "*.j2"]
     my_copy_tree(validation_conf_dir, build_conf_dir, ignore=ignore)
     platform_config= load_user_config(platform_config_file)
-    loader = jinja2.FileSystemLoader(validation_conf_dir + '/tenants')
-    env = jinja2.Environment(loader=loader)
     livedemo_api_url=os.getenv('LIVEDEMO_API_URL', default="http://test")
     ppunch_dir = os.getenv('PUNCH_DIR', default=top_dir)
+    loader = jinja2.FileSystemLoader(validation_conf_dir + '/tenants')
+    env = jinja2.Environment(loader=loader)
     ltemplates = env.list_templates()
     for t in ltemplates: 
-        rule_template = env.get_template(t)
-        rule_render = rule_template.render(
+        template = env.get_template(t)
+        render = template.render(
             spark_master= platform_config["punch"]["spark"]["masters"][0],
+            elasticsearch_host= platform_config["punch"]["elasticsearch"]["servers"][0],
             livedemo_api_url= livedemo_api_url,
             user= os.getenv('USER', default='anonymous'),
             sysname= os.uname().sysname,
@@ -247,12 +236,11 @@ def import_validation_resources(validation_conf_dir, platform_config_file):
             machine= os.uname().machine,
             vagrant_config= os.path.basename(platform_config_file),
             vagrant_os= platform_config["targets"]["meta"]["os"],
-            elasticsearch_host= platform_config["punch"]["elasticsearch"]["servers"][0],
             branch= subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ppunch_dir).strip().decode(),
             commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode())
-        rule_file = open(rules_target_dir + t, "w+")
-        rule_file.write(rule_render)
-        rule_file.close()
+        file = open(tenants_target_dir + t, "w+")
+        file.write(render)
+        file.close()
     logging.info(' punch validation configuration successfully imported in %s', build_conf_dir)
 
 
