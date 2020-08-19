@@ -20,6 +20,18 @@ punchplatform-setup-kibana.sh --import --url {{ punch.kibana.servers[0] }}:5601 
 punchplatform-setup-kibana.sh --import --url {{ punch.kibana.servers[0] }}:5601
 {% endif %}
 
+echo -e "${BLUE}INFO:${RESET} Start gateway tests"
+{%- if os == "ubuntu/bionic64" %}
+curl -sL https://deb.nodesource.com/setup_lts.x >> /dev/null 2>&1 | sudo -E bash -
+sudo apt-get install -y nodejs >> /dev/null 2>&1
+{% elif os == "centos/7" %}
+curl -sL https://rpm.nodesource.com/setup_lts.x  >> /dev/null 2>&1 | sudo bash -
+{% endif %}
+sudo npm install -g newman newman-reporter-csv >> /dev/null 2>&1
+newman run $PUNCHPLATFORM_CONF_DIR/tenants/validation/channels/gateway_validation/postman/collection.json \
+-e $PUNCHPLATFORM_CONF_DIR/tenants/validation/channels/gateway_validation/postman/env.json -r csv --reporter-csv-export $PUNCHPLATFORM_CONF_DIR/tenants/validation/channels/gateway_validation/result_newman.csv >> /dev/null 2>&1
+
+
 echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
 punchctl -t mytenant start --channel stormshield_networksecurity
 punchctl -t mytenant start --channel aggregation
@@ -27,7 +39,7 @@ punchctl -t mytenant start --channel apache_httpd
 punchctl -t mytenant start --channel admin
 
 echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
-punchctl -t validation start 
+punchctl -t validation start
 punchctl -t validation start --channel elastalert_validation
 
 echo -e "${BLUE}INFO:${RESET} Start channels from tenant platform"
@@ -49,8 +61,8 @@ sleep 900
 pkill -f org.thales.punch.injector.Main >/dev/null 2>/dev/null
 
 echo -e "${BLUE}INFO:${RESET} Stop channels"
-punchctl -t mytenant stop 
-punchctl -t validation stop 
+punchctl -t mytenant stop
+punchctl -t validation stop
 
 echo -e "${BLUE}INFO:${RESET} End of check platform"
 

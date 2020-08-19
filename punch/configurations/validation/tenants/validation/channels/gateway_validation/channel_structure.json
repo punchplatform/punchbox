@@ -1,0 +1,20 @@
+{
+  "version": "6.0",
+  "start_by_tenant": true,
+  "stop_by_tenant": true,
+  "applications": [
+    {
+      "runtime": "shiva",
+      "name": "newman_to_es",
+      "command" : "punchlinectl",
+      "args": [ "start", "--punchline", "newman_to_es.json" ],
+      "resources": [
+        "result_newman.csv"
+      ],
+      "cluster": "local",
+      "shiva_runner_tags": [
+        "local"
+      ]
+    }
+  ]
+}

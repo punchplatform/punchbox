@@ -1,0 +1,42 @@
+{
+  "version": "6.0",
+  "type": "punchline",
+  "runtime": "spark",
+  "meta": {
+    "tenant": "validation",
+    "channel": "gateway_validation",
+    "vendor": "gateway_validation"
+  },
+  "dag": [
+    {
+      "type": "file_input",
+      "component": "input",
+      "settings": {
+        "format": "csv",
+        "path": "file:///data/shiva/local/data/tenants/validation/channels/gateway_validation/result_newman.csv",
+        "options": {
+          "header": "true"
+        }
+      },
+      "publish": [
+        {
+          "stream": "data"
+        }
+      ]
+    },
+    {
+      "type": "elastic_batch_output",
+      "component": "output",
+      "settings": {
+        "index": "gateway-tests",
+        "es_cluster": "es_search"
+      },
+      "subscribe": [
+        {
+          "stream": "data",
+          "component": "input"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1302 @@
+{%- raw %}
+{
+	"info": {
+		"_postman_id": "a1b9fd7e-976e-4fbc-8a25-022fd4445d2d",
+		"name": "PP Gateway",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Request Forwarding",
+			"item": [
+				{
+					"name": "Forward GET indices",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5f50fc1a-6d93-463e-acda-21c130e4a63e",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct Elasticsearch response\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"green open \");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/mytenant/es/es_search/_cat/indices",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"mytenant",
+								"es",
+								"es_search",
+								"_cat",
+								"indices"
+							]
+						},
+						"description": "GET request forwarded to ES"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Puncher",
+			"item": [
+				{
+					"name": "Grok",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "959e08d2-cd50-453c-9f27-9ea3cdff7b12",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "input",
+									"type": "file",
+									"src": "/home/vincent/Documents/punchplatform/grok/input"
+								},
+								{
+									"key": "pattern",
+									"type": "file",
+									"src": "/home/vincent/Documents/punchplatform/grok/pattern"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/puncher/grok",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"puncher",
+								"grok"
+							]
+						},
+						"description": "Execute punchlet with Grok operator"
+					},
+					"response": []
+				},
+				{
+					"name": "Dissect",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "205c60d9-b272-4de1-b005-5fa3ddf64657",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "input",
+									"type": "file",
+									"src": "/home/vincent/Documents/dissect_test/input"
+								},
+								{
+									"key": "pattern",
+									"type": "file",
+									"src": "/home/vincent/Documents/dissect_test/pattern"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/puncher/dissect",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"puncher",
+								"dissect"
+							]
+						},
+						"description": "Execute punchlet with Dissect operator"
+					},
+					"response": []
+				},
+				{
+					"name": "Punchlet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "769c3adf-4749-4dcd-90f2-4e99428d0216",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "input",
+									"type": "file",
+									"src": "/home/vincent/Documents/punchplatform/punchlet/input"
+								},
+								{
+									"key": "logFile\n\n",
+									"type": "file",
+									"src": "/home/vincent/Documents/punchplatform/punchlet/punchlet"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/puncher/punchlet",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"puncher",
+								"punchlet"
+							]
+						},
+						"description": "Execute punchlet"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Punchline",
+			"item": [
+				{
+					"name": "Punchline Nodes Scan",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "98a26669-7be4-4475-a532-2aaf1f42a882",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/punchline/scan/analytics",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"punchline",
+								"scan",
+								"analytics"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Punchline",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "56f462fa-1f0c-461a-baa8-df8c05182253",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response contains PML id\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id')",
+									"});",
+									"",
+									"var resp = JSON.parse(responseBody);",
+									"pm.environment.set(\"punchline\", resp.id);",
+									"",
+									"setTimeout(function(){}, [5000]);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "PML File",
+									"type": "file",
+									"src": "/home/vincent/Documents/punchplatform/pml/dataset_generator_6.pml"
+								},
+								{
+									"key": "description",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/punchline/save",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"punchline",
+								"save"
+							]
+						},
+						"description": "Save provided punchline into resource manager"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Punchline by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2465bfc6-95f3-43ba-827b-bfb4195287d4",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"function checkField(property) {",
+									"    pm.expect(pm.response.json()).to.have.property(property);",
+									"}",
+									"",
+									"pm.test(\"Valid response format\", function (){",
+									"    checkField(\"channel\");",
+									"    checkField(\"runtime\");",
+									"    checkField(\"runtime_id\");",
+									"    checkField(\"dag\");",
+									"    checkField(\"tenant\");",
+									"});",
+									"",
+									"pm.test(\"Response runtime id is equal to punchline id\", function (){",
+									"    pm.expect(pm.response.json().runtime_id).to.equal(pm.variables.get(\"punchline\"));",
+									"});",
+									"",
+									"pm.test(\"Correct tenant\", function (){",
+									"    pm.expect(pm.response.json().tenant).to.equal(pm.variables.get(\"tenant\"));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/punchline/{{punchline}}",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"punchline",
+								"{{punchline}}"
+							]
+						},
+						"description": "Get Punchline by it ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset cache for PML Scan",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b4ddc37f-ec3e-4b3c-81dd-8c740a57f5e3",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/punchline/scan/reset",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"punchline",
+								"scan",
+								"reset"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List of PML",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d9213b78-b947-47fc-acf4-c83bbdefb63e",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"PML saved is present\", function () {",
+									"    pm.expect(pm.response.text()).to.include(pm.variables.get(\"punchline\"));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/punchline",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"punchline"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Execute Saved PML",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "493b91aa-6877-4405-8196-c6cd71634803",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains valid execution id\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id')",
+									"    pm.expect(jsonData.id).to.include(pm.variables.get(\"punchline\"));",
+									"});",
+									"",
+									"var resp = JSON.parse(responseBody);",
+									"pm.environment.set(\"execution_id\", resp.id);",
+									"",
+									"setTimeout(function(){}, [5000]);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/punchline/{{punchline}}",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"punchline",
+								"{{punchline}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Executions events by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "80caa9a7-80fa-4466-b59d-885ce2fb46be",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"function checkField(property) {",
+									"    for (resp of pm.response.json()){",
+									"        pm.expect(resp).to.have.property(property);",
+									"    }",
+									"}",
+									"",
+									"pm.test(\"Valid response format\", function (){",
+									"    checkField(\"event\");",
+									"    checkField(\"tenant\");",
+									"    checkField(\"timestamp\");",
+									"});",
+									"",
+									"pm.test(\"Tenant validation\", function () {",
+									"    for (resp of pm.response.json()){",
+									"        pm.expect(resp.tenant).to.eq(pm.variables.get(\"tenant\"));",
+									"    }",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/punchline/executions/{{execution_id}}/events",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"punchline",
+								"executions",
+								"{{execution_id}}",
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Executions output by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b3cb0ef7-f9a0-45d6-9003-64964a678f65",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/punchline/executions/{{execution_id}}/output",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"punchline",
+								"executions",
+								"{{execution_id}}",
+								"output"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Executions by tenant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e149885c-b68e-40b6-ad06-50ade60adc53",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Last execution is present\", function () {",
+									"    var size = Object.keys(pm.response.json()).length;",
+									"    pm.expect(pm.response.json()[size -1].id).to.eql(pm.variables.get(\"execution_id\"));",
+									"});",
+									"",
+									"pm.test(\"Tenant is valid\", function () {",
+									"    for (resp of pm.response.json()){",
+									"        pm.expect(resp.tenant).to.eql(pm.variables.get(\"tenant\"))",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/punchline/executions",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"punchline",
+								"executions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Executions by pml id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1b04863e-34c7-40d4-94b2-64220f5833e6",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Last execution is present\", function () {",
+									"    var size = Object.keys(pm.response.json()).length;",
+									"    pm.expect(pm.response.json()[size -1].id).to.eql(pm.variables.get(\"execution_id\"));",
+									"});",
+									"",
+									"pm.test(\"Tenant is valid\", function () {",
+									"    for (resp of pm.response.json()){",
+									"        pm.expect(resp.tenant).to.eql(pm.variables.get(\"tenant\"))",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/punchline/executions/{{punchline}}",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"punchline",
+								"executions",
+								"{{punchline}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Execute one shot PML",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9688c9d8-09a4-47bd-a4ed-8ae96f201bca",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "PML File",
+									"type": "file",
+									"src": "/home/vincent/Documents/punchplatform/pml/dataset_generator.pml"
+								},
+								{
+									"key": "",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/punchline",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"punchline"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete PML",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca62800d-faf6-4215-92a9-fa098f447ae8",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/punchline/{{punchline}}",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"punchline",
+								"{{punchline}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "cec85d04-0a47-4383-96b5-6f407ed4f30a",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "008f0ca7-5324-447c-8294-48940e97ed3e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Channel",
+			"item": [
+				{
+					"name": "All channels status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "03f08d4a-f838-4f04-bba9-7e66328cceba",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "326e451f-827c-4770-a17a-88c6fdd1c210",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/channels",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"channels"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Specific channel status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "03f08d4a-f838-4f04-bba9-7e66328cceba",
+								"exec": [
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Channel and jobs status are coherent\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    for (jobs of jsonData.jobs){",
+									"        pm.expect(jobs).to.have.property('cluster')",
+									"        pm.expect(jobs).to.have.property('name')",
+									"        pm.expect(jobs.status).to.be.oneOf([\"STOPPED\", \"STARTED\", \"UNKNOWN\", \"ACTIVE\"]);",
+									"    }",
+									"    pm.expect(jsonData.status).to.be.oneOf([\"STOPPED\", \"STARTED\", \"UNKNOWN\", \"ACTIVE\"]);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "326e451f-827c-4770-a17a-88c6fdd1c210",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/channels/{{channel}}",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"channels",
+								"{{channel}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Start/Stop channel",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bff984e6-babc-4d11-9284-27dea9272a71",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/channels/{{channel}}/{{action}}",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"channels",
+								"{{channel}}",
+								"{{action}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Platform",
+			"item": [
+				{
+					"name": "Properties",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "98942a3c-0953-4c82-b9a2-c5128a94b566",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/platform/properties",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"platform",
+								"properties"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Tenant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "98942a3c-0953-4c82-b9a2-c5128a94b566",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Body matches string\", function () {",
+									"    pm.expect(pm.response.json().tenant).to.eql(pm.variables.get(\"tenant\"));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/platform/tenant",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"platform",
+								"tenant"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Tenant conf",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "98942a3c-0953-4c82-b9a2-c5128a94b566",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/mytenant/conf/",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"mytenant",
+								"conf",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Archives",
+			"item": [
+				{
+					"name": "Archive download",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/mytenant/archives/test",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"mytenant",
+								"archives",
+								"test"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Archive delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/mytenant/archives",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"mytenant",
+								"archives"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Extraction",
+			"item": [
+				{
+					"name": "Create extraction",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"extraction-test\",\n    \"format\": \"csv\",\n    \"index\": \"platform-logs-*\",\n    \"fields\": [\n        {\n            \"name\": \"@timestamp\",\n            \"type\": \"date\"\n        },\n        {\n            \"name\": \"content.message\",\n            \"type\": \"string\"\n        }\n    ],\n    \"filters\": {\n        \"bool\": {\n            \"must\": [\n                {\n                    \"match_phrase\": {\n                        \"http.request.method\": {\n                            \"query\": \"GET\"\n                        }\n                    }\n                },\n                {\n                    \"range\": {\n                        \"@timestamp\": {\n                            \"gte\": \"1580308065389\",\n                            \"lte\": \"1580309865390\",\n                            \"format\": \"epoch_millis\"\n                        }\n                    }\n                }\n            ],\n            \"filter\": [\n                {\n                    \"match_all\": {}\n                }\n            ],\n            \"should\": [],\n            \"must_not\": []\n        }\n    },\n    \"tenant\": \"mytenant\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/extraction",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"extraction"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Resources",
+			"item": [
+				{
+					"name": "Get resource content",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/resources/download/{{resource}}",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"resources",
+								"download",
+								"{{resource}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload resources",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "input",
+									"type": "file",
+									"src": "/home/vincent/Documents/punchplatform/pml/dataset_generator.pml"
+								},
+								{
+									"key": "version",
+									"value": "2",
+									"type": "text"
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/v1/{{tenant}}/resources/upload/{{resource}}",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"v1",
+								"{{tenant}}",
+								"resources",
+								"upload",
+								"{{resource}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
+{% endraw %}

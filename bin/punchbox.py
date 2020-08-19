@@ -66,7 +66,7 @@ def load_user_config(user_config_file):
 
 def my_copy_tree(src, dst, ignore: List[str] = None):
     for item in os.listdir(src):
-        if not item in ignore: 
+        if not item in ignore:
             s = os.path.join(src, item)
             d = os.path.join(dst, item)
             if os.path.isdir(s):
@@ -80,7 +80,7 @@ def my_copy_tree(src, dst, ignore: List[str] = None):
 
 ## VAGRANT MANAGEMENT ##
 def create_vagrantfile(platform_config, vagrant_os: str=None):
-  if not vagrant_os: 
+  if not vagrant_os:
     vagrant_os=platform_config["targets"]["meta"]["os"]
   file_loader = jinja2.FileSystemLoader(vagrant_dir)
   env = jinja2.Environment(loader=file_loader)
@@ -224,7 +224,7 @@ def import_validation_resources(validation_conf_dir, platform_config_file):
     loader = jinja2.FileSystemLoader(validation_conf_dir + '/tenants')
     env = jinja2.Environment(loader=loader)
     ltemplates = env.list_templates()
-    for t in ltemplates: 
+    for t in ltemplates:
         template = env.get_template(t)
         render = template.render(
             spark_master= platform_config["punch"]["spark"]["masters"][0],
@@ -236,6 +236,7 @@ def import_validation_resources(validation_conf_dir, platform_config_file):
             machine= os.uname().machine,
             vagrant_config= os.path.basename(platform_config_file),
             vagrant_os= platform_config["targets"]["meta"]["os"],
+            gateway_host= platform_config["punch"]["gateway"]["servers"][0],
             branch= subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ppunch_dir).strip().decode(),
             commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode())
         file = open(tenants_target_dir + t, "w+")
@@ -250,7 +251,7 @@ def create_platform_shell(validation_config, platform_config, security=False):
     env = jinja2.Environment(loader=file_loader)
     platform_template = env.get_template(platform_template_shell)
     try:
-        platform_render = platform_template.render(punch=platform_config["punch"])
+        platform_render = platform_template.render(punch=platform_config['punch'], os=platform_config['targets']['meta']['os'])
         platform_shell = open(platform_shell_target, "w+")
         platform_shell.write(platform_render)
         platform_shell.close()
@@ -269,17 +270,17 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--deployer", 
+        "--deployer",
         help="Path to the punch deployer zip archive. Something like punchplatform-deployer-6.1.0.zip.")
     parser.add_argument(
-        "--punch-user-config", 
+        "--punch-user-config",
         help="Path to a punch configuration folder with your channels and resources."\
         " If you have no idea, check and use the punchbox/punch/configurations/sample/conf folder.")
     parser.add_argument(
-        "--punch-validation-config", 
+        "--punch-validation-config",
         help="Path to Punchplatform conf folder with your channels and resources.")
     parser.add_argument(
-        "--platform-config-file", 
+        "--platform-config-file",
         help="Path to your platform json configuration. Check the punchbox/configurations folder for ready to use configurations."\
         " For example complete_punch_16G.json for a complete punch assuming 16Gb ram on your laptop.", required=True)
     parser.add_argument("--destroy-vagrant", help="Vagrant destroy", action="store_true")
@@ -301,13 +302,13 @@ def main():
 
     if parser.parse_args().generate_vagrantfile is True:
         create_vagrantfile(platform_config, parser.parse_args().os)
-    
+
     if parser.parse_args().start_vagrant is True:
         launch_vagrant_boxes()
-    
+
     if parser.parse_args().generate_inventory is True:
         create_inventory(platform_config)
-    
+
     if parser.parse_args().deployer is not None:
         unzip_punch_archive(parser.parse_args().deployer)
         generate_model(platform_config, parser.parse_args().deployer, parser.parse_args().generate_vagrantfile,
