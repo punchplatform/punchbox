@@ -29,11 +29,33 @@
           ]
       },
       {
+        "type": "punchlet_node",
+        "component": "punch",
+        "settings": {
+          "punchlet": "./platform-reporter.punch"
+        },
+        "subscribe": [
+          {
+            "component": "kafka_input",
+            "stream": "logs"
+          }
+        ],
+        "publish": [
+          {
+            "stream": "logs",
+            "fields": [
+              "log",
+              "target_index"
+            ]
+          }
+        ]
+      },
+      {
         "type": "elasticsearch_output",
         "settings": {
           "index": {
-            "type": "daily",
-            "prefix": "platform-logs-"
+            "type": "tuple_field",
+            "tuple_field": "target_index"
           },
           "document_json_field": "log",
           "batch_size": 1,
@@ -43,7 +65,7 @@
         },
           "subscribe": [
             {
-              "component": "kafka_input",
+              "component": "punch",
               "stream": "logs"
             }
           ]

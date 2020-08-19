@@ -18,6 +18,17 @@ to your specific use case
 
 ### Manual integration 
 
+You have to deploy your platform with a specific validation configuration : 
+
+```sh
+punchbox --platform-config-file configurations/complete_punch_16G.json \
+        --generate-vagrantfile \
+        --punch-validation-config punch/configurations/validation/  \
+        --deployer <path_to_your_punchplatform_deployer_zip>
+punchplatform-deployer.sh --generate-platform-config --templates-dir punch/platform_template/ --model punch/build/model.json
+punchplatform-deployer.sh --deploy -u vagrant
+```
+
 Once your deployment is successful you can check your platform health. 
 Connect to your operator node, you will find a shell in `pp-conf/check_platform.sh`
 Global execution takes around 15 minutes. 
