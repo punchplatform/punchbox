@@ -1,3 +1,4 @@
+{%- raw -%}
 {
   runtime: spark
   metrics:
@@ -124,3 +125,4 @@
   version: "6.0"
   tenant: mytenant
 }
+{%- endraw -%}
