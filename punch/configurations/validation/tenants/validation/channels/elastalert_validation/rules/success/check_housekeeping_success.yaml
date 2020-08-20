@@ -45,6 +45,7 @@ http_post_static_payload:
   rule:
     name: Archive Housekeeping
     type: success
+    result: 1
     description: Archive Housekeeping ended with success (No metadata older than 9 minutes)
   host:
     user: {{ user }}

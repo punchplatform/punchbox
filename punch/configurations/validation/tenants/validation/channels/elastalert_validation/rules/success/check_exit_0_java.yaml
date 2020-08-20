@@ -1,4 +1,4 @@
-name: Exit code 1 on java/python punchline success
+name: Exit code 0 on java punchline success
 
 type: frequency
 
@@ -7,7 +7,7 @@ index: platform-logs-*
 filter:
 - query:
     query_string:
-      query: "platform.application:punchline_java_python_fail AND content.return_code: 1"
+      query: "platform.application:dataset_generator_to_stdout_java AND content.return_code: 0"
 
 num_events: 1
 timeframe: 
@@ -18,7 +18,7 @@ realert:
  minutes: 15
 
 alert_text_type: alert_text_only
-alert_text: "\n Spark execution in client mode for a malformed java/python punchline ended with success (Exit 1 code received)"
+alert_text: "\n Spark execution in client mode for a java punchline ended with success (Exit 0 code received)"
 
 alert:
 - command
@@ -26,16 +26,17 @@ alert:
 
 command: 
   - "/bin/echo"
-  - "alert: Spark execution in client mode for a malformed java/python punchline ended with success (Exit 1 code received)"
+  - "alert: Spark execution in client mode for a java punchline ended with success (Exit 0 code received)"
 
 post:
 http_post_url: {{ livedemo_api_url }}
 http_post_all_values: True
 http_post_static_payload:
   rule:
-    name: Exit code 1 on java/python punchline
+    name: Exit code 0 on java punchline
     type: success
-    description: Spark execution in client mode for a malformed java/python punchline ended with success (Exit 1 code received)
+    result: 1
+    description: Spark execution in client mode for a java punchline ended with success (Exit 0 code received)
   host:
     user: {{ user }}
     sysname: {{ sysname }}

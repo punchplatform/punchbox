@@ -40,6 +40,7 @@ http_post_static_payload:
   rule:
     name: Archive Housekeeping
     type: fail
+    result: -1
     description: Archive Housekeeping ended with failure (At least one metadata older than 9 minutes)
   host:
     user: {{ user }}

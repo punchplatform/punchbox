@@ -33,6 +33,7 @@ http_post_static_payload:
   rule:
     name: Aggregation
     type: success
+    result: 1
     description: Aggregation channel ended with success ! Which validates that plans, spark executions in foreground mode through shiva and storm streaming channels are operating properly!
   host:
     user: {{ user }}

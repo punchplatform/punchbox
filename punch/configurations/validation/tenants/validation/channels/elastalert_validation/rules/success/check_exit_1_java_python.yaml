@@ -1,0 +1,50 @@
+name: Exit code 1 on java/python punchline success
+
+type: frequency
+
+index: platform-logs-*
+
+filter:
+- query:
+    query_string:
+      query: "platform.application:punchline_java_python_fail AND content.return_code: 1"
+
+num_events: 1
+timeframe: 
+  minutes: 10
+doc_type: _doc
+
+realert:
+ minutes: 15
+
+alert_text_type: alert_text_only
+alert_text: "\n Spark execution in client mode for a malformed java/python punchline ended with success (Exit 1 code received)"
+
+alert:
+- command
+- post
+
+command: 
+  - "/bin/echo"
+  - "alert: Spark execution in client mode for a malformed java/python punchline ended with success (Exit 1 code received)"
+
+post:
+http_post_url: {{ livedemo_api_url }}
+http_post_all_values: True
+http_post_static_payload:
+  rule:
+    name: Exit code 1 on java/python punchline
+    type: success
+    result: 1
+    description: Spark execution in client mode for a malformed java/python punchline ended with success (Exit 1 code received)
+  host:
+    user: {{ user }}
+    sysname: {{ sysname }}
+    release: {{ release }}
+    machine: {{ machine }}
+  vagrant:
+    config: {{ vagrant_config }}
+    os: {{ vagrant_os }}
+  punchplatform:
+    branch: {{ branch }}
+    commit: {{ commit }}

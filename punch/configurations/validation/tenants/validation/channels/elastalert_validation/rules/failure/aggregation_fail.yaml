@@ -1,0 +1,47 @@
+name: Aggregation fail
+
+type: flatline
+
+index: mytenant-aggregations-*
+
+threshold: 1
+timeframe: 
+  minutes: 10
+doc_type: _doc
+timestamp_field: timestamp
+
+realert:
+ minutes: 15
+
+alert_text_type: alert_text_only
+alert_text: "\n Aggregation channel failed !\n No doc found in aggregation index\n Timestamp : {0}"
+alert_text_args: ["timestamp"]
+
+alert:
+- command
+- post
+
+command: 
+  - "/bin/echo"
+  - "alert: Aggregation doesn't emit data since 15min"
+
+post:
+http_post_url: {{ livedemo_api_url }}
+http_post_all_values: True
+http_post_static_payload:
+  rule:
+    name: Aggregation
+    type: fail
+    result: -1
+    description: Aggregation channel failed ! No doc found in aggregation index
+  host:
+    user: {{ user }}
+    sysname: {{ sysname }}
+    release: {{ release }}
+    machine: {{ machine }}
+  vagrant:
+    config: {{ vagrant_config }}
+    os: {{ vagrant_os }}
+  punchplatform:
+    branch: {{ branch }}
+    commit: {{ commit }}
