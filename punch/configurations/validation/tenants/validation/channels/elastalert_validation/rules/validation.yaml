@@ -11,7 +11,7 @@ filter:
       query: "match_body.validation.id: {{ validation_id }}"
 
 
-metric_agg_key: rule.result
+metric_agg_key: match_body.rule.result
 metric_agg_type: sum
 min_threshold: 100 # alert will always be triggered
 doc_type: _doc
