@@ -9,6 +9,7 @@ from distutils.dir_util import copy_tree
 from shutil import copy2, copytree, ignore_patterns
 from sys import exit
 from typing import List, Dict
+from datetime import date
 
 import jinja2
 from jinja2.exceptions import UndefinedError
@@ -229,6 +230,7 @@ def import_validation_resources(validation_conf_dir, platform_config_file):
         render = template.render(
             spark_master= platform_config["punch"]["spark"]["masters"][0],
             elasticsearch_host= platform_config["punch"]["elasticsearch"]["servers"][0],
+            validation_id= date.today().isoformat() + '-' + os.getenv('USER', default='anonymous'),
             livedemo_api_url= livedemo_api_url,
             user= os.getenv('USER', default='anonymous'),
             sysname= os.uname().sysname,
