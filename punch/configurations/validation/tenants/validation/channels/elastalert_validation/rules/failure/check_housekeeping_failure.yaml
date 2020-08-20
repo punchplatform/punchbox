@@ -22,9 +22,6 @@ filter:
 realert:
  minutes: 15
 
-alert_text_type: alert_text_only
-alert_text: "\n Archive Housekeeping ended with failure (At least one metadata older than 9 minutes)"
-
 alert:
 - command
 - post

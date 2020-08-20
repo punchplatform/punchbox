@@ -27,9 +27,6 @@ doc_type: _doc
 realert:
  minutes: 15
 
-alert_text_type: alert_text_only
-alert_text: "\n Archive Housekeeping ended with success (No metadata older than 9 minutes)"
-
 alert:
 - command
 - post

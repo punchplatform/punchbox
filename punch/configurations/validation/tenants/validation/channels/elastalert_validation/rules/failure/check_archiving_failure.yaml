@@ -14,9 +14,6 @@ doc_type: _doc
 realert:
  minutes: 15
 
-alert_text_type: alert_text_only
-alert_text: "\n Archiving ended with failure (No metadata found)"
-
 alert:
 - command
 - post

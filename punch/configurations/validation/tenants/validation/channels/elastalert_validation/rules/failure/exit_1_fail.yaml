@@ -17,9 +17,6 @@ doc_type: _doc
 realert:
  minutes: 15
 
-alert_text_type: alert_text_only
-alert_text: "\n At least one exit 0 code have been received during malformed punchlines execution in spark client mode"
-
 alert:
 - command
 - post

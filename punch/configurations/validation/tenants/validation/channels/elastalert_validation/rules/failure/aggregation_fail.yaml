@@ -13,10 +13,6 @@ timestamp_field: timestamp
 realert:
  minutes: 15
 
-alert_text_type: alert_text_only
-alert_text: "\n Aggregation channel failed !\n No doc found in aggregation index\n Timestamp : {0}"
-alert_text_args: ["timestamp"]
-
 alert:
 - command
 - post
