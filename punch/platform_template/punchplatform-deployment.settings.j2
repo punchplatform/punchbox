@@ -109,13 +109,7 @@
     }
   },
    {% endif %}
-   {% if pyspark is defined %}
-   "pyspark" : {
-        "pyspark_version" : "{{ version.pyspark }}",
-        "servers": {{ pyspark.servers | tojson }}
-  },
-   {% endif %}
-   
+
    {% if zookeeper is defined %}
    "zookeeper": {
   "zookeeper_version": "{{ version.zookeeper }}",

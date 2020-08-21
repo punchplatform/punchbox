@@ -40,6 +40,7 @@ source $PUNCHBOX_DIR/activate.sh
 punchplatform-deployer.sh --generate-platform-config --templates-dir $PUNCHBOX_DIR/punch/platform_template/ --model $PUNCHBOX_DIR/punch/build/model.json
 punchplatform-deployer.sh -gi
 punchplatform-deployer.sh --deploy -u vagrant
+punchplatform-deployer.sh -cp -u vagrant
 
 echo -e "${GREEN}INFO:${RESET} Launch check platform "
 

@@ -4,8 +4,7 @@
       "server1": {
         "disksize": "40GB",
         "memory": 3072,
-        "cpu": 2,
-        "synced_pp_conf_folder": true
+        "cpu": 2
       },
       "server2": {
         "disksize": "40GB",
@@ -99,11 +98,6 @@
         "server3"
       ],
       "slaves_memory": "1200M"
-    },
-    "pyspark": {
-      "servers": [
-        "server4"
-      ]
     },
     "minio": {
       "servers": [

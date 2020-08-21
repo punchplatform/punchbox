@@ -12,7 +12,6 @@ This file is composed as follow :
               - `disksize`: size of disk box
               - `memory`: memory size of box
               - `cpu`: number of cpu for box
-              - `synced_pp_conf_folder`: boolean to sync pp-conf folder (operator server)
       - `meta`: common details for all boxes
           - `os`: os for all boxes
 

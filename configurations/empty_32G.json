@@ -4,8 +4,7 @@
       "server1": {
         "disksize": "20GB",
         "memory": 3072,
-        "cpu": 2,
-        "synced_pp_conf_folder": true
+        "cpu": 2
       },
       "server2": {
         "disksize": "20GB",

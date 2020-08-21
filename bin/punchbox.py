@@ -42,7 +42,7 @@ generated_model = build_dir + '/model.json'
 punchbox_inv_target = ansible_dir + '/punchbox.inv'
 punchbox_playbook_target = ansible_dir + '/punchbox.yml'
 
-cots = ["punch", "minio", "zookeeper", "spark", "pyspark", "elastic", "opendistro_security", "operator", "binaries",
+cots = ["punch", "minio", "zookeeper", "spark", "elastic", "opendistro_security", "operator", "binaries",
         "analytics-deployment",
         "analytics-client", "shiva", "gateway", "storm", "kafka", "logstash", "metricbeat", "filebeat", "packetbeat",
         "auditbeat"]

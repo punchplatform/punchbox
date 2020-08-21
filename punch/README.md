@@ -74,6 +74,8 @@ punchplatform-deployer.sh deploy -u vagrant
 punchplatform-deployer.sh deploy -u vagrant --tags zookeeper
 # install zookeeper plus operator
 punchplatform-deployer.sh deploy -u vagrant --tags zookeeper,operator
+# import punch conf to operator node
+punchplatform-deployer.sh -cp -u vagrant
 ```
 
 ### Daily usage 

@@ -29,9 +29,6 @@ Vagrant.configure("2") do |config|
 
       # Share only sample_confs
       server.vm.synced_folder '.', '/vagrant', disabled: true
-      {%- if targets.info[server].synced_pp_conf_folder is defined %}
-      server.vm.synced_folder '../punch/build/pp-conf', '/home/vagrant/pp-conf/'
-      {%- endif %}
       server.vm.synced_folder '/tmp/archive-log/storage', '/tmp/archive-logs/storage', create: true
       ## Configuration
       server.vm.hostname = "{{ server }}"

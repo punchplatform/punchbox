@@ -27,6 +27,7 @@ punchbox --platform-config-file configurations/complete_punch_16G.json \
         --deployer <path_to_your_punchplatform_deployer_zip>
 punchplatform-deployer.sh --generate-platform-config --templates-dir punch/platform_template/ --model punch/build/model.json
 punchplatform-deployer.sh --deploy -u vagrant
+punchplatform-deployer.sh -cp -u vagrant
 ```
 
 Once your deployment is successful you can check your platform health. 
