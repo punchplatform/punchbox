@@ -242,7 +242,8 @@ def import_validation_resources(validation_conf_dir, platform_config_file):
             vagrant_os= platform_config["targets"]["meta"]["os"],
             gateway_host= platform_config["punch"]["gateway"]["servers"][0],
             branch= subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ppunch_dir).strip().decode(),
-            commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode())
+            commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode(),
+            commit_date= subprocess.check_output(["git","log","-1","--date=format:%Y-%m-%d@%H:%M","--format=%ad"],cwd=ppunch_dir).strip().decode())
         file = open(tenants_target_dir + t, "w+")
         file.write(render)
         file.close()

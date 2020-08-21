@@ -5,6 +5,11 @@ type: metric_aggregation
 
 index: elastalert
 
+run_every:
+  minutes: 13 # aggregate just before test end
+
+priority: 3 # make it run first
+
 filter:
 - query:
     query_string:
@@ -17,8 +22,6 @@ min_threshold: 100 # alert will always be triggered
 doc_type: _doc
 buffer_time:
   minutes: 15
-realert:
-  minutes: 13 # aggregate just before end test
 
 alert:
 - command
@@ -46,3 +49,4 @@ http_post_static_payload:
   punchplatform:
     branch: {{ branch }}
     commit: {{ commit }}
+    date: {{ commit_date }}

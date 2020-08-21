@@ -11,9 +11,9 @@ doc_type: _doc
 timestamp_field: timestamp
 
 realert:
- minutes: 15
+  minutes: 15
 
- include:
+include:
   - num_hits
   - num_matches
 
@@ -47,3 +47,4 @@ http_post_static_payload:
   punchplatform:
     branch: {{ branch }}
     commit: {{ commit }}
+    date: {{ commit_date }}

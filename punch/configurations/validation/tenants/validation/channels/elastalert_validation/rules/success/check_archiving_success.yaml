@@ -7,7 +7,7 @@ type: any
 index: mytenant-archive-*
 
 realert:
- minutes: 15
+  minutes: 15
 
 include:
   - num_hits
@@ -43,3 +43,4 @@ http_post_static_payload:
   punchplatform:
     branch: {{ branch }}
     commit: {{ commit }}
+    date: {{ commit_date }}
