@@ -1,0 +1,52 @@
+# This rule aggregates results from individual test rules for a given validation
+name: validation
+
+type: metric_aggregation
+
+index: elastalert
+
+run_every:
+  minutes: 13 # aggregate just before test end
+
+priority: 3 # make it run first
+
+filter:
+- query:
+    query_string:
+      query: "match_body.validation.id: {{ validation_id }}"
+
+
+metric_agg_key: match_body.rule.result
+metric_agg_type: sum
+min_threshold: 100 # alert will always be triggered
+doc_type: _doc
+buffer_time:
+  minutes: 15
+
+alert:
+- command
+- post
+
+command: 
+  - "/bin/echo"
+  - "alert: Validation OK"
+
+post:
+http_post_url: {{ livedemo_api_url }}
+http_post_all_values: True
+http_post_static_payload:
+  validation:
+    id: {{ validation_id }}
+    nb_to_validate: {{ nb_to_validate }}
+  host:
+    user: {{ user }}
+    sysname: {{ sysname }}
+    release: {{ release }}
+    machine: {{ machine }}
+  vagrant:
+    config: {{ vagrant_config }}
+    os: {{ vagrant_os }}
+  punchplatform:
+    branch: {{ branch }}
+    commit: {{ commit }}
+    date: {{ commit_date }}

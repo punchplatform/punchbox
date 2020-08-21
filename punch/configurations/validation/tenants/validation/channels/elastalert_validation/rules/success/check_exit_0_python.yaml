@@ -15,10 +15,11 @@ timeframe:
 doc_type: _doc
 
 realert:
- minutes: 15
+  minutes: 15
 
-alert_text_type: alert_text_only
-alert_text: "\n Spark execution in client mode for a python punchline ended with success (Exit 0 code received)"
+include:
+  - num_hits
+  - num_matches
 
 alert:
 - command
@@ -32,9 +33,12 @@ post:
 http_post_url: {{ livedemo_api_url }}
 http_post_all_values: True
 http_post_static_payload:
+  validation:
+    id: {{ validation_id }}
   rule:
     name: Exit code 0 on python punchline
     type: success
+    result: 1
     description: Spark execution in client mode for a python punchline ended with success (Exit 0 code received)
   host:
     user: {{ user }}
@@ -47,3 +51,4 @@ http_post_static_payload:
   punchplatform:
     branch: {{ branch }}
     commit: {{ commit }}
+    date: {{ commit_date }}

@@ -12,11 +12,12 @@ timestamp_field: timestamp
 buffer_time:
   minutes: 10
 realert:
- minutes: 15
+  minutes: 15
 
-alert_text_type: alert_text_only
-alert_text: "\n Aggregation channel ended with success ! \n Which validates that plans, spark executions in foreground mode through shiva and storm streaming channels are operating properly!\n Max value of doc_count : {0}\n Hits : {1}\n Matched : {2}\n Timestamp : {3}"
-alert_text_args: ["metric_doc_count_max","num_hits","num_matches","timestamp"]
+include:
+  - num_hits
+  - num_matches
+  - metric_doc_count_max
 
 alert:
 - command
@@ -30,9 +31,12 @@ post:
 http_post_url: {{ livedemo_api_url }}
 http_post_all_values: True
 http_post_static_payload:
+  validation:
+    id: {{ validation_id }}
   rule:
     name: Aggregation
     type: success
+    result: 1
     description: Aggregation channel ended with success ! Which validates that plans, spark executions in foreground mode through shiva and storm streaming channels are operating properly!
   host:
     user: {{ user }}
@@ -45,3 +49,4 @@ http_post_static_payload:
   punchplatform:
     branch: {{ branch }}
     commit: {{ commit }}
+    date: {{ commit_date }}

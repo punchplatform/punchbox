@@ -15,10 +15,11 @@ timeframe:
 doc_type: _doc
 
 realert:
- minutes: 15
+  minutes: 15
 
-alert_text_type: alert_text_only
-alert_text: "\n At least one exit 0 code have been received during malformed punchlines execution in spark client mode"
+include:
+  - num_hits
+  - num_matches
 
 alert:
 - command
@@ -32,9 +33,12 @@ post:
 http_post_url: {{ livedemo_api_url }}
 http_post_all_values: True
 http_post_static_payload:
+  validation:
+    id: {{ validation_id }}
   rule:
     name: Exit code 1
     type: fail
+    result: -1
     description: At least one exit 0 code have been received during malformed punchlines execution in spark client mode
   host:
     user: {{ user }}
@@ -47,3 +51,4 @@ http_post_static_payload:
   punchplatform:
     branch: {{ branch }}
     commit: {{ commit }}
+    date: {{ commit_date }}

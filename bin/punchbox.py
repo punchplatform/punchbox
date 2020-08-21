@@ -9,6 +9,7 @@ from distutils.dir_util import copy_tree
 from shutil import copy2, copytree, ignore_patterns
 from sys import exit
 from typing import List, Dict
+from datetime import date
 
 import jinja2
 from jinja2.exceptions import UndefinedError
@@ -219,6 +220,7 @@ def import_validation_resources(validation_conf_dir, platform_config_file):
     ignore = ["*.properties", "resolv.*", "binutils", "*.j2"]
     my_copy_tree(validation_conf_dir, build_conf_dir, ignore=ignore)
     platform_config= load_user_config(platform_config_file)
+    tenant_validation_dir= os.path.join(validation_conf_dir,'tenants/validation/channels/elastalert_validation/rules/success')
     livedemo_api_url=os.getenv('LIVEDEMO_API_URL', default="http://test")
     ppunch_dir = os.getenv('PUNCH_DIR', default=top_dir)
     loader = jinja2.FileSystemLoader(validation_conf_dir + '/tenants')
@@ -229,6 +231,8 @@ def import_validation_resources(validation_conf_dir, platform_config_file):
         render = template.render(
             spark_master= platform_config["punch"]["spark"]["masters"][0],
             elasticsearch_host= platform_config["punch"]["elasticsearch"]["servers"][0],
+            validation_id= date.today().isoformat() + '-' + os.getenv('USER', default='anonymous'),
+            nb_to_validate= len([f for f in os.listdir(tenant_validation_dir)]),
             livedemo_api_url= livedemo_api_url,
             user= os.getenv('USER', default='anonymous'),
             sysname= os.uname().sysname,
@@ -238,7 +242,8 @@ def import_validation_resources(validation_conf_dir, platform_config_file):
             vagrant_os= platform_config["targets"]["meta"]["os"],
             gateway_host= platform_config["punch"]["gateway"]["servers"][0],
             branch= subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ppunch_dir).strip().decode(),
-            commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode())
+            commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode(),
+            commit_date= subprocess.check_output(["git","log","-1","--date=format:%Y-%m-%d@%H:%M","--format=%ad"],cwd=ppunch_dir).strip().decode())
         file = open(tenants_target_dir + t, "w+")
         file.write(render)
         file.close()

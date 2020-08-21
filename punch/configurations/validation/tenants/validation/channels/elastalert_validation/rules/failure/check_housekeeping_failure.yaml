@@ -20,10 +20,11 @@ filter:
         lt: now-9m
 
 realert:
- minutes: 15
+  minutes: 15
 
-alert_text_type: alert_text_only
-alert_text: "\n Archive Housekeeping ended with failure (At least one metadata older than 9 minutes)"
+include:
+  - num_hits
+  - num_matches
 
 alert:
 - command
@@ -37,9 +38,12 @@ post:
 http_post_url: {{ livedemo_api_url }}
 http_post_all_values: True
 http_post_static_payload:
+  validation:
+    id: {{ validation_id }}
   rule:
     name: Archive Housekeeping
     type: fail
+    result: -1
     description: Archive Housekeeping ended with failure (At least one metadata older than 9 minutes)
   host:
     user: {{ user }}
@@ -52,3 +56,4 @@ http_post_static_payload:
   punchplatform:
     branch: {{ branch }}
     commit: {{ commit }}
+    date: {{ commit_date }}
