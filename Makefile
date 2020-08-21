@@ -71,7 +71,7 @@ punchbox-32G: clean-deployer
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
 				 --generate-vagrantfile \
 				 --punch-validation-config ${DIR}/punch/configurations/validation/ \
-				 --deployer $(shell cat ${DIR}/.deployer)
+				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --start-vagrant
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --generate-platform-config \
