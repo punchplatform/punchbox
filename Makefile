@@ -14,6 +14,7 @@ help:
 	@echo "install                        - rebuild everything from scratch "
 	@echo "clean                          - remove all build, test, coverage and Python artifacts"
 	@echo "vagrant-dependencies           - install necessary dependencies for vagrant"
+	@echo "punchbox-32G                   - deploy on vagrant box a 32G punchplatform"
 
 .venv:
 	$(info ************  CREATE PYTHON 3 .venv  VIRTUALENV  ************)
@@ -65,7 +66,11 @@ clean-deployer:
 	$(info CLEANING OLD DEPLOYER ARCHIVES)
 	@rm -rf ${DIR}/punch/build/punch-deployer-*
 
-punchbox-32G: clean-deployer
+clean-vagrant:
+	$(info WHIPPING VAGRANT VM)
+	@cd ${DIR}/vagrant && vagrant destroy -f
+
+punchbox-32G: clean-deployer clean-vagrant vagrant-dependencies
 	$(info Deploying 32G PunchBox)
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -82,7 +87,22 @@ punchbox-32G: clean-deployer
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
-	
+punchbox-16G: clean-deployer clean-vagrant vagrant-dependencies
+	$(info Deploying 16G PunchBox)
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
+				 --generate-vagrantfile \
+				 --punch-validation-config ${DIR}/punch/configurations/validation/ \
+				 --deployer $(shell cat ${DIR}/.deployer) \
+				 --start-vagrant
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --generate-platform-config \
+								  --templates-dir ${DIR}/punch/platform_template/ \
+								  --model ${DIR}/punch/build/model.json
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh -gi
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --deploy -u vagrant
 
 
 
