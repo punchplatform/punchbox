@@ -84,12 +84,12 @@
 								{
 									"key": "input",
 									"type": "file",
-									"src": "/home/vincent/Documents/punchplatform/grok/input"
+									"src": "resources/grok/input"
 								},
 								{
 									"key": "pattern",
 									"type": "file",
-									"src": "/home/vincent/Documents/punchplatform/grok/pattern"
+									"src": "resources/grok/pattern"
 								}
 							]
 						},
@@ -135,12 +135,12 @@
 								{
 									"key": "input",
 									"type": "file",
-									"src": "/home/vincent/Documents/dissect_test/input"
+									"src": "resources/dissect/input"
 								},
 								{
 									"key": "pattern",
 									"type": "file",
-									"src": "/home/vincent/Documents/dissect_test/pattern"
+									"src": "resources/dissect/pattern"
 								}
 							]
 						},
@@ -186,12 +186,12 @@
 								{
 									"key": "input",
 									"type": "file",
-									"src": "/home/vincent/Documents/punchplatform/punchlet/input"
+									"src": "resources/punchlet/input"
 								},
 								{
 									"key": "logFile\n\n",
 									"type": "file",
-									"src": "/home/vincent/Documents/punchplatform/punchlet/punchlet"
+									"src": "resources/punchlet/punchlet"
 								}
 							]
 						},
@@ -298,7 +298,7 @@
 									"key": "file",
 									"description": "PML File",
 									"type": "file",
-									"src": "/home/vincent/Documents/punchplatform/pml/dataset_generator_6.pml"
+									"src": "resources/pml/dataset_generator.pml"
 								},
 								{
 									"key": "description",
@@ -747,7 +747,7 @@
 									"key": "file",
 									"description": "PML File",
 									"type": "file",
-									"src": "/home/vincent/Documents/punchplatform/pml/dataset_generator.pml"
+									"src": "resources/pml/dataset_generator.pml"
 								},
 								{
 									"key": "",
@@ -1261,7 +1261,7 @@
 								{
 									"key": "input",
 									"type": "file",
-									"src": "/home/vincent/Documents/punchplatform/pml/dataset_generator.pml"
+									"src": "resources/pml/dataset_generator.pml"
 								},
 								{
 									"key": "version",

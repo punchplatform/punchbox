@@ -1,0 +1,83 @@
+{
+
+  if (![logs][log]) {
+    throw new PunchRuntimeException("no input data : this parser expects to receive it under [logs][log]");
+  }
+
+  Tuple document = [logs][log];
+  Tuple tmp;
+
+  if (!kv().on([logs][log]).into(tmp:[kv])) {
+    throw new PunchRuntimeException("Not a recognized KV input for StormShield Network Security");
+  }
+
+  switch(tmp:[kv][logtype]) {
+    case "filter":
+      document:[type] = "fw";
+      document:[alarm][name] = tmp:[kv][action];
+      break;
+
+    case "server":
+      document:[type] = "sys";
+      document:[init][host][ip] = tmp:[kv][address];
+      document:[session][id] = tmp:[kv][sessionid];
+      break;
+
+    case "system":
+      document:[type] = "sys";
+      
+      break;
+
+    case "auth":
+      document:[type] = "auth";
+      break;
+
+    case "monitor":
+      document:[type] = "perf";
+      break;
+
+    case "alarm":
+      document:[type] = "ids";
+      break;
+
+    default:
+      throw new PunchRuntimeException("New log type dectected with tmp:[kv][logtype] equals to '" + tmp:[kv][logtype] + "'");
+  }
+
+  document:[alarm][id] = tmp:[kv][classification] + "-" + tmp:[kv][alarmid];
+  document:[alarm][name] = tmp:[kv][msg];
+  document:[alarm][sev] = tmp:[kv][pri];
+
+  tmp:[obs_ts] = tmp:[kv][time] + tmp:[kv][tz];
+  document:[obs][ts] = date("iso", "YYYY-MM-dd HH:mm:ssZ").on(tmp:[obs_ts]).get();
+  document:[obs][host][name] = tmp:[kv][fw];
+
+  document:[init][host][ip] = tmp:[kv][src];
+  document:[init][host][port] = tmp:[kv][srcport];
+  document:[init][host][mac] = tmp:[kv][srcmac];
+
+  document:[init][host][if].append(tmp:[kv][srcif]);
+  document:[init][host][if].append(tmp:[kv][srcifname]);
+
+  document:[init][usr][name] = tmp:[kv][user];
+
+  document:[target][host][ip] = tmp:[kv][dst];
+  document:[target][host][port] = tmp:[kv][dstport];
+  document:[target][host][if].append(tmp:[kv][dstif]);
+  document:[target][host][if].append(tmp:[kv][dstifname]);
+
+  document:[action] = tmp:[kv][action];
+
+  document:[app][name] = tmp:[kv][dstportname];
+  if(tmp:[kv][ipproto]) {
+    document:[app][proto][name].append(tmp:[kv][proto]);
+    document:[app][proto][name].append(tmp:[kv][ipproto]);
+  } else {
+    document:[app][proto][name] = tmp:[kv][proto];
+  }
+  document:[app][return][code] = tmp:[kv][error];
+  document:[app][name] = tmp:[kv][service];
+  document:[app][method] = tmp:[kv][method];
+
+  document:[rule][id] = tmp:[kv][ruleid];
+}
