@@ -1,9 +1,10 @@
 DIR=$(shell pwd)
 PUNCHBOX_PEX_REQUIREMENTS=${DIR}/bin/pex/punchbox_pex/requirements.txt
-ANSIBLE_PEX_REQUIREMENTS=${DIR}/bin/pex/punchbox_pex/requirements.txt
+ANSIBLE_PEX_REQUIREMENTS=${DIR}/bin/pex/ansible_pex/requirements.txt
 PUNCHBOX_PEX=${DIR}/bin/pex/punchbox_pex/punchbox.pex
 ANSIBLE_PEX=${DIR}/bin/pex/ansible_pex/ansible.pex
 ACTIVATE_SH=${DIR}/activate.sh
+DEFAULT_DEPLOYER_ZIP_PATH=${DIR}/../pp-punch/packagings/punch-deployer/target/punch-deployer-*.zip
 
 ifeq (, $(shell which python3))
  $(error "No python3 installed, it is required. Make sure you also install python3 venv")
@@ -12,6 +13,7 @@ endif
 help:
 	@echo "install                        - rebuild everything from scratch "
 	@echo "clean                          - remove all build, test, coverage and Python artifacts"
+	@echo "vagrant-dependencies           - install necessary dependencies for vagrant"
 
 .venv:
 	$(info ************  CREATE PYTHON 3 .venv  VIRTUALENV  ************)
@@ -50,8 +52,35 @@ install: clean .venv
 	$(info activate.sh: ${ACTIVATE_SH})
 	$(info installation complete, you should be able to use other commands !)
 
+vagrant-dependencies:
+	$(info ************ ADDING VAGRANT DEPENDENCIES ************)
+	@vagrant plugin install vagrant-disksize
+	@vagrant plugin install vagrant-vbguest
 
+configure-punchbox-vagrant:
+	$(info Deployer zip path is set to (change it to match yours): ${DIR}/.deployer)
+	@echo ${DEFAULT_DEPLOYER_ZIP_PATH} > ${DIR}/.deployer
 
+clean-deployer:
+	$(info CLEANING OLD DEPLOYER ARCHIVES)
+	@rm -rf ${DIR}/punch/build/punch-deployer-*
+
+punchbox-32G: clean-deployer
+	$(info Deploying 32G PunchBox)
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
+				 --generate-vagrantfile \
+				 --punch-validation-config ${DIR}/punch/configurations/validation/ \
+				 --deployer $(shell cat ${DIR}/.deployer)
+				 --start-vagrant
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --generate-platform-config \
+								  --templates-dir ${DIR}/punch/platform_template/ \
+								  --model ${DIR}/punch/build/model.json
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh -gi
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --deploy -u vagrant
 
 	
 

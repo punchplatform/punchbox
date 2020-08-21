@@ -48,3 +48,4 @@ ansible/punchbox.*
 .idea/**
 punch/build
 venv
+.deployer
