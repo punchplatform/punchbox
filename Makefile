@@ -8,10 +8,11 @@ ACTIVATE_SH=${DIR}/activate.sh
 DEFAULT_DEPLOYER_ZIP_PATH=${DIR}/../pp-punch/packagings/punch-deployer/target/punch-deployer-*.zip
 
 # Color Functions
-cyan=/bin/echo -e "\x1b[36m $1\x1b[0m$2"
-blue=/bin/echo -e "\x1b[34m $1\x1b[0m$2"
-green=/bin/echo -e "\x1b[32m $1\x1b[0m$2"
-red=/bin/echo -e "\x1b[31m $1\x1b[0m$2"
+ECHO=$(shell which echo)
+cyan=${ECHO} -e "\x1b[36m $1\x1b[0m$2"
+blue=${ECHO} -e "\x1b[34m $1\x1b[0m$2"
+green=${ECHO} -e "\x1b[32m $1\x1b[0m$2"
+red=${ECHO} -e "\x1b[31m $1\x1b[0m$2"
 
 ifeq (, $(shell which python3))
  $(error "No python3 installed, it is required. Make sure you also install python3 venv")
