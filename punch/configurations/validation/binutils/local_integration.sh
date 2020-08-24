@@ -28,7 +28,7 @@ mvn clean install -DskipTests
 cd $PUNCHBOX_DIR
 git checkout $1
 git pull
-DEPLOYER_ZIP=$(ls -of $PUNCH_DIR/packaging/punchplatform-deployer/target/punchplatform-deployer-*.zip)
+DEPLOYER_ZIP=$(ls -of $PUNCH_DIR/packagings/punch-deployer/target/punch-deployer-*.zip)
 VALIDATION_CONF=$(realpath $PUNCHBOX_DIR/punch/configurations/validation)
 
 echo -e "${GREEN}INFO:${RESET} Launch punchbox with deployer : $DEPLOYER_ZIP and validation config : $VALIDATION_CONF"
