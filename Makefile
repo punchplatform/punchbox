@@ -17,7 +17,7 @@ red=${ECHO} -e "\x1b[31m $1\x1b[0m$2"
 ifneq ("$(wildcard ${DIR}/vagrant/Vagrantfile)","")
 	CLEANUP_COMMAND="cd ${DIR}/vagrant && vagrant destroy -f"
 else
-	CLEANUP_COMMAND=$(call red, "Vagrantfile does not exist yet... Nothing to wipe")
+	CLEANUP_COMMAND="echo '------>  Vagrantfile does not exist yet... Nothing to wipe <------'"
 endif
 
 ifeq (, $(shell which python3))
@@ -41,7 +41,6 @@ clean: clean-vagrant clean-deployer
 	@$(call blue, "************  CLEAN  ************")
 	@rm -rf ${DIR}/.venv
 	@rm -rf ${DIR}/punch/build
-	@rm -rf ${DIR}/vagrant/Vagrantfile
 	@rm -rf ${DIR}/activate.sh
 	@rm -rf ${DIR}/bin/pex/punchbox_pex/punchbox.pex
 	@rm -rf ${DIR}/bin/pex/ansible_pex/ansible.pex
@@ -83,7 +82,8 @@ clean-deployer:
 
 clean-vagrant:
 	@$(call red, "WIPPING VAGRANT VM", "cd ${DIR}/vagrant \&\& vagrant destroy -f")
-	@$(CLEANUP_COMMAND)
+	@eval ${CLEANUP_COMMAND}
+	@@rm -rf ${DIR}/vagrant/Vagrantfile
 
 punchbox-ubuntu-32G: clean-deployer vagrant-dependencies
 	@$(call green, "Deploying 32G PunchBox")
