@@ -1,3 +1,4 @@
+# Static vars
 DIR=$(shell pwd)
 PUNCHBOX_PEX_REQUIREMENTS=${DIR}/bin/pex/punchbox_pex/requirements.txt
 ANSIBLE_PEX_REQUIREMENTS=${DIR}/bin/pex/ansible_pex/requirements.txt
@@ -6,24 +7,31 @@ ANSIBLE_PEX=${DIR}/bin/pex/ansible_pex/ansible.pex
 ACTIVATE_SH=${DIR}/activate.sh
 DEFAULT_DEPLOYER_ZIP_PATH=${DIR}/../pp-punch/packagings/punch-deployer/target/punch-deployer-*.zip
 
+# Color Functions
+cyan=/bin/echo -e "\x1b[36m $1\x1b[0m$2"
+blue=/bin/echo -e "\x1b[34m $1\x1b[0m$2"
+green=/bin/echo -e "\x1b[32m $1\x1b[0m$2"
+red=/bin/echo -e "\x1b[31m $1\x1b[0m$2"
+
 ifeq (, $(shell which python3))
  $(error "No python3 installed, it is required. Make sure you also install python3 venv")
 endif
 
 help:
-	@echo "install                        - rebuild everything from scratch "
-	@echo "clean                          - remove all build, test, coverage and Python artifacts"
-	@echo "vagrant-dependencies           - install necessary dependencies for vagrant"
-	@echo "punchbox-32G                   - deploy on vagrant box a 32G punchplatform"
+	@$(call cyan,"PunchBox Commands", ":")
+	@$(call green, "install", "- rebuild everything from scratch")
+	@$(call green, "vagrant-dependencies", "- install necessary dependencies for vagrant")
+	@$(call green, "punchbox-32G", "- deploy on vagrant box a 32G punchplatform")
+	@$(call green, "clean", "- remove all installed binaries and virtualenv relicas")
 
 .venv:
-	$(info ************  CREATE PYTHON 3 .venv  VIRTUALENV  ************)
+	@$(call blue, "************  CREATE PYTHON 3 .venv  VIRTUALENV  ************")
 	@if [ ! -e "${DIR}/.venv/bin/activate" ] ; then python3 -m venv ${DIR}/.venv ; fi
 	@. ${DIR}/.venv/bin/activate && pip install -U pip wheel setuptools -q
-	$(info Python 3 virtualenv installed in ${DIR}/.venv)
+	@$(call blue, "Python 3 virtualenv installed:", "${DIR}/.venv")
 
 clean: 
-	$(info ************  CLEAN  ************)
+	@$(call blue, "************  CLEAN  ************")
 	@rm -rf ${DIR}/.venv
 	@rm -rf ${DIR}/punch/build
 	@rm -rf ${DIR}/vagrant/Vagrantfile
@@ -35,43 +43,43 @@ clean:
 	@-find ${DIR} -name '*.pyo' -exec rm -f {} +
 	@-find ${DIR} -name '*~' -exec rm -f {} +
 	@-find ${DIR} -name '__pycache__' -exec rm -fr {} +
-	$(info WIPED: build, vagrantfile, activate.sh, punchbox.pex, ansible.pex and pyc/pyo files)
+	@$(call red, "WIPED: build vagrantfile activate.sh punchbox.pex ansible.pex and pyc/pyo files")
 
 install: clean .venv
-	$(info ************  INSTALL  ************)
+	@$(call blue, "************  INSTALL  ************")
 	@. ${DIR}/.venv/bin/activate && pip install -r requirements.txt -q
-	$(info PunchBox python dependencies installed in virtualenv)
-	@. ${DIR}/.venv/bin/activate && pex -r ${PUNCHBOX_PEX_REQUIREMENTS} --disable-cache --inherit-path -o ${PUNCHBOX_PEX}
-	$(info PunchBox pex: ${PUNCHBOX_PEX})
-	@. ${DIR}/.venv/bin/activate && pex -r ${ANSIBLE_PEX_REQUIREMENTS} --disable-cache --inherit-path -o ${ANSIBLE_PEX}
-	$(info Ansible pex: ${ANSIBLE_PEX})
+	@$(call green, "PunchBox python dependencies installed in virtualenv")
+	@. ${DIR}/.venv/bin/activate && pex -r ${PUNCHBOX_PEX_REQUIREMENTS} --disable-cache -o ${PUNCHBOX_PEX}
+	@$(call green, "PunchBox pex:", "${PUNCHBOX_PEX}")
+	@. ${DIR}/.venv/bin/activate && pex -r ${ANSIBLE_PEX_REQUIREMENTS} --disable-cache -o ${ANSIBLE_PEX}
+	@$(call green, "Ansible pex:", "${ANSIBLE_PEX}")
 	@echo export PUNCHBOX_DIR=${DIR} > ${ACTIVATE_SH}
 	@echo export PUNCHPLATFORM_CONF_DIR=${DIR}/punch/build/pp-conf >> ${ACTIVATE_SH}
 	@echo export PATH='$$PATH':${DIR}/bin >> ${ACTIVATE_SH}
 	@echo export PS1="'\[\e[1;32m\]punchbox:\[\e[0m\][\W]\$ '" >> ${ACTIVATE_SH}
 	@echo export PATH='$$PATH':${DIR}/bin/pex/ansible_pex >> ${ACTIVATE_SH}
-	$(info activate.sh: ${ACTIVATE_SH})
-	$(info installation complete, you should be able to use other commands !)
+	@$(call green, "activate.sh:", "${ACTIVATE_SH}")
+	@$(call green, "installation complete", "you should be able to use other commands !")
 
 vagrant-dependencies:
-	$(info ************ ADDING VAGRANT DEPENDENCIES ************)
+	@$(call green, "************ ADDING VAGRANT DEPENDENCIES ************")
 	@vagrant plugin install vagrant-disksize
 	@vagrant plugin install vagrant-vbguest
 
 configure-punchbox-vagrant:
-	$(info Deployer zip path is set to (change it to match yours): ${DIR}/.deployer)
+	@$(call green, "Deployer zip path in .deployer change it\'s content to match yours:", "${DIR}/.deployer")
 	@echo ${DEFAULT_DEPLOYER_ZIP_PATH} > ${DIR}/.deployer
 
 clean-deployer:
-	$(info CLEANING OLD DEPLOYER ARCHIVES)
+	@$(call red, "CLEANING OLD DEPLOYER ARCHIVES", "${DIR}/punch/build/punch-deployer-*")
 	@rm -rf ${DIR}/punch/build/punch-deployer-*
 
 clean-vagrant:
-	$(info WHIPPING VAGRANT VM)
+	@$(call red, "WIPPING VAGRANT VM", "cd ${DIR}/vagrant && vagrant destroy -f")
 	@cd ${DIR}/vagrant && vagrant destroy -f
 
-punchbox-32G: clean-deployer clean-vagrant vagrant-dependencies
-	$(info Deploying 32G PunchBox)
+punchbox-32G: clean-deployer vagrant-dependencies
+	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
 				 --generate-vagrantfile \
@@ -87,8 +95,8 @@ punchbox-32G: clean-deployer clean-vagrant vagrant-dependencies
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
-punchbox-16G: clean-deployer clean-vagrant vagrant-dependencies
-	$(info Deploying 16G PunchBox)
+punchbox-16G: clean-deployer vagrant-dependencies
+	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
 				 --generate-vagrantfile \
