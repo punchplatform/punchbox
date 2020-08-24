@@ -50,8 +50,9 @@ You are all set.
 ```sh
 make install
 # a .deployer file is generated which contains the file path to your deployer.zip; change it to yours if it doesn't match
+# By default we consider that pp-punch and punchbox are in the same directory: $WORKING_SPACE/pp-punch and $WORKING_SPACE/punchbox
 make configure-punchbox-vagrant
-make punchbox-32G
+make punchbox-ubuntu-32G
 ```
 
 ## Installation 

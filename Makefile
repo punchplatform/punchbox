@@ -78,7 +78,7 @@ clean-vagrant:
 	@$(call red, "WIPPING VAGRANT VM", "cd ${DIR}/vagrant && vagrant destroy -f")
 	@cd ${DIR}/vagrant && vagrant destroy -f
 
-punchbox-32G: clean-deployer vagrant-dependencies
+punchbox-ubuntu-32G: clean-deployer vagrant-dependencies
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -95,7 +95,7 @@ punchbox-32G: clean-deployer vagrant-dependencies
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
-punchbox-16G: clean-deployer vagrant-dependencies
+punchbox-ubuntu-16G: clean-deployer vagrant-dependencies
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
