@@ -153,7 +153,13 @@
               "key_store_type": "jks",
               "key_store_password": "gateway",
               "key_alias": "gateway",
-              "key_password": "gateway"
+              "key_password": "gateway",
+              "es_client": {
+                "enabled": true,
+                "private_key": "{{server}}-client-1-key-pkcs8.pem",
+                "certificate": "{{server}}-client-1-cert.pem",
+                "trusted_certificate": "{{server}}-ca.pem"
+              }
             }
             {% endif %}
           }
@@ -165,7 +171,6 @@
         "elasticsearch": {
           "data_cluster": {
             "cluster_id": "es_search",
-
             "hosts" : {{ server_ip | tojson }},
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
             {% if security is defined %}
