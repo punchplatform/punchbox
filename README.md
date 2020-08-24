@@ -53,6 +53,9 @@ make install
 # By default we consider that pp-punch and punchbox are in the same directory: $WORKING_SPACE/pp-punch and $WORKING_SPACE/punchbox
 make configure-punchbox-vagrant
 make punchbox-ubuntu-32G
+
+# Deleting everything
+make clean
 ```
 
 ## Installation 

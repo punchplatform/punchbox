@@ -14,6 +14,12 @@ blue=${ECHO} -e "\x1b[34m $1\x1b[0m$2"
 green=${ECHO} -e "\x1b[32m $1\x1b[0m$2"
 red=${ECHO} -e "\x1b[31m $1\x1b[0m$2"
 
+ifneq ("$(wildcard ${DIR}/vagrant/Vagrantfile)","")
+	CLEANUP_COMMAND="cd ${DIR}/vagrant && vagrant destroy -f"
+else
+	CLEANUP_COMMAND=$(call red, "Vagrantfile does not exist yet... Nothing to wipe")
+endif
+
 ifeq (, $(shell which python3))
  $(error "No python3 installed, it is required. Make sure you also install python3 venv")
 endif
@@ -23,7 +29,7 @@ help:
 	@$(call green, "install", "- rebuild everything from scratch")
 	@$(call green, "vagrant-dependencies", "- install necessary dependencies for vagrant")
 	@$(call green, "punchbox-32G", "- deploy on vagrant box a 32G punchplatform")
-	@$(call green, "clean", "- remove all installed binaries and virtualenv relicas")
+	@$(call green, "clean", "- remove all installed binaries vagrant boxes virtualenv etc")
 
 .venv:
 	@$(call blue, "************  CREATE PYTHON 3 .venv  VIRTUALENV  ************")
@@ -31,7 +37,7 @@ help:
 	@. ${DIR}/.venv/bin/activate && pip install -U pip wheel setuptools -q
 	@$(call blue, "Python 3 virtualenv installed:", "${DIR}/.venv")
 
-clean: 
+clean: clean-vagrant clean-deployer
 	@$(call blue, "************  CLEAN  ************")
 	@rm -rf ${DIR}/.venv
 	@rm -rf ${DIR}/punch/build
@@ -76,8 +82,8 @@ clean-deployer:
 	@rm -rf ${DIR}/punch/build/punch-deployer-*
 
 clean-vagrant:
-	@$(call red, "WIPPING VAGRANT VM", "cd ${DIR}/vagrant && vagrant destroy -f")
-	@cd ${DIR}/vagrant && vagrant destroy -f
+	@$(call red, "WIPPING VAGRANT VM", "cd ${DIR}/vagrant \&\& vagrant destroy -f")
+	@$(CLEANUP_COMMAND)
 
 punchbox-ubuntu-32G: clean-deployer vagrant-dependencies
 	@$(call green, "Deploying 32G PunchBox")
