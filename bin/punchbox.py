@@ -231,6 +231,7 @@ def import_validation_resources(validation_conf_dir, platform_config_file):
         render = template.render(
             spark_master= platform_config["punch"]["spark"]["masters"][0],
             elasticsearch_host= platform_config["punch"]["elasticsearch"]["servers"][0],
+            shiva_host=platform_config["punch"]["shiva"]["servers"][0],
             validation_id= date.today().isoformat() + '-' + os.getenv('USER', default='anonymous'),
             nb_to_validate= len([f for f in os.listdir(tenant_validation_dir)]),
             livedemo_api_url= livedemo_api_url,

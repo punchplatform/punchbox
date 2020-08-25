@@ -1,7 +1,7 @@
 {
   "version": "6.0",
   "type": "punchline",
-  "runtime": "spark",
+  "runtime": "storm",
   "meta": {
     "tenant": "validation",
     "channel": "gateway_validation",
@@ -9,27 +9,48 @@
   },
   "dag": [
     {
-      "type": "file_input",
+      "type": "syslog_input",
       "component": "input",
       "settings": {
-        "format": "csv",
-        "path": "file:///data/shiva/local/data/tenants/validation/channels/gateway_validation/result_newman.csv",
-        "options": {
-          "header": "true"
+        "load_control": "none",
+        "listen": {
+          "proto": "udp",
+          "host": "0.0.0.0",
+          "port": 9999
         }
       },
       "publish": [
         {
-          "stream": "data"
+          "stream": "data",
+          "fields": [
+            "newman",
+            "_ppf_id"
+          ]
         }
       ]
     },
     {
-      "type": "elastic_batch_output",
+      "type": "elasticsearch_output",
       "component": "output",
       "settings": {
-        "index": "gateway-tests",
-        "es_cluster": "es_search"
+        "cluster_id": "es_search",
+        "per_stream_settings": [
+          {
+            "stream": "data",
+            "index": {
+              "type": "constant",
+              "value": "gateway-tests"
+            },
+            "document_json_field": "newman",
+            "additional_document_value_fields": [
+              {
+                "type": "date",
+                "document_field": "@timestamp",
+                "format": "iso"
+              }
+            ]
+          }
+        ]
       },
       "subscribe": [
         {
