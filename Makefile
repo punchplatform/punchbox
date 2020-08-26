@@ -28,8 +28,13 @@ help:
 	@$(call cyan,"PunchBox Commands", ":")
 	@$(call green, "install", "- rebuild everything from scratch")
 	@$(call green, "vagrant-dependencies", "- install necessary dependencies for vagrant")
-	@$(call green, "punchbox-32G", "- deploy on vagrant box a 32G punchplatform")
+	@$(call green, "configure-punchbox-vagrant", "- configure the punchbox to address directly the installed deployer. Mandatory to deploy")
+	@$(call green, "punchbox-ubuntu-32G", "- deploy on vagrant box a 32G punchplatform for ubuntu")
+	@$(call green, "punchbox-ubuntu-16G", "- deploy on vagrant box a 16G punchplatform for ubuntu")
 	@$(call green, "clean", "- remove all installed binaries vagrant boxes virtualenv etc")
+	@$(call green, "clean-vagrant", "- destroy vagrant machines and remove Vagrantfile")
+	@$(call green, "clean-deployer", "- remove the installed deployer")
+
 
 .venv:
 	@$(call blue, "************  CREATE PYTHON 3 .venv  VIRTUALENV  ************")
