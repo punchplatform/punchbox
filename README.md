@@ -43,6 +43,21 @@ vagrant plugin install vagrant-vbguest
 
 You are all set. 
 
+## Quick Start
+
+### TEST on vagrant a complete punch platform with 32G RAM
+
+```sh
+make install
+# a .deployer file is generated which contains the file path to your deployer.zip; change it to yours if it doesn't match
+# By default we consider that pp-punch and punchbox are in the same directory: $WORKING_SPACE/pp-punch and $WORKING_SPACE/punchbox
+make configure-punchbox-vagrant
+make punchbox-ubuntu-32G
+
+# Deleting everything
+make clean
+```
+
 ## Installation 
 
 Install the punchbox tool by simply typing :
