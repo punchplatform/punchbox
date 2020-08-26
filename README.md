@@ -54,7 +54,7 @@ make install
 make configure-punchbox-vagrant
 make punchbox-ubuntu-32G
 
-# Deleting everything
+# Reset punchbox environment
 make clean
 ```
 
