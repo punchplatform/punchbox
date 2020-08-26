@@ -13,7 +13,7 @@
     "reporters": {
       "myreporter" : {
         "type": "kafka",
-        "bootstrap.servers": "{{ kafka.brokers | join(',') }}",
+        "brokers": "local",
         "topic": "reporter-topic",
         "metric_document_field_name": "log",
         "reporting_interval": 30,
