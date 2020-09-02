@@ -58,6 +58,7 @@
       }
       match:$.dag[?(@.type=='kafka_input' || @.type=='kafka_output')].settings
       additional_values:{ 
+         brokers: local
          bootstrap.servers:{{ punch.kafka.brokers[0] }}
          metric_cluster_id:local
       }
@@ -74,6 +75,7 @@
       }
       match:$.metrics.reporters[?(@.type=='kafka')]
       additional_values:{ 
+         brokers: local
          bootstrap.servers:{{ punch.kafka.brokers[0] }}
          topic: reporter-topic
          metric_document_field_name: log
@@ -152,7 +154,9 @@
       }
       match:$.reporters[?(@.type=='kafka')]
       additional_values:{ 
+       brokers: local
        bootstrap.servers:{{ punch.kafka.brokers[0] }}
+
        topic: reporter-topic
        metric_document_field_name: log
        reporting_interval: 30
