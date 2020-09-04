@@ -27,6 +27,7 @@ http_post_all_values: True
 http_post_static_payload:
   validation:
     id: {{ validation_id }}
+    time: {{ validation_time }}
   rule:
     name: Archiving
     type: success
@@ -36,7 +37,7 @@ http_post_static_payload:
     user: {{ user }}
     sysname: {{ sysname }}
     release: {{ release }}
-    machine: {{ machine }}
+    hostname: {{ hostname }}
   vagrant:
     config: {{ vagrant_config }}
     os: {{ vagrant_os }}
