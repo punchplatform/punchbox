@@ -42,7 +42,10 @@ help:
 	@$(call green, "clean", "- remove all installed binaries vagrant boxes virtualenv etc")
 	@$(call green, "clean-vagrant", "- destroy vagrant machines and remove Vagrantfile")
 	@$(call green, "clean-deployer", "- remove the installed deployer")
-	@$(call green, "local-integration-vagrant", "- Launch an integration test on an already deployed platform")
+	@$(call green, "local-integration-vagrant", "- launch an integration test on an already deployed platform")
+	@$(call green, "clean-systemd-timer", "- clean systemd service and timer generated conf")
+	@$(call green, "systemd-timer-validation-ubuntu-32G", "- hour=4 \: setup an automatic cron for integration test each day at 4 am")
+	@$(call green, "systemd-timer-validation-centos-32G", "- hour=2 \: setup an automatic cron for integration test each day at 2 am")
 
 .venv:
 	@$(call blue, "************  CREATE PYTHON 3 .venv  VIRTUALENV  ************")
@@ -186,6 +189,7 @@ clean-systemd-timer:
 	@sudo systemctl daemon-reload
 
 systemd-timer-validation-ubuntu-32G:
+	@[ "${hour}" ] || ( $(call red, "hour not set", "example hour=4"); exit 1 )
 	@$(call green, "Generating systemd Scheduling script", "~/.punch-script/")
 	@mkdir -p ${PUNCHBOX_SCRIPT_DIR}
 	@echo "[Unit]" > ${VALIDATION_SERVICE_SCRIPT}
@@ -218,5 +222,39 @@ systemd-timer-validation-ubuntu-32G:
 	@sudo systemctl enable ${VALIDATION_TIMER_NAME}
 	@sudo systemctl enable ${VALIDATION_SERVICE_NAME}
 
-
-
+systemd-timer-validation-centos-32G:
+	@[ "${hour}" ] || ( $(call red, "hour not set", "example hour=4"); exit 1 )
+	@$(call green, "Generating systemd Scheduling script", "~/.punch-script/")
+	@mkdir -p ${PUNCHBOX_SCRIPT_DIR}
+	@echo "[Unit]" > ${VALIDATION_SERVICE_SCRIPT}
+	@echo "Description=run a local integration platform once each day at time for Ubuntu 32G OS" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "[Service]" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo ExecStart="${MAKE} install && ${MAKE} make configure-punchbox-vagrant && ${MAKE} make punchbox-centos-32G && make local-integration && make clean" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "[Install]" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "WantedBy=multi-user.target" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "[Unit]" > ${VALIDATION_TIMER_SCRIPT}
+	@echo "Description=run a local integration platform once each day at time for Ubuntu 32G OS" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "[Timer]" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "Unit=${VALIDATION_SERVICE_SCRIPT}" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "OnCalendar=*-*-* $(hour):00:00" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "[Install]" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "WantedBy=timers.target" >> ${VALIDATION_TIMER_SCRIPT}
+	@$(call green, "Setting script permission", "777 for service and timer")
+	@chmod 777 ${VALIDATION_SERVICE_SCRIPT}
+	@chmod 777  ${VALIDATION_TIMER_SCRIPT}
+	@$(call green, "Generating symlink for service", "/etc/systemd/system/${VALIDATION_SERVICE_NAME}")
+	@sudo ln -s ${VALIDATION_SERVICE_SCRIPT} /etc/systemd/system/${VALIDATION_SERVICE_NAME}
+	@$(call green, "Generating symlink for timer", "/etc/systemd/system/${VALIDATION_TIMER_NAME}")
+	@sudo ln -s ${VALIDATION_TIMER_SCRIPT} /etc/systemd/system/${VALIDATION_TIMER_NAME}
+	@sudo systemctl daemon-reload
+	@sudo systemctl enable ${VALIDATION_TIMER_NAME}
+	@sudo systemctl enable ${VALIDATION_SERVICE_NAME}
+	@sudo systemctl start ${VALIDATION_TIMER_NAME}
+	@$(call blue, "list timers", "sudo systemctl list-timers")
+	@$(call blue, "status", "sudo systemctl status ${VALIDATION_TIMER_NAME}")
