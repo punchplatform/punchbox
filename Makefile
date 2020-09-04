@@ -31,6 +31,8 @@ help:
 	@$(call green, "configure-punchbox-vagrant", "- configure the punchbox to address directly the installed deployer. Mandatory to deploy")
 	@$(call green, "punchbox-ubuntu-32G", "- deploy on vagrant box a 32G punchplatform for ubuntu")
 	@$(call green, "punchbox-ubuntu-16G", "- deploy on vagrant box a 16G punchplatform for ubuntu")
+	@$(call green, "punchbox-centos-32G", "- deploy on vagrant box a 32G punchplatform for centos")
+    @$(call green, "punchbox-centos-16G", "- deploy on vagrant box a 16G punchplatform for centos")
 	@$(call green, "clean", "- remove all installed binaries vagrant boxes virtualenv etc")
 	@$(call green, "clean-vagrant", "- destroy vagrant machines and remove Vagrantfile")
 	@$(call green, "clean-deployer", "- remove the installed deployer")
@@ -124,6 +126,40 @@ punchbox-ubuntu-16G: clean-deployer vagrant-dependencies
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
+punchbox-centos-32G: clean-deployer vagrant-dependencies
+	@$(call green, "Deploying 32G PunchBox")
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
+				 --generate-vagrantfile \
+				 --punch-validation-config ${DIR}/punch/configurations/validation/ \
+				 --os centos/7 \
+				 --interface eth1 \
+				 --deployer $(shell cat ${DIR}/.deployer) \
+				 --start-vagrant
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --generate-platform-config \
+								  --templates-dir ${DIR}/punch/platform_template/ \
+								  --model ${DIR}/punch/build/model.json
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh -gi
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --deploy -u vagrant
 
-
-
+punchbox-centos-16G: clean-deployer vagrant-dependencies
+	@$(call green, "Deploying 16G PunchBox")
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
+				 --generate-vagrantfile \
+				 --punch-validation-config ${DIR}/punch/configurations/validation/ \
+				 --os centos/7 \
+				 --interface eth1 \
+				 --deployer $(shell cat ${DIR}/.deployer) \
+				 --start-vagrant
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --generate-platform-config \
+								  --templates-dir ${DIR}/punch/platform_template/ \
+								  --model ${DIR}/punch/build/model.json
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh -gi
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --deploy -u vagrant
