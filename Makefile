@@ -32,7 +32,7 @@ help:
 	@$(call green, "punchbox-ubuntu-32G", "- deploy on vagrant box a 32G punchplatform for ubuntu")
 	@$(call green, "punchbox-ubuntu-16G", "- deploy on vagrant box a 16G punchplatform for ubuntu")
 	@$(call green, "punchbox-centos-32G", "- deploy on vagrant box a 32G punchplatform for centos")
-    @$(call green, "punchbox-centos-16G", "- deploy on vagrant box a 16G punchplatform for centos")
+	@$(call green, "punchbox-centos-16G", "- deploy on vagrant box a 16G punchplatform for centos")
 	@$(call green, "clean", "- remove all installed binaries vagrant boxes virtualenv etc")
 	@$(call green, "clean-vagrant", "- destroy vagrant machines and remove Vagrantfile")
 	@$(call green, "clean-deployer", "- remove the installed deployer")
