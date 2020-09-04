@@ -63,6 +63,22 @@ make local-integration
 make clean
 ```
 
+### Setup automatic CRON scheduling with Systemd
+
+#### Ubuntu
+
+```sh
+# everyday at 4 am
+make systemd-timer-validation-ubuntu-32G hour=4
+```
+
+#### CentOs
+
+```sh
+# everyday at 2 am
+systemd-timer-validation-centos-32G hour=2
+```
+
 ## Installation 
 
 Install the punchbox tool by simply typing :
