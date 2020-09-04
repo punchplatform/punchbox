@@ -1,11 +1,17 @@
 # Static vars
 DIR=$(shell pwd)
+MAKE=$(shell which make)
 PUNCHBOX_PEX_REQUIREMENTS=${DIR}/bin/pex/punchbox_pex/requirements.txt
 ANSIBLE_PEX_REQUIREMENTS=${DIR}/bin/pex/ansible_pex/requirements.txt
 PUNCHBOX_PEX=${DIR}/bin/pex/punchbox_pex/punchbox.pex
 ANSIBLE_PEX=${DIR}/bin/pex/ansible_pex/ansible.pex
 ACTIVATE_SH=${DIR}/activate.sh
 DEFAULT_DEPLOYER_ZIP_PATH=${DIR}/../pp-punch/packagings/punch-deployer/target/punch-deployer-*.zip
+PUNCHBOX_SCRIPT_DIR=~/.punch-script
+VALIDATION_SERVICE_NAME=punch_validation.service
+VALIDATION_TIMER_NAME=punch_validation.timer
+VALIDATION_SERVICE_SCRIPT=${PUNCHBOX_SCRIPT_DIR}/${VALIDATION_SERVICE_NAME}
+VALIDATION_TIMER_SCRIPT=${PUNCHBOX_SCRIPT_DIR}/${VALIDATION_TIMER_NAME}
 
 # Color Functions
 ECHO=$(shell which echo)
@@ -169,3 +175,48 @@ local-integration-vagrant:
 	@. ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
 	@$(call green, "Executing on server1", "/home/vagrant/pp-conf/check_platform.sh")
 	@cd ${DIR}/vagrant && vagrant ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh; exit"
+
+clean-systemd-timer:
+	@$(call red, "Cleaning old systemd generated files", "~/.punch-script/")
+	@rm -rf ${PUNCHBOX_SCRIPT_DIR}
+	@$(call red, "Removing symlink", "/etc/systemd/system/${VALIDATION_SERVICE_NAME}")
+	@sudo unlink /etc/systemd/system/${VALIDATION_SERVICE_NAME}
+	@$(call red, "Removing symlink", "/etc/systemd/system/${VALIDATION_TIMER_NAME}")
+	@sudo unlink /etc/systemd/system/${VALIDATION_TIMER_NAME}
+	@sudo systemctl daemon-reload
+
+systemd-timer-validation-ubuntu-32G:
+	@$(call green, "Generating systemd Scheduling script", "~/.punch-script/")
+	@mkdir -p ${PUNCHBOX_SCRIPT_DIR}
+	@echo "[Unit]" > ${VALIDATION_SERVICE_SCRIPT}
+	@echo "Description=run a local integration platform once each day at time for Ubuntu 32G OS" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "[Service]" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo ExecStart="${MAKE} install && ${MAKE} make configure-punchbox-vagrant && ${MAKE} make punchbox-ubuntu-32G && make local-integration && make clean" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "[Install]" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "WantedBy=multi-user.target" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "[Unit]" > ${VALIDATION_TIMER_SCRIPT}
+	@echo "Description=run a local integration platform once each day at time for Ubuntu 32G OS" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "[Timer]" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "Unit=${VALIDATION_SERVICE_SCRIPT}" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "OnCalendar=*-*-* $(hour):00:00" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "[Install]" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "WantedBy=timers.target" >> ${VALIDATION_TIMER_SCRIPT}
+	@$(call green, "Setting script permission", "777 for service and timer")
+	@chmod 777 ${VALIDATION_SERVICE_SCRIPT}
+	@chmod 777  ${VALIDATION_TIMER_SCRIPT}
+	@$(call green, "Generating symlink for service", "/etc/systemd/system/${VALIDATION_SERVICE_NAME}")
+	@sudo ln -s ${VALIDATION_SERVICE_SCRIPT} /etc/systemd/system/${VALIDATION_SERVICE_NAME}
+	@$(call green, "Generating symlink for timer", "/etc/systemd/system/${VALIDATION_TIMER_NAME}")
+	@sudo ln -s ${VALIDATION_TIMER_SCRIPT} /etc/systemd/system/${VALIDATION_TIMER_NAME}
+	@sudo systemctl daemon-reload
+	@sudo systemctl enable ${VALIDATION_TIMER_NAME}
+	@sudo systemctl enable ${VALIDATION_SERVICE_NAME}
+
+
+
