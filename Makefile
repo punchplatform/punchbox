@@ -36,7 +36,7 @@ help:
 	@$(call green, "clean", "- remove all installed binaries vagrant boxes virtualenv etc")
 	@$(call green, "clean-vagrant", "- destroy vagrant machines and remove Vagrantfile")
 	@$(call green, "clean-deployer", "- remove the installed deployer")
-
+	@$(call green, "local-integration-vagrant", "- Launch an integration test on an already deployed platform")
 
 .venv:
 	@$(call blue, "************  CREATE PYTHON 3 .venv  VIRTUALENV  ************")
@@ -163,3 +163,9 @@ punchbox-centos-16G: clean-deployer vagrant-dependencies
 		punchplatform-deployer.sh -gi
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
+
+local-integration-vagrant:
+	@$(call green, "Copying Needed files to VM for local integration test")
+	@punchplatform-deployer.sh -cp -u vagrant
+	@$(call green, "Executing on server1", "/home/vagrant/pp-conf/check_platform.sh")
+	@cd ${DIR}/vagrant && vagrant ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh; exit"
