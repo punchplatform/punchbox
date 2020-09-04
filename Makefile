@@ -97,7 +97,7 @@ punchbox-ubuntu-32G: clean-deployer vagrant-dependencies
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
 				 --generate-vagrantfile \
-				 --punch-validation-config ${DIR}/punch/configurations/validation/ \
+				 --punch-validation-config ${DIR}/punch/configurations/validation \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --start-vagrant
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
@@ -114,7 +114,7 @@ punchbox-ubuntu-16G: clean-deployer vagrant-dependencies
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
 				 --generate-vagrantfile \
-				 --punch-validation-config ${DIR}/punch/configurations/validation/ \
+				 --punch-validation-config ${DIR}/punch/configurations/validation \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --start-vagrant
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
@@ -131,7 +131,7 @@ punchbox-centos-32G: clean-deployer vagrant-dependencies
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
 				 --generate-vagrantfile \
-				 --punch-validation-config ${DIR}/punch/configurations/validation/ \
+				 --punch-validation-config ${DIR}/punch/configurations/validation \
 				 --os centos/7 \
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
@@ -150,7 +150,7 @@ punchbox-centos-16G: clean-deployer vagrant-dependencies
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
 				 --generate-vagrantfile \
-				 --punch-validation-config ${DIR}/punch/configurations/validation/ \
+				 --punch-validation-config ${DIR}/punch/configurations/validation \
 				 --os centos/7 \
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
@@ -165,7 +165,7 @@ punchbox-centos-16G: clean-deployer vagrant-dependencies
 		punchplatform-deployer.sh --deploy -u vagrant
 
 local-integration-vagrant:
-	@$(call green, "Copying Needed files to VM for local integration test")
-	@punchplatform-deployer.sh -cp -u vagrant
+	@$(call green, "Copying Needed files to server1 for local integration test", "/home/vagrant/pp-conf")
+	@. ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
 	@$(call green, "Executing on server1", "/home/vagrant/pp-conf/check_platform.sh")
 	@cd ${DIR}/vagrant && vagrant ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh; exit"
