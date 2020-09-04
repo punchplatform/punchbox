@@ -1,13 +1,16 @@
 # Static vars
 DIR=$(shell pwd)
 MAKE=$(shell which make)
+BASH=$(shell which bash)
+SH=$(shell which sh)
+VAGRANT=$(shell which vagrant)
 PUNCHBOX_PEX_REQUIREMENTS=${DIR}/bin/pex/punchbox_pex/requirements.txt
 ANSIBLE_PEX_REQUIREMENTS=${DIR}/bin/pex/ansible_pex/requirements.txt
 PUNCHBOX_PEX=${DIR}/bin/pex/punchbox_pex/punchbox.pex
 ANSIBLE_PEX=${DIR}/bin/pex/ansible_pex/ansible.pex
 ACTIVATE_SH=${DIR}/activate.sh
 DEFAULT_DEPLOYER_ZIP_PATH=${DIR}/../pp-punch/packagings/punch-deployer/target/punch-deployer-*.zip
-PUNCHBOX_SCRIPT_DIR=~/.punch-script
+PUNCHBOX_SCRIPT_DIR=$(shell realpath ~/.punch-script)
 VALIDATION_SERVICE_NAME=punch_validation.service
 VALIDATION_TIMER_NAME=punch_validation.timer
 VALIDATION_SERVICE_SCRIPT=${PUNCHBOX_SCRIPT_DIR}/${VALIDATION_SERVICE_NAME}
@@ -21,7 +24,7 @@ green=${ECHO} -e "\x1b[32m $1\x1b[0m$2"
 red=${ECHO} -e "\x1b[31m $1\x1b[0m$2"
 
 ifneq ("$(wildcard ${DIR}/vagrant/Vagrantfile)","")
-	CLEANUP_COMMAND="cd ${DIR}/vagrant && vagrant destroy -f"
+	CLEANUP_COMMAND="cd ${DIR}/vagrant && ${VAGRANT} destroy -f"
 else
 	CLEANUP_COMMAND="echo '------>  Vagrantfile does not exist yet... Nothing to wipe <------'"
 endif
@@ -85,8 +88,8 @@ install: clean .venv
 
 vagrant-dependencies:
 	@$(call green, "************ ADDING VAGRANT DEPENDENCIES ************")
-	@vagrant plugin install vagrant-disksize
-	@vagrant plugin install vagrant-vbguest
+	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-disksize
+	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-vbguest
 
 configure-punchbox-vagrant:
 	@$(call green, "Deployer zip path in .deployer change it\'s content to match yours:", "${DIR}/.deployer")
@@ -97,9 +100,9 @@ clean-deployer:
 	@rm -rf ${DIR}/punch/build/punch-deployer-*
 
 clean-vagrant:
-	@$(call red, "WIPPING VAGRANT VM", "cd ${DIR}/vagrant \&\& vagrant destroy -f")
+	@$(call red, "WIPPING VAGRANT VM", "cd ${DIR}/vagrant \&\& ${VAGRANT} destroy -f")
 	@eval ${CLEANUP_COMMAND}
-	@@rm -rf ${DIR}/vagrant/Vagrantfile
+	@rm -rf ${DIR}/vagrant/Vagrantfile
 
 punchbox-ubuntu-32G: clean-deployer vagrant-dependencies
 	@$(call green, "Deploying 32G PunchBox")
@@ -193,12 +196,14 @@ systemd-timer-validation-ubuntu-32G:
 	@$(call green, "Generating systemd Scheduling script", "~/.punch-script/")
 	@mkdir -p ${PUNCHBOX_SCRIPT_DIR}
 	@echo "[Unit]" > ${VALIDATION_SERVICE_SCRIPT}
-	@echo "Description=run a local integration platform once each day at time for Ubuntu 32G OS" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "Description=run a local integration platform once each day at $(hour) oclock for Ubuntu 32G OS" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Service]" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "User=${USER}" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "Group=${USER}" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo ExecStart="${MAKE} install && ${MAKE} make configure-punchbox-vagrant && ${MAKE} make punchbox-ubuntu-32G && make local-integration && make clean" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} make configure-punchbox-vagrant; ${MAKE} punchbox-ubuntu-32G; ${MAKE} local-integration; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Install]" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WantedBy=multi-user.target" >> ${VALIDATION_SERVICE_SCRIPT}
@@ -227,17 +232,19 @@ systemd-timer-validation-centos-32G:
 	@$(call green, "Generating systemd Scheduling script", "~/.punch-script/")
 	@mkdir -p ${PUNCHBOX_SCRIPT_DIR}
 	@echo "[Unit]" > ${VALIDATION_SERVICE_SCRIPT}
-	@echo "Description=run a local integration platform once each day at time for Ubuntu 32G OS" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "Description=run a local integration platform once each day at $(hour) oclock for CentOS 32G OS" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Service]" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "User=${USER}" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo "Group=${USER}" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo ExecStart="${MAKE} install && ${MAKE} make configure-punchbox-vagrant && ${MAKE} make punchbox-centos-32G && make local-integration && make clean" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} make configure-punchbox-vagrant; ${MAKE} punchbox-centos-32G; ${MAKE} local-integration; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Install]" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WantedBy=multi-user.target" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Unit]" > ${VALIDATION_TIMER_SCRIPT}
-	@echo "Description=run a local integration platform once each day at time for Ubuntu 32G OS" >> ${VALIDATION_TIMER_SCRIPT}
+	@echo "Description=run a local integration platform once each day at time for CentOS 32G OS" >> ${VALIDATION_TIMER_SCRIPT}
 	@echo "" >> ${VALIDATION_TIMER_SCRIPT}
 	@echo "[Timer]" >> ${VALIDATION_TIMER_SCRIPT}
 	@echo "Unit=${VALIDATION_SERVICE_SCRIPT}" >> ${VALIDATION_TIMER_SCRIPT}
@@ -255,6 +262,3 @@ systemd-timer-validation-centos-32G:
 	@sudo systemctl daemon-reload
 	@sudo systemctl enable ${VALIDATION_TIMER_NAME}
 	@sudo systemctl enable ${VALIDATION_SERVICE_NAME}
-	@sudo systemctl start ${VALIDATION_TIMER_NAME}
-	@$(call blue, "list timers", "sudo systemctl list-timers")
-	@$(call blue, "status", "sudo systemctl status ${VALIDATION_TIMER_NAME}")
