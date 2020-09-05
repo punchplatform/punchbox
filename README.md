@@ -65,19 +65,33 @@ make clean
 
 ### Setup automatic CRON scheduling with Systemd
 
-#### Ubuntu
+#### Ubuntu LTS 18.X
 
 ```sh
 # everyday at 4 am
-make systemd-timer-validation-ubuntu-32G hour=4
+make validation-scheduler-ubuntu-32G hour=4
+
+# status
+systemctl --user status punch-validation.timer
+
+# log
+systemctl --user status punch-validation.service
+# and/or
+journalctl --user -f
 ```
 
-#### CentOs
+#### CentOS7
 
 ```sh
 # everyday at 2 am
-systemd-timer-validation-centos-32G hour=2
+make validation-scheduler-centos-32G hour=2
+
+# log
+systemctl --user status punch-validation.service
+# and/or
+journalctl --user -f
 ```
+
 
 ## Installation 
 

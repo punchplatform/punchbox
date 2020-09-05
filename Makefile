@@ -10,9 +10,9 @@ PUNCHBOX_PEX=${DIR}/bin/pex/punchbox_pex/punchbox.pex
 ANSIBLE_PEX=${DIR}/bin/pex/ansible_pex/ansible.pex
 ACTIVATE_SH=${DIR}/activate.sh
 DEFAULT_DEPLOYER_ZIP_PATH=${DIR}/../pp-punch/packagings/punch-deployer/target/punch-deployer-*.zip
-PUNCHBOX_SCRIPT_DIR=$(shell realpath ~/.punch-script)
-VALIDATION_SERVICE_NAME=punch_validation.service
-VALIDATION_TIMER_NAME=punch_validation.timer
+PUNCHBOX_SCRIPT_DIR=$(shell realpath ~/.config)/systemd/user
+VALIDATION_SERVICE_NAME=punch-validation.service
+VALIDATION_TIMER_NAME=punch-validation.timer
 VALIDATION_SERVICE_SCRIPT=${PUNCHBOX_SCRIPT_DIR}/${VALIDATION_SERVICE_NAME}
 VALIDATION_TIMER_SCRIPT=${PUNCHBOX_SCRIPT_DIR}/${VALIDATION_TIMER_NAME}
 
@@ -182,16 +182,14 @@ local-integration-vagrant:
 	@$(call green, "Executing on server1", "/home/vagrant/pp-conf/check_platform.sh")
 	@cd ${DIR}/vagrant && ${VAGRANT} ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh; exit"
 
-clean-systemd-timer:
-	@$(call red, "Cleaning old systemd generated files", "~/.punch-script/")
-	@rm -rf ${PUNCHBOX_SCRIPT_DIR}
-	@$(call red, "Removing symlink", "/etc/systemd/system/${VALIDATION_SERVICE_NAME}")
-	@sudo unlink /etc/systemd/system/${VALIDATION_SERVICE_NAME}
-	@$(call red, "Removing symlink", "/etc/systemd/system/${VALIDATION_TIMER_NAME}")
-	@sudo unlink /etc/systemd/system/${VALIDATION_TIMER_NAME}
-	@sudo systemctl daemon-reload
+clean-validation-scheduler:
+	@$(call red, "Cleaning old systemd generated files", "${VALIDATION_SERVICE_SCRIPT} and ${VALIDATION_TIMER_SCRIPT}")
+	@systemctl --user disable --now ${VALIDATION_TIMER_NAME}
+	@systemctl --user disable --now ${VALIDATION_SERVICE_NAME}
+	@rm -rf ${VALIDATION_SERVICE_SCRIPT} ${VALIDATION_TIMER_SCRIPT}
+	@systemctl --user daemon-reload
 
-systemd-timer-validation-ubuntu-32G:
+validation-scheduler-ubuntu-32G:
 	@[ "${hour}" ] || ( $(call red, "hour not set", "example hour=4"); exit 1 )
 	@$(call green, "Generating systemd Scheduling script", "~/.punch-script/")
 	@mkdir -p ${PUNCHBOX_SCRIPT_DIR}
@@ -199,8 +197,6 @@ systemd-timer-validation-ubuntu-32G:
 	@echo "Description=run a local integration platform once each day at $(hour) oclock for Ubuntu 32G OS" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Service]" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo "User=${USER}" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo "Group=${USER}" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} make configure-punchbox-vagrant; ${MAKE} punchbox-ubuntu-32G; ${MAKE} local-integration; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
@@ -219,15 +215,15 @@ systemd-timer-validation-ubuntu-32G:
 	@$(call green, "Setting script permission", "777 for service and timer")
 	@chmod 777 ${VALIDATION_SERVICE_SCRIPT}
 	@chmod 777  ${VALIDATION_TIMER_SCRIPT}
-	@$(call green, "Generating symlink for service", "/etc/systemd/system/${VALIDATION_SERVICE_NAME}")
-	@sudo ln -s ${VALIDATION_SERVICE_SCRIPT} /etc/systemd/system/${VALIDATION_SERVICE_NAME}
-	@$(call green, "Generating symlink for timer", "/etc/systemd/system/${VALIDATION_TIMER_NAME}")
-	@sudo ln -s ${VALIDATION_TIMER_SCRIPT} /etc/systemd/system/${VALIDATION_TIMER_NAME}
-	@sudo systemctl daemon-reload
-	@sudo systemctl enable ${VALIDATION_TIMER_NAME}
-	@sudo systemctl enable ${VALIDATION_SERVICE_NAME}
+	@systemctl --user daemon-reload
+	@$(call blue, "Adding service and timer to current user only", "systemctl --user start ${VALIDATION_TIMER_NAME}")
+	@systemctl --user enable --now ${VALIDATION_TIMER_NAME}
+	@systemctl --user enable ${VALIDATION_SERVICE_NAME}
+	@systemctl --user start ${VALIDATION_TIMER_NAME}
+	@$(call blue, "Next event will be on", "")
+	@systemctl --user list-timers
 
-systemd-timer-validation-centos-32G:
+validation-scheduler-centos-32G:
 	@[ "${hour}" ] || ( $(call red, "hour not set", "example hour=4"); exit 1 )
 	@$(call green, "Generating systemd Scheduling script", "~/.punch-script/")
 	@mkdir -p ${PUNCHBOX_SCRIPT_DIR}
@@ -235,8 +231,6 @@ systemd-timer-validation-centos-32G:
 	@echo "Description=run a local integration platform once each day at $(hour) oclock for CentOS 32G OS" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Service]" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo "User=${USER}" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo "Group=${USER}" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} make configure-punchbox-vagrant; ${MAKE} punchbox-centos-32G; ${MAKE} local-integration; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
@@ -255,10 +249,10 @@ systemd-timer-validation-centos-32G:
 	@$(call green, "Setting script permission", "777 for service and timer")
 	@chmod 777 ${VALIDATION_SERVICE_SCRIPT}
 	@chmod 777  ${VALIDATION_TIMER_SCRIPT}
-	@$(call green, "Generating symlink for service", "/etc/systemd/system/${VALIDATION_SERVICE_NAME}")
-	@sudo ln -s ${VALIDATION_SERVICE_SCRIPT} /etc/systemd/system/${VALIDATION_SERVICE_NAME}
-	@$(call green, "Generating symlink for timer", "/etc/systemd/system/${VALIDATION_TIMER_NAME}")
-	@sudo ln -s ${VALIDATION_TIMER_SCRIPT} /etc/systemd/system/${VALIDATION_TIMER_NAME}
-	@sudo systemctl daemon-reload
-	@sudo systemctl enable ${VALIDATION_TIMER_NAME}
-	@sudo systemctl enable ${VALIDATION_SERVICE_NAME}
+	@systemctl --user daemon-reload
+	@$(call blue, "Adding service and timer to current user only", "systemctl --user start ${VALIDATION_TIMER_NAME}")
+	@systemctl --user enable --now ${VALIDATION_TIMER_NAME}
+	@systemctl --user enable ${VALIDATION_SERVICE_NAME}
+	@systemctl --user start ${VALIDATION_TIMER_NAME}
+	@$(call blue, "Next event will be on", "")
+	@systemctl --user list-timers
