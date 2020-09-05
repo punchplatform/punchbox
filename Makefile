@@ -199,7 +199,7 @@ validation-scheduler-ubuntu-32G:
 	@echo "[Service]" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} make configure-punchbox-vagrant; ${MAKE} punchbox-ubuntu-32G; ${MAKE} local-integration; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} make configure-punchbox-vagrant; ${MAKE} punchbox-ubuntu-32G; ${MAKE} local-integration-vagrant; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Install]" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WantedBy=multi-user.target" >> ${VALIDATION_SERVICE_SCRIPT}
@@ -233,7 +233,7 @@ validation-scheduler-centos-32G:
 	@echo "[Service]" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} make configure-punchbox-vagrant; ${MAKE} punchbox-centos-32G; ${MAKE} local-integration; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} make configure-punchbox-vagrant; ${MAKE} punchbox-centos-32G; ${MAKE} local-integration-vagrant; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Install]" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WantedBy=multi-user.target" >> ${VALIDATION_SERVICE_SCRIPT}

@@ -63,7 +63,20 @@ make local-integration
 make clean
 ```
 
-### Setup automatic CRON scheduling with Systemd
+### Setup automatic scheduling with systemd
+
+**Note 1**: their is no automatic clone of pp-punch repository; 
+
+**Note 2**: make sure that the desired branch of pp-punch is already built, in general the master branch; 
+
+**Note 3**: it is mandatory for punchbox and pp-punch to be in the same working directory;
+
+Example:
+
+```sh
+user@PUNCH: ~/r61$ ls
+pp-punch  punchbox  starters
+```
 
 #### Ubuntu LTS 18.X
 
@@ -78,9 +91,12 @@ systemctl --user status punch-validation.timer
 systemctl --user status punch-validation.service
 # and/or
 journalctl --user -f
+
+# removing the timer
+make clean-validation-scheduler
 ```
 
-#### CentOS7
+#### CentOS 7
 
 ```sh
 # everyday at 2 am
@@ -90,6 +106,9 @@ make validation-scheduler-centos-32G hour=2
 systemctl --user status punch-validation.service
 # and/or
 journalctl --user -f
+
+# removing the timer
+make clean-validation-scheduler
 ```
 
 
