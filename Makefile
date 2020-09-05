@@ -46,9 +46,9 @@ help:
 	@$(call green, "clean-vagrant", "- destroy vagrant machines and remove Vagrantfile")
 	@$(call green, "clean-deployer", "- remove the installed deployer")
 	@$(call green, "local-integration-vagrant", "- launch an integration test on an already deployed platform")
-	@$(call green, "clean-systemd-timer", "- clean systemd service and timer generated conf")
-	@$(call green, "systemd-timer-validation-ubuntu-32G", "- hour=4 \: setup an automatic cron for integration test each day at 4 am")
-	@$(call green, "systemd-timer-validation-centos-32G", "- hour=2 \: setup an automatic cron for integration test each day at 2 am")
+	@$(call green, "clean-validation-scheduler", "- clean systemd service and timer generated configuration")
+	@$(call green, "validation-scheduler-ubuntu-32G", "- hour=4 \: setup an automatic cron for integration test each day at 4 am")
+	@$(call green, "validation-scheduler-centos-32G", "- hour=2 \: setup an automatic cron for integration test each day at 2 am")
 
 .venv:
 	@$(call blue, "************  CREATE PYTHON 3 .venv  VIRTUALENV  ************")
