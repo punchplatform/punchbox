@@ -1,14 +1,16 @@
 # Punch Integration Tools
 
-This repository provides easy tools to deploy plain servers, kubernetes clusters and/or
-punchplatforms in production-ready setups. It is designed to do all that on a single laptop. 
+This repository provides tools to deploy plain servers, kubernetes clusters and/or
+punch based platform in a production-ready setup. Most of these tools should be able to run on machine having at least 16GB of ram memory. 
 But is very useful should you have VMs or physical servers as well.
 
-This repository follows the punch branch naming convention. The 5.7 branch should be used to deploy 5.7 punch, the 6.0 to deploy a 6.0 etc. If you do not plan to install punch but only kube or vagrant boxes, stick to the latest stable branche !
+This repository follows the punch branch naming convention. 
+
+For instance, this repository 5.7 branch should be used to deploy the same version of punch (5.7), the 6.0 to deploy a 6.0 etc. If you do not plan to install punch but only kube or vagrant boxes, stick to the latest stable branch !
 
 **Behind the scene**
 
-We use `pyenv` to use install the exact python version we depend on, **3.6.8**.
+We use `pyenv` to install the exact python version we depend on ~ **3.6.8**.
 
 A virualenv directory is created at the root of this repository on your local filesystem, containing required python modules for the punchbox to be functional.
 
