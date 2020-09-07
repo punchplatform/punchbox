@@ -15,7 +15,7 @@ timeframe:
 doc_type: _doc
 
 realert:
-  minutes: 1
+  minutes: 10
 
 include:
   - newman.assertions.failed

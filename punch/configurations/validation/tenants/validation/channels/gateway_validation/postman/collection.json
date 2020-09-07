@@ -22,7 +22,7 @@
 									"});",
 									"",
 									"pm.test(\"Correct Elasticsearch response\", function () {",
-									"    pm.expect(pm.response.text()).to.include(\"green open \");",
+									"    pm.expect(pm.response.text()).to.include(\"green\");",
 									"});",
 									""
 								],
