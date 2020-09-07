@@ -197,7 +197,7 @@ validation-scheduler-ubuntu-32G:
 	@echo "Description=run a local integration platform once each day at $(hour) oclock for Ubuntu 32G OS" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Service]" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo Environment="LIVEDEMO_API_URL=${LIVEDEMO_API_URL}" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo Environment="LIVEDEMO_API_URL=${LIVEDEMO_API_URL} PUNCH_DIR=$(shell realpath ${DIR}/../pp-punch)" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} configure-punchbox-vagrant; ${MAKE} punchbox-ubuntu-32G; ${MAKE} local-integration-vagrant; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
@@ -232,7 +232,7 @@ validation-scheduler-centos-32G:
 	@echo "Description=run a local integration platform once each day at $(hour) oclock for CentOS 32G OS" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Service]" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo Environment="LIVEDEMO_API_URL=${LIVEDEMO_API_URL}" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo Environment="LIVEDEMO_API_URL=${LIVEDEMO_API_URL} PUNCH_DIR=$(shell realpath ${DIR}/../pp-punch)" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} configure-punchbox-vagrant; ${MAKE} punchbox-centos-32G; ${MAKE} local-integration-vagrant; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}

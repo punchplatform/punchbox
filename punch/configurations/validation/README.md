@@ -16,6 +16,76 @@ to your specific use case
 
 ## Punchplatform integration 
 
+### Quick Start
+
+#### TEST on vagrant a complete punch platform with 32G RAM
+
+```sh
+make install
+# a .deployer file is generated which contains the file path to your deployer.zip; change it to yours if it doesn't match
+# By default we consider that pp-punch and punchbox are in the same directory: $WORKING_SPACE/pp-punch and $WORKING_SPACE/punchbox
+make configure-punchbox-vagrant
+
+# Pop up vagrant box for a 32G platform
+make punchbox-ubuntu-32G
+
+# send validation configuration files to your platform and run tests
+make local-integration
+
+# Reset punchbox environment
+make clean
+```
+
+#### Setup automatic scheduling with systemd
+
+**Note 1**: their is no automatic clone of pp-punch repository; 
+
+**Note 2**: make sure that the desired branch of pp-punch is already built, in general the master branch; 
+
+**Note 3**: it is mandatory for punchbox and pp-punch to be in the same working directory;
+
+**Note 4**: to report to other endpoint than the platform itself, set LIVEDEMO_API_URL before executing make rules;
+
+Example:
+
+```sh
+user@PUNCH: ~/r61$ ls
+pp-punch  punchbox  starters
+```
+
+##### Ubuntu LTS 18.X
+
+```sh
+# everyday at 4 am
+make validation-scheduler-ubuntu-32G hour=4
+
+# status
+systemctl --user status punch-validation.timer
+
+# log
+systemctl --user status punch-validation.service
+# and/or
+journalctl -u punch_validation.service -f
+
+# removing the timer
+make clean-validation-scheduler
+```
+
+##### CentOS 7
+
+```sh
+# everyday at 2 am
+make validation-scheduler-centos-32G hour=2
+
+# log
+systemctl --user status punch-validation.service
+# and/or
+journalctl -u punch_validation.service -f
+
+# removing the timer
+make clean-validation-scheduler
+```
+
 ### Manual integration 
 
 You have to deploy your platform with a specific validation configuration : 
@@ -41,27 +111,6 @@ ssh vagrant@server_operator
 ```
 
 This automatic test checks if aggregation channel works and send result in a specific slack channel.
-
-### Automatic integration 
-
-You can also configure an automatic integration on your laptop or in remote servers by calling shell
-in `binutils` directory in a crontab
-
-Be sure to complete these steps and to adapt shell to your use case : 
-
-With your current user, copy and paste full result of 'env' command at the beggining of the user crontab file :
-
-```sh
-crontab -e  
-```
-
-Then, under these lines add :
-
-```sh
-PUNCHBOX_DIR=/home/punch/workspace/punchbox
-PUNCH_DIR=/home/punch/workspace/pp-punch
-00 1  * *  * $PUNCHBOX_DIR/punch/validation/binutils/local_integration.sh 6.0 > /tmp/punchbox-6.0 2>&1
-```
 
 ### Reporting to Livedemo
 

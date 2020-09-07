@@ -4,14 +4,15 @@ This repository provides easy tools to deploy plain servers, kubernetes clusters
 punchplatforms in production-ready setups. It is designed to do all that on a single laptop. 
 But is very useful should you have VMs or physical servers as well.
 
-This repository follows the punch branch naming convention. The 5.7 branch should be used to deploy 5.7 punch, the 6.0 to deploy a 6.0 etc. If you do not plan to install punch but only kube or vagrant boxe this does not matter to you. Simply stick to the
-default branch. 
+This repository follows the punch branch naming convention. The 5.7 branch should be used to deploy 5.7 punch, the 6.0 to deploy a 6.0 etc. If you do not plan to install punch but only kube or vagrant boxes, stick to the latest stable branche !
 
-WATCHOUT: there is realy only one thing to understand : once installed, this repository will install a local python environment
-using pyenv. As part of that environment the right version of ansible is installed, cleanly packaged as a pex executable.
-This is to ensure you all have the right ansible version. That particular version of ansible will be put in front of your 
-PATH environment variable so as to make sure it is the one used. 
+**Behind the scene**
 
+We use `pyenv` to use install the exact python version we depend on, **3.6.8**.
+
+A virualenv directory is created at the root of this repository on your local filesystem, containing required python modules for the punchbox to be functional.
+
+Some python module, such as ansible, are generated as PEX by our `Makefile` install rule. They are then added to your $PATH upon sourcing a generated `activate.sh` script.
 
 ## Requirements
 
@@ -36,81 +37,10 @@ pip install -r requirements.txt
 
 If you plan to use vagrant install [vagrant](https://www.vagrantup.com/downloads.html) and [virtualbox](https://www.virtualbox.org/). 
 
-```ssh
-vagrant plugin install vagrant-disksize
-vagrant plugin install vagrant-vbguest
-```
-
-You are all set. 
-
-## Quick Start
-
-### TEST on vagrant a complete punch platform with 32G RAM
-
 ```sh
-make install
-# a .deployer file is generated which contains the file path to your deployer.zip; change it to yours if it doesn't match
-# By default we consider that pp-punch and punchbox are in the same directory: $WORKING_SPACE/pp-punch and $WORKING_SPACE/punchbox
-make configure-punchbox-vagrant
-
-# Pop up vagrant box for a 32G platform
-make punchbox-ubuntu-32G
-
-# send validation configuration files to your platform and run tests
-make local-integration
-
-# Reset punchbox environment
-make clean
+# once vagrant is installed, run the rule below
+make vagrant-dependencies
 ```
-
-### Setup automatic scheduling with systemd
-
-**Note 1**: their is no automatic clone of pp-punch repository; 
-
-**Note 2**: make sure that the desired branch of pp-punch is already built, in general the master branch; 
-
-**Note 3**: it is mandatory for punchbox and pp-punch to be in the same working directory;
-
-Example:
-
-```sh
-user@PUNCH: ~/r61$ ls
-pp-punch  punchbox  starters
-```
-
-#### Ubuntu LTS 18.X
-
-```sh
-# everyday at 4 am
-make validation-scheduler-ubuntu-32G hour=4
-
-# status
-systemctl --user status punch-validation.timer
-
-# log
-systemctl --user status punch-validation.service
-# and/or
-journalctl --user -f
-
-# removing the timer
-make clean-validation-scheduler
-```
-
-#### CentOS 7
-
-```sh
-# everyday at 2 am
-make validation-scheduler-centos-32G hour=2
-
-# log
-systemctl --user status punch-validation.service
-# and/or
-journalctl --user -f
-
-# removing the timer
-make clean-validation-scheduler
-```
-
 
 ## Installation 
 
