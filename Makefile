@@ -49,6 +49,7 @@ help:
 	@$(call green, "clean-validation-scheduler", "- clean systemd service and timer generated configuration")
 	@$(call green, "validation-scheduler-ubuntu-32G", "- hour=4 \: setup an automatic cron for integration test each day at 4 am")
 	@$(call green, "validation-scheduler-centos-32G", "- hour=2 \: setup an automatic cron for integration test each day at 2 am")
+	@$(call green, "update-deployer-configuration", "- reapply templating if modifications has been done to punch configurations")
 
 .venv:
 	@$(call blue, "************  CREATE PYTHON 3 .venv  VIRTUALENV  ************")
@@ -104,7 +105,13 @@ clean-vagrant:
 	@eval ${CLEANUP_COMMAND}
 	@rm -rf ${DIR}/vagrant/Vagrantfile
 
-punchbox-ubuntu-32G: clean-deployer vagrant-dependencies
+deployed-configuration-32G:
+	@echo ${DIR}/configurations/complete_punch_32G.json > ${DIR}/.deployed_configuration
+
+deployed-configuration-16G:
+	@echo ${DIR}/configurations/complete_punch_16G.json > ${DIR}/.deployed_configuration
+
+punchbox-ubuntu-32G: clean-deployer vagrant-dependencies deployed-configuration-32G
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -121,7 +128,7 @@ punchbox-ubuntu-32G: clean-deployer vagrant-dependencies
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
-punchbox-ubuntu-16G: clean-deployer vagrant-dependencies
+punchbox-ubuntu-16G: clean-deployer vagrant-dependencies deployed-configuration-16G
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
@@ -138,7 +145,7 @@ punchbox-ubuntu-16G: clean-deployer vagrant-dependencies
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
-punchbox-centos-32G: clean-deployer vagrant-dependencies
+punchbox-centos-32G: clean-deployer vagrant-dependencies deployed-configuration-32G
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -157,7 +164,7 @@ punchbox-centos-32G: clean-deployer vagrant-dependencies
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
-punchbox-centos-16G: clean-deployer vagrant-dependencies
+punchbox-centos-16G: clean-deployer vagrant-dependencies deployed-configuration-16G
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
@@ -176,7 +183,11 @@ punchbox-centos-16G: clean-deployer vagrant-dependencies
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
-local-integration-vagrant:
+update-deployer-configuration:
+	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
+								--punch-validation-config ${DIR}/punch/configurations/validation
+
+local-integration-vagrant: update-deployer-configuration
 	@$(call green, "Copying Needed files to server1 for local integration test", "/home/vagrant/pp-conf")
 	@. ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
 	@$(call green, "Executing on server1", "/home/vagrant/pp-conf/check_platform.sh")

@@ -30,7 +30,11 @@ make configure-punchbox-vagrant
 make punchbox-ubuntu-32G
 
 # send validation configuration files to your platform and run tests
-make local-integration
+make local-integration-vagrant
+
+# note: run local-integration-vagrant rule as many as you want to run tests
+# if you want to update configuration before testing
+make update-deployer-configuration && make local-integration-vagrant
 
 # Reset punchbox environment
 make clean

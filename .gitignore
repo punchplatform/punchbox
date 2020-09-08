@@ -49,3 +49,4 @@ ansible/punchbox.*
 punch/build
 venv
 .deployer
+.deployed_configuration
