@@ -190,6 +190,8 @@ update-deployer-configuration:
 local-integration-vagrant: update-deployer-configuration
 	@$(call green, "Copying Needed files to server1 for local integration test", "/home/vagrant/pp-conf")
 	@. ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
+	@$(call green, "Check if vagrant boxes are up", "")
+	@cd ${DIR}/vagrant && ${VAGRANT} up
 	@$(call green, "Executing on server1", "/home/vagrant/pp-conf/check_platform.sh")
 	@cd ${DIR}/vagrant && ${VAGRANT} ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh; exit"
 
