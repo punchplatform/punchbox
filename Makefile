@@ -186,10 +186,10 @@ punchbox-centos-16G: clean-deployer vagrant-dependencies deployed-configuration-
 update-deployer-configuration:
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
 								--punch-validation-config ${DIR}/punch/configurations/validation
-
-local-integration-vagrant: update-deployer-configuration
 	@$(call green, "Copying Needed files to server1 for local integration test", "/home/vagrant/pp-conf")
 	@. ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
+
+local-integration-vagrant: update-deployer-configuration
 	@$(call green, "Check if vagrant boxes are up", "")
 	@cd ${DIR}/vagrant && ${VAGRANT} up
 	@$(call green, "Executing on server1", "/home/vagrant/pp-conf/check_platform.sh")
