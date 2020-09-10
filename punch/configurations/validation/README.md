@@ -127,6 +127,12 @@ PUNCH_DIR=/home/punch/workspace/pp-punch
 LIVEDEMO_API_URL=http://xxxx
 ```
 
+The Livedemo will receive :
+- tests results from rules in `validation/channels/elastalert_validation/rules/failure/*.yaml` and `/success/*.yaml`
+- validation information from `validation/channels/elastalert_validation/rules/validation.yaml`
+
+A Spark aggregation plan running on Livedemo will add aggregated tests results to the validation information document.
+
 ## Punchplatform tests 
 
 This section describes tests done during Punchplatform team validation :

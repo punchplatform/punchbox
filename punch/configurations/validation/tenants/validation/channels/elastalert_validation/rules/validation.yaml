@@ -1,27 +1,14 @@
-# This rule aggregates results from individual test rules for a given validation
+# This rule sends validation information to punchbox
 name: validation
 
-type: metric_aggregation
+type: any
 
-index: elastalert
+index: mytenant-events-*
 
-run_every:
-  minutes: 13 # aggregate just before test end
+realert:
+  minutes: 30 # trigger only once during validation
 
-priority: 1 # make it run last
-
-filter:
-- query:
-    query_string:
-      query: "match_body.validation.id: {{ validation_id }}"
-
-
-metric_agg_key: match_body.rule.result
-metric_agg_type: sum
-min_threshold: 100 # alert will always be triggered
-doc_type: _doc
-buffer_time:
-  minutes: 15
+priority: 3 # make it run first
 
 alert:
 - command
@@ -39,14 +26,15 @@ http_post_static_payload:
     id: {{ validation_id }}
     time: {{ validation_time }}
     nb_to_validate: {{ nb_to_validate }}
+    state: pending
   host:
     user: {{ user }}
     sysname: {{ sysname }}
     release: {{ release }}
     hostname: {{ hostname }}
-  vagrant:
-    config: {{ vagrant_config }}
-    os: {{ vagrant_os }}
+  target:
+    config: {{ target_config }}
+    os: {{ target_os }}
   punchplatform:
     branch: {{ branch }}
     commit: {{ commit }}
