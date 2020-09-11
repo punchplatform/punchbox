@@ -216,7 +216,7 @@ def import_user_resources(punch_user_config):
 
 
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
-def import_validation_resources(validation_conf_dir, platform_config_file):
+def import_validation_resources(validation_conf_dir, platform_config_file, target_os):
     ignore = ["*.properties", "resolv.*", "binutils", "*.j2"]
     my_copy_tree(validation_conf_dir, build_conf_dir, ignore=ignore)
     platform_config= load_user_config(platform_config_file)
@@ -241,7 +241,7 @@ def import_validation_resources(validation_conf_dir, platform_config_file):
             release= os.uname().release,
             hostname= os.uname().nodename,
             target_config= os.path.basename(platform_config_file),
-            target_os= platform_config["targets"]["meta"]["os"],
+            target_os= target_os if target_os is not None else platform_config["targets"]["meta"]["os"],
             gateway_host= platform_config["punch"]["gateway"]["servers"][0],
             branch= subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ppunch_dir).strip().decode(),
             commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode(),
@@ -324,7 +324,7 @@ def main():
             generate_playbook(parser.parse_args().deployer)
 
     if parser.parse_args().punch_validation_config is not None:
-        import_validation_resources(parser.parse_args().punch_validation_config, parser.parse_args().platform_config_file)
+        import_validation_resources(parser.parse_args().punch_validation_config, parser.parse_args().platform_config_file, parser.parse_args().os)
         if "empty" not in parser.parse_args().platform_config_file:
             create_resolver(parser.parse_args().punch_validation_config, platform_config,  parser.parse_args().os, parser.parse_args().security)
             create_platform_shell(parser.parse_args().punch_validation_config, platform_config, parser.parse_args().security)
