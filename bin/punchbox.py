@@ -223,6 +223,7 @@ def import_validation_resources(validation_conf_dir, platform_config_file, targe
     tenant_validation_dir= os.path.join(validation_conf_dir,'tenants/validation/channels/elastalert_validation/rules/success')
     livedemo_api_url=os.getenv('LIVEDEMO_API_URL', default="http://test")
     ppunch_dir = os.getenv('PUNCH_DIR', default=top_dir)
+    validation_timestamp = datetime.now()
     loader = jinja2.FileSystemLoader(validation_conf_dir + '/tenants')
     env = jinja2.Environment(loader=loader)
     ltemplates = env.list_templates()
@@ -232,8 +233,8 @@ def import_validation_resources(validation_conf_dir, platform_config_file, targe
             spark_master= platform_config["punch"]["spark"]["masters"][0],
             elasticsearch_host= platform_config["punch"]["elasticsearch"]["servers"][0],
             shiva_host=platform_config["punch"]["shiva"]["servers"][0],
-            validation_id= int(datetime.now().timestamp()),
-            validation_time= datetime.now().isoformat(timespec="seconds"),
+            validation_id= int(validation_timestamp.timestamp()),
+            validation_time= validation_timestamp.isoformat(timespec="seconds"),
             nb_to_validate= len([f for f in os.listdir(tenant_validation_dir)]),
             livedemo_api_url= livedemo_api_url,
             user= os.getenv('USER', default='anonymous'),
