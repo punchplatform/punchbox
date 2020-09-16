@@ -18,6 +18,15 @@ Some python module, such as ansible, are generated as PEX by our `Makefile` inst
 
 ## Requirements
 
+### RSA Key for ssh
+
+The use of ssh to deploy software inside VMs relies on having generated a RSA key in the user environment (~/.ssh/id_rsa.pub).
+If it does not exist, you can create one :
+```sh
+ssh-keygen  ### When prompted, use the provided default values (just press Return key)
+```
+
+### Python and PEX
 This repository leverages python pex. We recommand the use of [pyenv](https://github.com/pyenv/pyenv). 
 If not familiar with python installation and best practices refer to 
 [Setup Python](https://doc.punchplatform.com/Contribution_Guide/Setup_Python.html). 

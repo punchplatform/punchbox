@@ -51,11 +51,12 @@ help:
 	@$(call green, "validation-scheduler-centos-32G", "- hour=2 \: setup an automatic cron for integration test each day at 2 am")
 	@$(call green, "update-deployer-configuration", "- reapply templating if modifications has been done to punch configurations")
 
-.venv:
+.venv/.installed:
 	@$(call blue, "************  CREATE PYTHON 3 .venv  VIRTUALENV  ************")
 	@if [ ! -e "${DIR}/.venv/bin/activate" ] ; then python3 -m venv ${DIR}/.venv ; fi
 	@. ${DIR}/.venv/bin/activate && pip install -U pip wheel setuptools -q
 	@$(call blue, "Python 3 virtualenv installed:", "${DIR}/.venv")
+	@touch $@
 
 clean: clean-vagrant clean-deployer
 	@$(call blue, "************  CLEAN  ************")
@@ -71,8 +72,9 @@ clean: clean-vagrant clean-deployer
 	@-find ${DIR} -name '__pycache__' -exec rm -fr {} +
 	@$(call red, "WIPED: build vagrantfile activate.sh punchbox.pex ansible.pex and pyc/pyo files")
 
-install: clean .venv
+install: clean .venv/.installed
 	@$(call blue, "************  INSTALL  ************")
+	@[ -e "${HOME}/.ssh/id_rsa.pub" ] || { echo ".ssh/id_rsa.pub not found in user home directory. Maybe try running 'ssh-keygen' without specific option." 2>&1 && exit 42 ; }
 	@. ${DIR}/.venv/bin/activate && pip install -r requirements.txt -q
 	@$(call green, "PunchBox python dependencies installed in virtualenv")
 	@. ${DIR}/.venv/bin/activate && pex -r ${PUNCHBOX_PEX_REQUIREMENTS} --disable-cache -o ${PUNCHBOX_PEX}
