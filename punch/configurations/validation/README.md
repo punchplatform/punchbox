@@ -27,7 +27,7 @@ make install
 make configure-deployer
 
 # Generate all configurations for a 32G deployment on ubuntu
-make punchbox-ubuntu-32G
+make punchbox-ubuntu-32G-validation
 
 # Pop up vagrant boxes
 make start-vagrant
@@ -104,7 +104,8 @@ You have to deploy your platform with a specific validation configuration :
 punchbox --platform-config-file configurations/complete_punch_16G.json \
         --generate-vagrantfile \
         --punch-validation-config punch/configurations/validation/  \
-        --deployer <path_to_your_punchplatform_deployer_zip>
+        --deployer <path_to_your_punchplatform_deployer_zip> \
+        --validation
 punchplatform-deployer.sh --generate-platform-config --templates-dir punch/platform_template/ --model punch/build/model.json
 punchplatform-deployer.sh --deploy -u vagrant
 punchplatform-deployer.sh -cp -u vagrant
@@ -132,6 +133,12 @@ Only two environment variables are required to do so :
 PUNCH_DIR=/home/punch/workspace/pp-punch
 LIVEDEMO_API_URL=http://xxxx
 ```
+
+The Livedemo will receive :
+- tests results from rules in `validation/channels/elastalert_validation/rules/failure/*.yaml` and `/success/*.yaml`
+- validation information from `validation/channels/elastalert_validation/rules/validation.yaml`
+
+A Spark aggregation plan running on Livedemo will add aggregated tests results to the validation information document.
 
 ## Punchplatform tests 
 

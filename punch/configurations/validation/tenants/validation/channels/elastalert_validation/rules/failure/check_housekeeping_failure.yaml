@@ -40,21 +40,7 @@ http_post_all_values: True
 http_post_static_payload:
   validation:
     id: {{ validation_id }}
-    time: {{ validation_time }}
   rule:
     name: Archive Housekeeping
     type: fail
-    result: -1
     description: Archive Housekeeping ended with failure (At least one metadata older than 9 minutes)
-  host:
-    user: {{ user }}
-    sysname: {{ sysname }}
-    release: {{ release }}
-    hostname: {{ hostname }}
-  vagrant:
-    config: {{ vagrant_config }}
-    os: {{ vagrant_os }}
-  punchplatform:
-    branch: {{ branch }}
-    commit: {{ commit }}
-    date: {{ commit_date }}
