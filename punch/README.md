@@ -28,6 +28,44 @@ In the rest of this chapter we go through a complete deployment, assuming you ha
 
 ## Deployment
 
+### Quick start 
+
+This example shows how to deploy a complete punch quickly. We provided a Makefile to reduce 
+verbosity of punchbox commands. 
+
+However, if you want to go further, please read next section which offers you more possibilities in terms of configuration
+(i.e create your punchbox config, select a specific user config ..)
+
+Here it is a punch deployment on a set of ubuntu virtual machines (32gb of RAM in total). Other configurations
+are available trought in the Makefile, type `make` to see all of them 
+
+```sh
+make install
+# a .deployer file is generated which contains the file path to your deployer.zip; change it to yours if it doesn't match
+# By default we consider that pp-punch and punchbox are in the same directory: $WORKING_SPACE/pp-punch and $WORKING_SPACE/punchbox
+make configure-deployer
+
+# Generate all configurations for a 32G deployment on ubuntu
+make punchbox-ubuntu-32G
+
+# Pop up vagrant boxes
+make start-vagrant
+
+# Deploy Punchplatform
+make deploy-punch
+
+# Deploy punch configurations to operator nodes 
+make deploy-conf
+
+# Cleanup everything
+make clean
+```
+
+### Behind the scene
+
+Commands provided throught the `Makefile` are a wrapper of the following commands. 
+You can use them directly if you want to have more possibilities 
+
 Assuming you also have a punchplatform deployer and your associated configuration somewhere
 type in the following command:
 

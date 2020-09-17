@@ -1,0 +1,13 @@
+{
+  "monitoring_interval": 10,
+  "elasticsearch": {
+    "es_platform_logs_index": "platform-*logs-*",
+    "es_topologies_metrics_index": "platform-metrics-*"
+  },
+  "reporters": [
+    {
+        "type": "elasticsearch",
+        "index_name": "platform-channels-monitoring"
+    }
+  ]
+}

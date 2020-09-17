@@ -1,0 +1,138 @@
+	{
+		version: "6.0"
+		tenant: onesky
+		cchannel: lmr_input
+		runtime: shiva
+		type: punchline
+		name: local_events_dispatcher
+		/* The purpose of this punchline is to send various types of platform events to different indices
+		so that they have different retention rules.
+
+		This is important because all platform events (platform metrics, operator commands audit events, health monitoring status...)
+		are coming through a single events flow (especially when coming from remote platforms) .
+		
+		This is a reference configuration item for DAVE 6.1 release - checked 21/07/2020 by CVF
+		*/  
+
+		dag: [
+			{
+				type : kafka_input
+				settings : { 
+					brokers: local
+					topic: platform-events
+					/*
+						 This topic receives metric / events from the platform component, but directly stored in 
+						 a json string (therefore the value_codec setting) in the kafka document (no Lumberjack envelope, 
+						 contrary to what is usual in other kafka topics of the punchplatform
+
+						 This is the standard way for beats to write to kafka 
+						 using to collect OS-level resources metrics.
+					*/
+					value_codec: { "type": "string" }
+
+					/* Each time we restart/crash, we continue from last checkpoint to avoid dropping tuples*/
+					start_offset_strategy: last_committed
+					/* In case no checkpoint is remembered for this topic and consumer group, then start from
+					the top of the Kafka topic */
+					auto.offset.reset": earliest
+				      /* The self monitoring feature provides internal autotest framew injection,
+				         that will flow following '_ppf_metrics' streams, gathering/publishing end-to-end latency
+				         measures on the way. This setting activates injection of a test frame at this entry point
+				         each minute */
+				      self_monitoring.activation: true
+				      self_monitoring.period: 60
+
+				}
+				publish : [ 
+					{ 
+						stream : docs
+						fields : [ "doc" ]
+					}
+				] 
+			}
+			{
+				type: punchlet_node
+				settings: { 
+					punchlet: [ "standard/Platform/monitoring_dispatcher.punch" ]
+				}
+			 	subscribe: [ 
+			 	  	{ "component": "kafka_input", "stream": "docs" }]
+			 	publish: [
+					{ "stream": "docs", "fields": [ "doc", "index" ] }
+					// We can also have punchlets errors when doing the dispatch, so let's publish an 
+					// error stream, to avoid losing events silently
+					{ "stream": "_ppf_errors", "fields": 
+						[ "_ppf_error_message", "_ppf_error_document", "_ppf_timestamp", "_ppf_tenant", "_ppf_channel"] 
+					}
+				]
+			},
+			{
+				type: elasticsearch_output
+				settings: {
+					cluster_id: es_monitoring
+					per_stream_settings: [
+						{
+							stream: docs
+							// The Elasticsearch index name has been determined by the dispatcher punchlet
+							// and is stored in a field of the incoming storm tuple.
+							index: { 
+								type: tuple_field
+								tuple_field: index 
+							}
+							document_json_field: doc
+							additional_document_value_fields : [
+								{ "document_field": "es_ts", "type": "date", "format": "iso" }
+							]
+						}
+						// Now we deal with the error flows, which are escaped documents of the tuple
+						// that caused the punchlet exception, and additional metadata fields
+						// about the error and context
+						{
+							stream: _ppf_errors
+							index : { 
+								type: daily
+								prefix: platform-monitoring-errors-
+							}
+							document_json_field : _ppf_error_document
+							additional_document_value_fields: [
+								{ document_field: "@timestamp", "type": "date", "format": "iso" }
+								{ document_field: "tenant", "type": "tuple_field", "tuple_field": "_ppf_tenant" }
+								{ document_field: "channel", "type": "tuple_field", "tuple_field": "_ppf_channel" },
+								{ document_field: "error_message", "type": "tuple_field", "tuple_field": "_ppf_error_message" },
+								{ document_field: "error_ts", "type": "tuple_field", "tuple_field": "_ppf_timestamp" }
+							]
+						}
+					]
+					// In case Elasticearch rejects some insertion because of mapping error, 
+					// to be able to keep all events 
+					// AND troubleshoot the situation, the faulty documents will be inserted as
+					// escaped error documents here :
+					reindex_failed_documents: true
+					error_index: { "type": "daily", "prefix": "platform-monitoring-errors-" } 
+
+
+				}			
+				subscribe: [ 
+					{ "component": "punchlet_node", "stream": "docs" } 
+					{ "component": "punchlet_node", "stream": "_ppf_errors" } 
+				]
+			}
+		],  
+
+		metrics : {
+				reporters : [
+						{
+							type : elasticsearch
+							reporting_interval : 60
+						}
+				]
+		},
+
+		
+			
+		storm_settings : {
+				topology.max.spout.pending : 6000
+				topology.worker.childopts: -server -Xms756m -Xmx756m
+
+		}
+	}

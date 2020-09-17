@@ -35,16 +35,20 @@ endif
 
 help:
 	@$(call cyan,"PunchBox Commands", ":")
-	@$(call green, "install", "- rebuild everything from scratch")
+	@$(call green, "install", "- build punchbox prerequisites")
 	@$(call green, "vagrant-dependencies", "- install necessary dependencies for vagrant")
-	@$(call green, "configure-punchbox-vagrant", "- configure the punchbox to address directly the installed deployer. Mandatory to deploy")
-	@$(call green, "punchbox-ubuntu-32G", "- deploy on vagrant box a 32G punchplatform for ubuntu")
-	@$(call green, "punchbox-ubuntu-16G", "- deploy on vagrant box a 16G punchplatform for ubuntu")
-	@$(call green, "punchbox-centos-32G", "- deploy on vagrant box a 32G punchplatform for centos")
-	@$(call green, "punchbox-centos-16G", "- deploy on vagrant box a 16G punchplatform for centos")
+	@$(call green, "configure-deployer", "- configure the punchbox to address directly the installed deployer. Mandatory to deploy")
+	@$(call green, "punchbox-ubuntu-32G", "- generate all configurations for a punch deployment on ubuntu (32G)")
+	@$(call green, "punchbox-ubuntu-16G", "- generate all configurations for a punch deployment on ubuntu (16G)")
+	@$(call green, "punchbox-centos-32G", "- generate all configurations for a punch deployment on centos (32G)")
+	@$(call green, "punchbox-centos-16G", "- generate all configurations for a punch deployment on centos (16G)")
+	@$(call green, "start-vagrant", "- start vagrant boxes with a Vagrantfile generated previously")
+	@$(call green, "deploy-punch", "- deploy punchplatform to targets")
+	@$(call green, "deploy-conf", "- deploy punchplatform configurations to operator nodes")
 	@$(call green, "clean", "- remove all installed binaries vagrant boxes virtualenv etc")
 	@$(call green, "clean-vagrant", "- destroy vagrant machines and remove Vagrantfile")
 	@$(call green, "clean-deployer", "- remove the installed deployer")
+	@$(call green, "clean-punch-config", "- remove punchplatform configurations")
 	@$(call green, "local-integration-vagrant", "- launch an integration test on an already deployed platform")
 	@$(call green, "clean-validation-scheduler", "- clean systemd service and timer generated configuration")
 	@$(call green, "validation-scheduler-ubuntu-32G", "- hour=4 \: setup an automatic cron for integration test each day at 4 am")
@@ -71,7 +75,7 @@ clean: clean-vagrant clean-deployer
 	@-find ${DIR} -name '__pycache__' -exec rm -fr {} +
 	@$(call red, "WIPED: build vagrantfile activate.sh punchbox.pex ansible.pex and pyc/pyo files")
 
-install: clean .venv
+install: .venv
 	@$(call blue, "************  INSTALL  ************")
 	@. ${DIR}/.venv/bin/activate && pip install -r requirements.txt -q
 	@$(call green, "PunchBox python dependencies installed in virtualenv")
@@ -92,13 +96,17 @@ vagrant-dependencies:
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-disksize
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-vbguest
 
-configure-punchbox-vagrant:
+configure-deployer:
 	@$(call green, "Deployer zip path in .deployer change it\'s content to match yours:", "${DIR}/.deployer")
 	@echo ${DEFAULT_DEPLOYER_ZIP_PATH} > ${DIR}/.deployer
 
 clean-deployer:
 	@$(call red, "CLEANING OLD DEPLOYER ARCHIVES", "${DIR}/punch/build/punch-deployer-*")
 	@rm -rf ${DIR}/punch/build/punch-deployer-*
+
+clean-punch-config:
+	@$(call red, "CLEANING PUNCH CONFIGURATIONS", "${DIR}/punch/build/pp-conf/*")
+	@rm -rf ${DIR}/punch/build/pp-conf/
 
 clean-vagrant:
 	@$(call red, "WIPPING VAGRANT VM", "cd ${DIR}/vagrant \&\& ${VAGRANT} destroy -f")
@@ -111,81 +119,84 @@ deployed-configuration-32G:
 deployed-configuration-16G:
 	@echo ${DIR}/configurations/complete_punch_16G.json > ${DIR}/.deployed_configuration
 
-punchbox-ubuntu-32G: clean-deployer vagrant-dependencies deployed-configuration-32G
+punchbox-ubuntu-32G: deployed-configuration-32G
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
 				 --generate-vagrantfile \
-				 --punch-validation-config ${DIR}/punch/configurations/validation \
-				 --deployer $(shell cat ${DIR}/.deployer) \
-				 --start-vagrant
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --deployer $(shell cat ${DIR}/.deployer)
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --generate-platform-config \
-								  --templates-dir ${DIR}/punch/platform_template/ \
+								  --templates-dir ${DIR}/punch/deployment_template/ \
 								  --model ${DIR}/punch/build/model.json
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh -gi
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
-punchbox-ubuntu-16G: clean-deployer vagrant-dependencies deployed-configuration-16G
+punchbox-ubuntu-16G: deployed-configuration-16G
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
 				 --generate-vagrantfile \
-				 --punch-validation-config ${DIR}/punch/configurations/validation \
-				 --deployer $(shell cat ${DIR}/.deployer) \
-				 --start-vagrant
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --deployer $(shell cat ${DIR}/.deployer)
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --generate-platform-config \
-								  --templates-dir ${DIR}/punch/platform_template/ \
+								  --templates-dir ${DIR}/punch/deployment_template/ \
 								  --model ${DIR}/punch/build/model.json
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh -gi
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
-punchbox-centos-32G: clean-deployer vagrant-dependencies deployed-configuration-32G
+punchbox-centos-32G: deployed-configuration-32G
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
 				 --generate-vagrantfile \
-				 --punch-validation-config ${DIR}/punch/configurations/validation \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --os centos/7 \
-				 --interface eth1 \
-				 --deployer $(shell cat ${DIR}/.deployer) \
-				 --start-vagrant
+				 --deployer $(shell cat ${DIR}/.deployer)
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --generate-platform-config \
-								  --templates-dir ${DIR}/punch/platform_template/ \
+								  --templates-dir ${DIR}/punch/deployment_template/ \
 								  --model ${DIR}/punch/build/model.json
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh -gi
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
-punchbox-centos-16G: clean-deployer vagrant-dependencies deployed-configuration-16G
+punchbox-centos-16G: deployed-configuration-16G
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
 				 --generate-vagrantfile \
-				 --punch-validation-config ${DIR}/punch/configurations/validation \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --os centos/7 \
-				 --interface eth1 \
-				 --deployer $(shell cat ${DIR}/.deployer) \
-				 --start-vagrant
-	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
-		punchplatform-deployer.sh --generate-platform-config \
-								  --templates-dir ${DIR}/punch/platform_template/ \
-								  --model ${DIR}/punch/build/model.json
-	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
-		punchplatform-deployer.sh -gi
-	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
-		punchplatform-deployer.sh --deploy -u vagrant
+				 --deployer $(shell cat ${DIR}/.deployer)
 
 update-deployer-configuration:
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
-								--punch-validation-config ${DIR}/punch/configurations/validation
+								--punch-user-config ${DIR}/punch/configurations/validation
+
+start-vagrant: vagrant-dependencies 
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --start-vagrant
+
+deploy-punch:
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --generate-platform-config \
+								  --templates-dir ${DIR}/punch/deployment_template/ \
+								  --model ${DIR}/punch/build/model.json
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh -gi
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --deploy -u vagrant
+
+deploy-config:
+	@. ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
 
 local-integration-vagrant: update-deployer-configuration
 	@$(call green, "Copying Needed files to server1 for local integration test", "/home/vagrant/pp-conf")
@@ -213,7 +224,7 @@ validation-scheduler-ubuntu-32G:
 	@echo Environment="LIVEDEMO_API_URL=${LIVEDEMO_API_URL} PUNCH_DIR=$(shell realpath ${DIR}/../pp-punch)" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} configure-punchbox-vagrant; ${MAKE} punchbox-ubuntu-32G; ${MAKE} local-integration-vagrant; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} configure-deployer; ${MAKE} punchbox-ubuntu-32G; ${MAKE} start-vagrant; ${MAKE} deploy-punch; ${MAKE} local-integration-vagrant; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Install]" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WantedBy=multi-user.target" >> ${VALIDATION_SERVICE_SCRIPT}
@@ -248,7 +259,7 @@ validation-scheduler-centos-32G:
 	@echo Environment="LIVEDEMO_API_URL=${LIVEDEMO_API_URL} PUNCH_DIR=$(shell realpath ${DIR}/../pp-punch)" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} configure-punchbox-vagrant; ${MAKE} punchbox-centos-32G; ${MAKE} local-integration-vagrant; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} install; ${MAKE} configure-deployer; ${MAKE} punchbox-centos-32G; ${MAKE} start-vagrant; ${MAKE} deploy-punch; ${MAKE} local-integration-vagrant; ${MAKE} clean'" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Install]" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WantedBy=multi-user.target" >> ${VALIDATION_SERVICE_SCRIPT}

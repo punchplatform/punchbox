@@ -11,7 +11,7 @@
         "archive": {
           "properties": {
             "devices_addresses": {
-              "type": "text"
+              "type": "keyword"
             },
             "pool": {
               "type": "keyword"
@@ -21,17 +21,18 @@
         "batch": {
           "properties": {
             "bloom_filter": {
-              "type": "text"
+              "type": "keyword",
+              "index": false
             },
             "digest": {
               "type": "keyword"
             },
             "earliest_ts": {
-              "format": "dateOptionalTime",
+              "format": "dateOptionalTime||epoch_millis",
               "type": "date"
             },
             "latest_ts": {
-              "format": "dateOptionalTime",
+              "format": "dateOptionalTime||epoch_millis",
               "type": "date"
             },
             "initialization_ts": {

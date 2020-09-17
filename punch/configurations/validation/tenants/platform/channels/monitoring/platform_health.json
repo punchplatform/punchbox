@@ -1,0 +1,5 @@
+{
+  "monitoring_interval": 60,
+  "services": [ "kafka", "shiva", "storm", "zookeeper", "elasticsearch", "clickhouse", "spark", "minio", "gateway" ]
+}
+

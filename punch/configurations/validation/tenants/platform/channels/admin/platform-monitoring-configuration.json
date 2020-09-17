@@ -1,6 +1,0 @@
-{
-  "tenant": "platform",
-  "channel": "admin",
-  "monitoring_interval" : 10,
-  "services": ["kafka", "shiva", "storm", "elasticsearch", "zookeeper", "spark", "clickhouse", "gateway"]
-}

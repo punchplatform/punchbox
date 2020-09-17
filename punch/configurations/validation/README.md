@@ -24,10 +24,16 @@ to your specific use case
 make install
 # a .deployer file is generated which contains the file path to your deployer.zip; change it to yours if it doesn't match
 # By default we consider that pp-punch and punchbox are in the same directory: $WORKING_SPACE/pp-punch and $WORKING_SPACE/punchbox
-make configure-punchbox-vagrant
+make configure-deployer
 
-# Pop up vagrant box for a 32G platform
+# Generate all configurations for a 32G deployment on ubuntu
 make punchbox-ubuntu-32G
+
+# Pop up vagrant boxes
+make start-vagrant
+
+# Deploy Punchplatform
+make deploy-punch
 
 # send validation configuration files to your platform and run tests
 make local-integration-vagrant

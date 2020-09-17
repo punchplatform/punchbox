@@ -2,7 +2,8 @@
   "order": 3,
   "settings": {
     "index": {
-      "refresh_interval": "60s"
+      "refresh_interval": "60s",
+      "auto_expand_replicas": "0-1"
     }
   },
   "index_patterns": [

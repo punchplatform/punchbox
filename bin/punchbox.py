@@ -24,24 +24,19 @@ bin_dir = top_dir + '/bin'
 build_dir = top_dir + '/punch/build'
 vagrant_dir = top_dir + '/vagrant'
 build_conf_dir = build_dir + '/pp-conf'
-ansible_dir = top_dir + '/ansible'
-ansible_templates_dir = ansible_dir + '/templates'
 tenants_target_dir = build_conf_dir + '/tenants/'
+platform_templates = top_dir + '/punch/platform_template'
 
 # Templates path
 vagrant_template_file = 'Vagrantfile.j2'
 resolv_template_file = 'resolv.hjson.j2'
 platform_template_shell = 'check_platform.sh.j2'
-punchbox_inv_template = 'punchbox.inv.j2'
-punchbox_playbook_template = 'punchbox.yml.j2'
 
 # Targets path
 resolv_target = build_conf_dir + '/resolv.hjson'
 platform_shell_target = build_conf_dir + "/check_platform.sh"
 vagrantfile_target = vagrant_dir + '/Vagrantfile'
 generated_model = build_dir + '/model.json'
-punchbox_inv_target = ansible_dir + '/punchbox.inv'
-punchbox_playbook_target = ansible_dir + '/punchbox.yml'
 
 cots = ["punch", "minio", "zookeeper", "spark", "elastic", "opendistro_security", "operator", "binaries",
         "analytics-deployment",
@@ -104,38 +99,6 @@ def destroy_vagrant_boxes():
         v.destroy()
         logging.info(' vagrant boxes successfully stopped')
 
-
-## PUNCHBOX MANAGEMENT ##
-def custom_uuid_filter(*args):
-    return uuid.uuid4()
-
-
-def create_inventory(platform_config):
-    file_loader = jinja2.FileSystemLoader(ansible_templates_dir)
-    env = jinja2.Environment(loader=file_loader)
-    env.filters['custom_uuid'] = custom_uuid_filter
-    inventory_template = env.get_template(punchbox_inv_template)
-    inventory_render = inventory_template.render(targets=platform_config["targets"])
-    inventory = open(punchbox_inv_target, "w+")
-    inventory.write(inventory_render)
-    inventory.close()
-    logging.info('Successful generation of inventory in %s', punchbox_inv_target)
-
-
-def generate_playbook(deployer):
-    version_of = build_dir + "/" + os.path.splitext(os.path.basename(deployer))[0] + "/bin/punchplatform-versionof.sh"
-    cmd = "{0} --legacy {1}".format(version_of, "punch")
-    result = subprocess.check_output(cmd, shell=True)
-    file_loader = jinja2.FileSystemLoader(ansible_templates_dir)
-    env = jinja2.Environment(loader=file_loader)
-    playbook_template = env.get_template(punchbox_playbook_template)
-    playbook_render = playbook_template.render(version=result.decode("utf-8").rstrip())
-    playbook = open(punchbox_playbook_target, "w+")
-    playbook.write(playbook_render)
-    playbook.close()
-    logging.info('Successful generation of playbook in %s', punchbox_playbook_target)
-
-
 def patch_security_model(model: Dict):
     local_es_certs = "{}/../punch/resources/security/certs/elasticsearch".format(ROOT_DIR)
     local_kibana_certs = "{}/../punch/resources/security/certs/kibana".format(ROOT_DIR)
@@ -195,12 +158,10 @@ def create_ppconf():
         os.makedirs(build_conf_dir)
 
 ## CREATE RESOLV FILE ##
-def create_resolver(validation_config, platform_config, target_os, security=False):
-  file_loader = jinja2.FileSystemLoader(validation_config + "/templates")
+def create_resolver(platform_config, security=False):
+  file_loader = jinja2.FileSystemLoader(platform_templates)
   env = jinja2.Environment(loader=file_loader)
   resolv_template = env.get_template(resolv_template_file)
-  if not target_os:
-    target_os=platform_config["targets"]["meta"]["os"]
   resolv_render = resolv_template.render(punch=platform_config["punch"],
                                          security=security)
   resolv_file = open(resolv_target, "w+")
@@ -209,52 +170,49 @@ def create_resolver(validation_config, platform_config, target_os, security=Fals
   logging.info(' platform resolv.hjson successfully generated in %s', resolv_target)
 
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
-def import_user_resources(punch_user_config):
-    ignore = ["*.properties", "resolv.*"]
-    my_copy_tree(punch_user_config, build_conf_dir, ignore=ignore)
-    logging.info(' punch user configuration successfully imported in %s', build_conf_dir)
-
-
-## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
-def import_validation_resources(validation_conf_dir, platform_config_file):
-    ignore = ["*.properties", "resolv.*", "binutils", "*.j2"]
-    my_copy_tree(validation_conf_dir, build_conf_dir, ignore=ignore)
-    platform_config= load_user_config(platform_config_file)
-    tenant_validation_dir= os.path.join(validation_conf_dir,'tenants/validation/channels/elastalert_validation/rules/success')
-    livedemo_api_url=os.getenv('LIVEDEMO_API_URL', default="http://test")
-    ppunch_dir = os.getenv('PUNCH_DIR', default=top_dir)
-    loader = jinja2.FileSystemLoader(validation_conf_dir + '/tenants')
-    env = jinja2.Environment(loader=loader)
-    ltemplates = env.list_templates()
-    for t in ltemplates:
-        template = env.get_template(t)
-        render = template.render(
-            spark_master= platform_config["punch"]["spark"]["masters"][0],
-            elasticsearch_host= platform_config["punch"]["elasticsearch"]["servers"][0],
-            shiva_host=platform_config["punch"]["shiva"]["servers"][0],
-            validation_id= int(datetime.now().timestamp()),
-            validation_time= datetime.now().isoformat(timespec="seconds"),
-            nb_to_validate= len([f for f in os.listdir(tenant_validation_dir)]),
-            livedemo_api_url= livedemo_api_url,
-            user= os.getenv('USER', default='anonymous'),
-            sysname= os.uname().sysname,
-            release= os.uname().release,
-            hostname= os.uname().nodename,
-            vagrant_config= os.path.basename(platform_config_file),
-            vagrant_os= platform_config["targets"]["meta"]["os"],
-            gateway_host= platform_config["punch"]["gateway"]["servers"][0],
-            branch= subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ppunch_dir).strip().decode(),
-            commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode(),
-            commit_date= subprocess.check_output(["git","log","-1","--date=format:%Y-%m-%dT%H:%M","--format=%ad"],cwd=ppunch_dir).strip().decode())
-        file = open(tenants_target_dir + t, "w+")
-        file.write(render)
-        file.close()
-    logging.info(' punch validation configuration successfully imported in %s', build_conf_dir)
-
+def import_user_resources(punch_user_config, platform_config_file, validation):
+    if validation is False:
+        ignore = ["*.properties", "resolv.*", "validation"]
+        my_copy_tree(punch_user_config, build_conf_dir, ignore=ignore)
+        logging.info(' punch user configuration successfully imported in %s', build_conf_dir)
+    else :
+        ignore = ["*.properties", "resolv.*", "*.j2"]
+        my_copy_tree(punch_user_config, build_conf_dir, ignore=ignore)
+        platform_config= load_user_config(platform_config_file)
+        tenant_validation_dir= os.path.join(punch_user_config,'tenants/validation/channels/elastalert_validation/rules/success')
+        livedemo_api_url=os.getenv('LIVEDEMO_API_URL', default="http://test")
+        ppunch_dir = os.getenv('PUNCH_DIR', default=top_dir)
+        loader = jinja2.FileSystemLoader(punch_user_config + '/tenants')
+        env = jinja2.Environment(loader=loader)
+        ltemplates = env.list_templates()
+        for t in ltemplates:
+            template = env.get_template(t)
+            render = template.render(
+                spark_master= platform_config["punch"]["spark"]["masters"][0],
+                elasticsearch_host= platform_config["punch"]["elasticsearch"]["servers"][0],
+                shiva_host=platform_config["punch"]["shiva"]["servers"][0],
+                validation_id= int(datetime.now().timestamp()),
+                validation_time= datetime.now().isoformat(timespec="seconds"),
+                nb_to_validate= len([f for f in os.listdir(tenant_validation_dir)]),
+                livedemo_api_url= livedemo_api_url,
+                user= os.getenv('USER', default='anonymous'),
+                sysname= os.uname().sysname,
+                release= os.uname().release,
+                hostname= os.uname().nodename,
+                vagrant_config= os.path.basename(platform_config_file),
+                vagrant_os= platform_config["targets"]["meta"]["os"],
+                gateway_host= platform_config["punch"]["gateway"]["servers"][0],
+                branch= subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ppunch_dir).strip().decode(),
+                commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode(),
+                commit_date= subprocess.check_output(["git","log","-1","--date=format:%Y-%m-%dT%H:%M","--format=%ad"],cwd=ppunch_dir).strip().decode())
+            file = open(tenants_target_dir + t, "w+")
+            file.write(render)
+            file.close()
+        logging.info(' punch validation configuration successfully imported in %s', build_conf_dir)
 
 ## CREATE A VALIDATION SHELL ##
-def create_platform_shell(validation_config, platform_config, security=False):
-    file_loader = jinja2.FileSystemLoader(validation_config + "/templates")
+def create_platform_shell(validation, platform_config, security=False):
+    file_loader = jinja2.FileSystemLoader(platform_templates)
     env = jinja2.Environment(loader=file_loader)
     platform_template = env.get_template(platform_template_shell)
     try:
@@ -284,19 +242,15 @@ def main():
         help="Path to a punch configuration folder with your channels and resources."\
         " If you have no idea, check and use the punchbox/punch/configurations/sample/conf folder.")
     parser.add_argument(
-        "--punch-validation-config",
-        help="Path to Punchplatform conf folder with your channels and resources.")
+        "--validation",
+        help="Activate punch validation. Default to false", action="store_true")
     parser.add_argument(
         "--platform-config-file",
         help="Path to your platform json configuration. Check the punchbox/configurations folder for ready to use configurations."\
-        " For example complete_punch_16G.json for a complete punch assuming 16Gb ram on your laptop.", required=True)
+        " For example complete_punch_16G.json for a complete punch assuming 16Gb ram on your laptop.")
     parser.add_argument("--destroy-vagrant", help="Vagrant destroy", action="store_true")
     parser.add_argument("--generate-vagrantfile", help="Generate vagrantfile", action="store_true")
     parser.add_argument("--start-vagrant", help="Vagrant up", action="store_true")
-    parser.add_argument("--generate-inventory", help="Generate ansible inventory to launch Punch roles",
-                        action="store_true")
-    parser.add_argument("--generate-playbook", help="Generate ansible playbook to launch Punch roles",
-                        action="store_true")
     parser.add_argument("--os", help="Operating system to deploy with Vagrant. If set, it overwrites configuration")
     parser.add_argument("--interface", help="Interface to apply to deployed services")
     parser.add_argument("--security", help="Enable security deployment", action="store_true")
@@ -304,8 +258,9 @@ def main():
     if parser.parse_args().destroy_vagrant is True:
         destroy_vagrant_boxes()
 
-    platform_config = load_user_config(parser.parse_args().platform_config_file)
-    create_ppconf()
+    if parser.parse_args().platform_config_file is not None:
+        platform_config = load_user_config(parser.parse_args().platform_config_file)
+        create_ppconf()
 
     if parser.parse_args().generate_vagrantfile is True:
         create_vagrantfile(platform_config, parser.parse_args().os)
@@ -313,25 +268,19 @@ def main():
     if parser.parse_args().start_vagrant is True:
         launch_vagrant_boxes()
 
-    if parser.parse_args().generate_inventory is True:
-        create_inventory(platform_config)
-
     if parser.parse_args().deployer is not None:
         unzip_punch_archive(parser.parse_args().deployer)
         generate_model(platform_config, parser.parse_args().deployer, parser.parse_args().generate_vagrantfile,
                        parser.parse_args().os, parser.parse_args().interface, parser.parse_args().security)
-        if parser.parse_args().generate_playbook is True:
-            generate_playbook(parser.parse_args().deployer)
 
-    if parser.parse_args().punch_validation_config is not None:
-        import_validation_resources(parser.parse_args().punch_validation_config, parser.parse_args().platform_config_file)
+    if parser.parse_args().punch_user_config is not None:
+        import_user_resources(parser.parse_args().punch_user_config, parser.parse_args().platform_config_file, parser.parse_args().validation )
         if "empty" not in parser.parse_args().platform_config_file:
-            create_resolver(parser.parse_args().punch_validation_config, platform_config,  parser.parse_args().os, parser.parse_args().security)
-            create_platform_shell(parser.parse_args().punch_validation_config, platform_config, parser.parse_args().security)
+            create_resolver(platform_config,  parser.parse_args().security)
+            if parser.parse_args().validation is True:
+                create_platform_shell(parser.parse_args().validation, platform_config, parser.parse_args().security)
         else:
             logging.info(" empty configuration detected: skipping \'resolv.hjson\' and \'check_platform\' generation")
-    if parser.parse_args().punch_user_config is not None:
-        import_user_resources(parser.parse_args().punch_user_config)
 
 if __name__ == "__main__":
     main()

@@ -1,8 +1,5 @@
 {
   "order": 10,
-  "settings": {
-    "index.mapping.total_fields.limit": 2500
-  },
   "mappings": {
       "dynamic": true,
       "dynamic_templates": [
@@ -35,12 +32,12 @@
       ],
       "properties": {
         "@timestamp": {
-          "format": "dateOptionalTime",
+          "format": "dateOptionalTime||epoch_millis",
           "type": "date"
         }
       }
   },
   "index_patterns": [
-    "platform-health-*"
+    "*-channels-monitoring-*"
   ]
 }

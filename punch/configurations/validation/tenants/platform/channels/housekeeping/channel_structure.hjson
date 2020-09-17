@@ -1,0 +1,38 @@
+{
+  version: "6.0"
+  start_by_tenant: true
+  stop_by_tenant: true
+
+  /*  This channel handles purging of obsolete data for the platform tenant */
+
+
+  applications: [
+	{
+		name: elasticsearch-housekeeping
+		runtime: shiva
+		// Here goes the name of the shiva cluster. On production platforms, there may be several in different security zones.
+		cluster: local
+		// elasticsearch-housekeeping is a builtin punchplatform micro-service, automatically available on shiva runner nodes
+		command: elasticsearch-housekeeping
+		// The only needed argument is the service configuration file
+		args: [ "--tenant-configuration-path", "elasticsearch-housekeeping.json" ]
+
+		/*  For a periodic task, we can specify the running schedule. This looks like a CRON but beware, there is an
+			additional initial segment for SECONDS. So here, we mean run the task at 0 min 0 sec of each hour of each day
+			of any weekday, any day in month, any month (see https://www.freeformatter.com/cron-expression-generator-quartz.html)
+		*/
+        quartzcron_schedule: 0 * * ? * * *
+       }
+
+	]
+	
+
+	/*  Here we describe kafka topic resource, that are needed for proper working of the channels application.
+		Here, the required kafka topic will be created automatically
+            by 'channelctl' at start of channel, if it does not already exist
+      */
+
+	resources: []
+
+
+}
