@@ -156,6 +156,7 @@ punchbox-centos-32G: deployed-configuration-32G
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --os centos/7 \
+				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 				
 punchbox-centos-32G-validation: deployed-configuration-32G
@@ -165,6 +166,7 @@ punchbox-centos-32G-validation: deployed-configuration-32G
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --os centos/7 \
+				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --validation
 
@@ -175,6 +177,7 @@ punchbox-centos-16G: deployed-configuration-16G
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --os centos/7 \
+				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 
 update-deployer-configuration:

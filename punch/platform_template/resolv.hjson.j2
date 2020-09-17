@@ -77,15 +77,38 @@
       additional_values:{ 
          brokers: local
          bootstrap.servers:{{ punch.kafka.brokers[0] }}
-         topic: reporter-topic
-         metric_document_field_name: log
+         topic: platform-events
          reporting_interval: 30
-         encoding: lumberjack
+         encoding: json
       }
    }
    {% endif %}
 
    {% if punch.elasticsearch is defined %}
+
+   // All Elasticsearch metrics reporters
+   es_metrics_reporter:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.metrics.reporters[?(@.type=='elasticsearch')]
+      additional_values:{ 
+         cluster_name: es_search
+         metric_document_field_name: log
+         reporting_interval: 30
+         http_hosts:[ 
+            { 
+               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               port:9200
+            }
+         ]
+
+      }
+   }
+
+
    // All plan persistence
    persistence_plan_resolver:{ 
       selection:{ 
@@ -131,7 +154,7 @@
    channel_monitoring:{ 
       selection:{ 
          tenant:*
-         channel: admin
+         channel: monitoring
          runtime:*
       }
       match: .elasticsearch
@@ -146,10 +169,10 @@
       }
    }
    // Channel monitoring reporters 
-   channel_monitoring_reporters:{ 
+   channel_monitoring_kafka_reporters:{ 
       selection:{ 
          tenant:*
-         channel: admin
+         channel: monitoring
          runtime:*
       }
       match:$.reporters[?(@.type=='kafka')]
@@ -157,10 +180,30 @@
        brokers: local
        bootstrap.servers:{{ punch.kafka.brokers[0] }}
 
-       topic: reporter-topic
-       metric_document_field_name: log
+       topic: platform-events
        reporting_interval: 30
-       encoding: lumberjack
+       encoding: json
+      }
+   }
+
+    channel_monitoring_es_reporters:{ 
+      selection:{ 
+         tenant:*
+         channel: monitoring
+         runtime:*
+      }
+      match:$.reporters[?(@.type=='elasticsearch')]
+      additional_values:{ 
+         cluster_name: es_search
+
+        reporting_interval: 30
+         http_hosts:[ 
+            { 
+               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               port:9200
+            }
+         ]
+
       }
    }
   

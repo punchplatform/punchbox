@@ -1,0 +1,118 @@
+	/**
+	 * This punchlet takes platform events coming from an LTR or a Back Office "platform-monitoring" kafka topics. Events are
+	 * written in a Kafka topic using the "JSON" format so only
+	 * one field is generated. Here, we re-do the "Y" to send
+	 * events to the right Elasticsearch index
+	 * We need separate indices, because retention rules are not the same for different platform events types, 
+	 * and to ease querying.
+	 * (e.g. 1 year for punchctl operator commands audit events, 
+	 * 3 days for system metrics, a few days more for platform health...)
+
+	 * This is a reference configuration item for DAVE 6.0 release - checked 21/07/2020 by CVF
+
+	 */
+	{
+		root = [docs];
+		String docType = "undetermined";
+		String indexPrefix = "platform-errors-";
+		String indexType = "daily";
+		String platform  = "undetermined";
+		String forwardingHost = "undetermined";
+		String tenant = "undetermined";
+
+		if (world:[meta][platform_id]) {
+			platform = world:[meta][platform_id] ;
+		}
+		
+		if ( world:[meta][tenant] ) {
+			tenant = world:[meta][tenant]; 
+		}
+		String release_index_prefix = "";
+		if (world:[meta][index_prefix]) {
+			release_index_prefix = world:[meta][index_prefix];
+		}
+
+
+
+		// If we have a json document that already holds platform id or tenant info, then retrieve it...
+		if ( [doc][platform][id]) {
+			platform = [doc][platform][id];
+		}
+
+		// If we have received the event from a remote sender, and the punchline publishes the info,
+		// then we keep track of the host that sent the event on the network
+		// This is useful if the actual platform id is not available or ambiguous.
+
+		if ( [_ppf_remote_host] ) {
+			forwardingHost = [_ppf_remote_host];
+			[doc][platform][forwarding_host] = [_ppf_remote_host];
+		}
+
+
+		if ( [doc][platform][tenant] ) {
+			tenant = [doc][platform][tenant];
+		} else {
+
+			[doc][platform][tenant] = tenant;
+		}
+
+
+		
+		if ( [doc][type] ) {
+			docType = [doc][type];
+	    } else if ( [doc][@metadata][beat] ) { 
+			docType =  [doc][@metadata][beat]; 
+		} 
+
+		// The timestamp of the eventis normally available in the incoming json standard field following beats convention:
+		String dateString = null;
+		if ([doc][@timestamp]) { 
+			dateString = [doc][@timestamp];
+		}
+
+		switch (docType) {
+			case "platform":
+			case "platform-monitoring":
+				indexPrefix = "platform-monitoring-";
+				break;
+			case "channels-monitoring":
+				indexPrefix = tenant + "-channels-monitoring-";
+				break;
+			case "platform-health":
+				indexPrefix = "platform-health-";
+				break;
+			case "storm":
+				indexPrefix = tenant + "-metrics-";
+				break;
+			case "punch":
+				// We separate the operator commands from the verbose logs, to be able to keep these commands for more than a year, because they are needed for channels monitoring activation
+				if ([doc][init][process][name] == "punchctl") {
+					indexPrefix = "platform-operator-logs-";
+					indexType = "monthly";
+				} else {
+					indexPrefix = "platform-logs-";
+				}
+				break;
+			case "metricbeat":
+				indexPrefix = "platform-metricbeat-" + [doc][@metadata][version] + "-";
+				break;
+			default:
+				String errorMessage =  "Unable to dispatch unknown monitoring document type ('" + docType + "') forwarded from host '" + forwardingHost + "' (platform '" + platform + "'' .";
+				throw new PunchRuntimeException(errorMessage);
+			}
+
+		String elasticsearch_date = "nodate-errors";
+		if (dateString != null) {
+			if (indexType == "daily") {
+					// here, the input date is : 2019-10-10T17:07:39.951Z
+				 elasticsearch_date = date("yyyy.MM.dd", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").on(dateString).get();  
+			} else {
+				// Monthly case 
+					// here, the input date is : 2019-10-10T17:07:39.951Z
+				 elasticsearch_date = date("yyyy.MM", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").on(dateString).get();  
+			}
+		}
+		[index] = indexPrefix +  release_index_prefix + elasticsearch_date;
+
+	} 
+
