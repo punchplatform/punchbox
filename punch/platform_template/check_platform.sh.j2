@@ -31,7 +31,8 @@ punchctl -t validation start
 punchctl -t validation start --channel elastalert_validation
 
 echo -e "${BLUE}INFO:${RESET} Start channels from tenant platform"
-punchctl -t platform start --channel admin
+punchctl -t platform start --channel monitoring
+punchctl -t platform start --channel housekeeping
 
 echo -e "${BLUE}INFO:${RESET} Launch log injectors"
 
