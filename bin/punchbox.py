@@ -50,9 +50,9 @@ def unzip_punch_archive(deployer):
         deployers = [ f.name for f in list(os.scandir(build_dir)) 
             if (f.is_dir() and (f.name.startswith('punch-deployer') or f.name.startswith('punchplatform-deployer') )) 
         ]
-        if len(deployers) == 1 then:
+        if len(deployers) == 1:
             deployer_folder_name = deployer[0]
-        elif len(deployers > 1) then:
+        elif len(deployers > 1):
             logging.error('cannot guess deployer path from directories in \"{}\" because multiple possibilities exist :{}'.format(build_dir, deployers))
     if not os.path.exists(build_dir + "/" + deployer_folder_name + "/.unzipped"):
         cmd = 'unzip {0} -d {1}'.format(deployer, build_dir)

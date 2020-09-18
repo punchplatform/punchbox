@@ -84,7 +84,7 @@ ${ACTIVATE_SH}:${ACTIVATE_TEMPLATE} Makefile
 	@echo "  GENERATING '${ACTIVATE_SH}'..."
 	@sed 's#.*PUNCHBOX_DIR=.*#export PUNCHBOX_DIR='${DIR}'#g' "${ACTIVATE_TEMPLATE}" > "${ACTIVATE_SH}"
 
-${DIR}/bin/pex/.all_pex_generated: .venv/.installed ${ACTIVATE_SH} ${PUNCHBOX_PEX_REQUIREMENTS} ${ANSIBLE_PEX_REQUIREMENTS} requirements.txt 
+${DIR}/bin/pex/.all_pex_generated: .venv/.installed ${ACTIVATE_SH} ${PUNCHBOX_PEX_REQUIREMENTS} ${ANSIBLE_PEX_REQUIREMENTS} requirements.txt bin/punchbox.py
 	@$(call green, "Installing PunchBox python dependencies virtualenv...")
 	@. ${DIR}/.venv/bin/activate && pip install -r requirements.txt -q
 	@$(call green, "************ BUILDING PEX PACKAGES for punchbox and Ansible ************")
