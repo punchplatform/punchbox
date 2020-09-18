@@ -80,15 +80,15 @@ clean: clean-vagrant clean-deployer
 	@-find ${DIR} -name '__pycache__' -exec rm -fr {} +
 	@$(call red, "WIPED: build vagrantfile activate.sh punchbox.pex ansible.pex and pyc/pyo files")
 
-${ACTIVATE_SH}:${ACTIVATE_TEMPLATE}
+${ACTIVATE_SH}:${ACTIVATE_TEMPLATE} Makefile
 	@echo "  GENERATING '${ACTIVATE_SH}'..."
-	@sed 's/.*PUNCHBOX_DIR=.*/EXPORT PUNCHBOX_DIR='${DIR}'/g' "${ACTIVATE_TEMPLATE}" > "${ACTIVATE_SH}"
+	@sed 's#.*PUNCHBOX_DIR=.*#export PUNCHBOX_DIR='${DIR}'#g' "${ACTIVATE_TEMPLATE}" > "${ACTIVATE_SH}"
 
 ${DIR}/bin/pex/.all_pex_generated: .venv/.installed ${ACTIVATE_SH} ${PUNCHBOX_PEX_REQUIREMENTS} ${ANSIBLE_PEX_REQUIREMENTS} requirements.txt 
+	@$(call green, "Installing PunchBox python dependencies virtualenv...")
 	@. ${DIR}/.venv/bin/activate && pip install -r requirements.txt -q
-	@$(call green, "PunchBox python dependencies installed in virtualenv")
+	@$(call green, "************ BUILDING PEX PACKAGES for punchbox and Ansible ************")
 	@. ${DIR}/.venv/bin/activate && pex -r ${PUNCHBOX_PEX_REQUIREMENTS} --disable-cache -o ${PUNCHBOX_PEX}
-	@$(call green, "PunchBox pex:", "${PUNCHBOX_PEX}")
 	@. ${DIR}/.venv/bin/activate && pex -r ${ANSIBLE_PEX_REQUIREMENTS} --disable-cache -o ${ANSIBLE_PEX}
 	@touch $@
 
@@ -105,6 +105,7 @@ install: .venv/.installed ${DIR}/bin/pex/.all_pex_generated
 	@which curl 1>/dev/null || { echo "curl command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 	@which unzip 1>/dev/null || { echo "unzip command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 	@which python 1>/dev/null || { echo "python (>3.6.8) must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
+	@$(call green, "PunchBox pex:", "${PUNCHBOX_PEX}")
 	@$(call green, "Ansible pex:", "${ANSIBLE_PEX}")
 	@$(call green, "activate.sh:", "${ACTIVATE_SH}")
 	@$(call green, "installation complete", "you should be able to use other commands !")
