@@ -47,10 +47,18 @@ cots = ["punch", "minio", "zookeeper", "spark", "elastic", "opendistro_security"
 def unzip_punch_archive(deployer):
     deployer_folder_name = os.path.splitext(os.path.basename(deployer))[0]
     if not os.path.exists(build_dir + "/" + deployer_folder_name):
+        deployers = [ f.name for f in list(os.scandir(build_dir)) 
+            if (f.is_dir() and (f.name.startswith('punch-deployer') or f.name.startswith('punchplatform-deployer') )) 
+        ]
+        if len(deployers) == 1 then:
+            deployer_folder_name = deployer[0]
+        elif len(deployers > 1) then:
+            logging.error('cannot guess deployer path from directories in \"{}\" because multiple possibilities exist :{}'.format(build_dir, deployers))
+    if not os.path.exists(build_dir + "/" + deployer_folder_name + "/.unzipped"):
         cmd = 'unzip {0} -d {1}'.format(deployer, build_dir)
         os.system(cmd)
-        with open(top_dir + "/activate.sh", "a") as activate:
-            activate.write("export PATH=${PATH}:" + build_dir + "/" + deployer_folder_name + "/bin")
+        with open(build_dir + "/" + deployer_folder_name + "/.unzipped", "a") as activate:
+            activate.write(datetime.datetime.now())
         logging.info(' punchplatform deployer archive successfully unzipped')
 
 

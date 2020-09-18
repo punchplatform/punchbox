@@ -9,6 +9,7 @@ ANSIBLE_PEX_REQUIREMENTS=${DIR}/bin/pex/ansible_pex/requirements.txt
 PUNCHBOX_PEX=${DIR}/bin/pex/punchbox_pex/punchbox.pex
 ANSIBLE_PEX=${DIR}/bin/pex/ansible_pex/ansible.pex
 ACTIVATE_SH=${DIR}/activate.sh
+ACTIVATE_TEMPLATE=${DIR}/.activate.template
 DEFAULT_DEPLOYER_ZIP_PATH=${DIR}/../pp-punch/packagings/punch-deployer/target/punch-deployer-*.zip
 PUNCHBOX_SCRIPT_DIR=$(shell realpath ~/.config)/systemd/user
 VALIDATION=""
@@ -79,27 +80,35 @@ clean: clean-vagrant clean-deployer
 	@-find ${DIR} -name '__pycache__' -exec rm -fr {} +
 	@$(call red, "WIPED: build vagrantfile activate.sh punchbox.pex ansible.pex and pyc/pyo files")
 
-install: .venv/.installed
-	@$(call blue, "************  INSTALL  ************")
-	@[ -e "${HOME}/.ssh/id_rsa.pub" ] || { echo ".ssh/id_rsa.pub not found in user home directory. Maybe try running 'ssh-keygen' without specific option." 2>&1 && exit 42 ; }
+${ACTIVATE_SH}:${ACTIVATE_TEMPLATE}
+	@echo "  GENERATING '${ACTIVATE_SH}'..."
+	@sed 's/.*PUNCHBOX_DIR=.*/EXPORT PUNCHBOX_DIR='${DIR}'/g' "${ACTIVATE_TEMPLATE}" > "${ACTIVATE_SH}"
+
+${DIR}/bin/pex/.all_pex_generated: .venv/.installed ${ACTIVATE_SH} ${PUNCHBOX_PEX_REQUIREMENTS} ${ANSIBLE_PEX_REQUIREMENTS} requirements.txt 
 	@. ${DIR}/.venv/bin/activate && pip install -r requirements.txt -q
 	@$(call green, "PunchBox python dependencies installed in virtualenv")
 	@. ${DIR}/.venv/bin/activate && pex -r ${PUNCHBOX_PEX_REQUIREMENTS} --disable-cache -o ${PUNCHBOX_PEX}
 	@$(call green, "PunchBox pex:", "${PUNCHBOX_PEX}")
 	@. ${DIR}/.venv/bin/activate && pex -r ${ANSIBLE_PEX_REQUIREMENTS} --disable-cache -o ${ANSIBLE_PEX}
-	@$(call green, "Ansible pex:", "${ANSIBLE_PEX}")
-	@echo export PUNCHBOX_DIR=${DIR} > ${ACTIVATE_SH}
-	@echo export PUNCHPLATFORM_CONF_DIR=${DIR}/punch/build/pp-conf >> ${ACTIVATE_SH}
-	@echo export PATH='$$PATH':${DIR}/bin >> ${ACTIVATE_SH}
-	@echo export PS1="'\[\e[1;32m\]punchbox:\[\e[0m\][\W]\$ '" >> ${ACTIVATE_SH}
-	@echo export PATH='$$PATH':${DIR}/bin/pex/ansible_pex >> ${ACTIVATE_SH}
-	@$(call green, "activate.sh:", "${ACTIVATE_SH}")
-	@$(call green, "installation complete", "you should be able to use other commands !")
+	@touch $@
 
-vagrant-dependencies:
+${DIR}/vagrant.dependencies_installed:
 	@$(call green, "************ ADDING VAGRANT DEPENDENCIES ************")
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-disksize
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-vbguest
+	touch $@
+
+install: .venv/.installed ${DIR}/bin/pex/.all_pex_generated
+	@$(call blue, "************  INSTALL STATUS ************")
+	@[ -e "${HOME}/.ssh/id_rsa.pub" ] || { echo ".ssh/id_rsa.pub not found in user home directory. Maybe try running 'ssh-keygen' without specific option." 2>&1 && exit 42 ; }
+	@which jq 1>/dev/null || { echo "jq command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
+	@which curl 1>/dev/null || { echo "curl command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
+	@which unzip 1>/dev/null || { echo "unzip command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
+	@which python 1>/dev/null || { echo "python (>3.6.8) must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
+	@$(call green, "Ansible pex:", "${ANSIBLE_PEX}")
+	@$(call green, "activate.sh:", "${ACTIVATE_SH}")
+	@$(call green, "installation complete", "you should be able to use other commands !")
+
 
 configure-deployer:
 	@$(call green, "Deployer zip path in .deployer change it\'s content to match yours:", "${DIR}/.deployer")
@@ -118,10 +127,10 @@ clean-vagrant:
 	@eval ${CLEANUP_COMMAND}
 	@rm -rf ${DIR}/vagrant/Vagrantfile
 
-deployed-configuration-32G:
+deployed-configuration-32G: install
 	@echo ${DIR}/configurations/complete_punch_32G.json > ${DIR}/.deployed_configuration
 
-deployed-configuration-16G:
+deployed-configuration-16G: install
 	@echo ${DIR}/configurations/complete_punch_16G.json > ${DIR}/.deployed_configuration
 
 punchbox-ubuntu-32G: deployed-configuration-32G
@@ -184,7 +193,7 @@ update-deployer-configuration:
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
 								--punch-user-config ${DIR}/punch/configurations/validation
 
-start-vagrant: vagrant-dependencies 
+start-vagrant: install ${DIR}/vagrant.dependencies_installed
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --start-vagrant
 

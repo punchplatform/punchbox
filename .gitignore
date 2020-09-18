@@ -50,3 +50,7 @@ punch/build
 venv
 .deployer
 .deployed_configuration
+bin/pex/.all_pex_generated
+build
+.activate.template
+
