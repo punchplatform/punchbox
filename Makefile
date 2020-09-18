@@ -92,7 +92,7 @@ ${DIR}/bin/pex/.all_pex_generated: .venv/.installed ${ACTIVATE_SH} ${PUNCHBOX_PE
 	@. ${DIR}/.venv/bin/activate && pex -r ${ANSIBLE_PEX_REQUIREMENTS} --disable-cache -o ${ANSIBLE_PEX}
 	@touch $@
 
-${DIR}/vagrant.dependencies_installed:
+${DIR}/vagrant/.dependencies_installed:
 	@$(call green, "************ ADDING VAGRANT DEPENDENCIES ************")
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-disksize
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-vbguest
@@ -194,7 +194,7 @@ update-deployer-configuration:
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
 								--punch-user-config ${DIR}/punch/configurations/validation
 
-start-vagrant: install ${DIR}/vagrant.dependencies_installed
+start-vagrant: install ${DIR}/vagrant/.dependencies_installed
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --start-vagrant
 

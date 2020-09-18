@@ -55,7 +55,7 @@ def unzip_punch_archive(deployer):
         elif len(deployers > 1):
             logging.error('cannot guess deployer path from directories in \"{}\" because multiple possibilities exist :{}'.format(build_dir, deployers))
     if not os.path.exists(build_dir + "/" + deployer_folder_name + "/.unzipped"):
-        cmd = 'unzip {0} -d {1}'.format(deployer, build_dir)
+        cmd = 'unzip {0} -o -d {1}'.format(deployer, build_dir)
         os.system(cmd)
         with open(build_dir + "/" + deployer_folder_name + "/.unzipped", "a") as activate:
             activate.write(datetime.datetime.now())
