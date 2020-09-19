@@ -37,7 +37,7 @@ resolv_target = build_conf_dir + '/resolv.hjson'
 platform_shell_target = build_conf_dir + "/check_platform.sh"
 vagrantfile_target = vagrant_dir + '/Vagrantfile'
 generated_model = build_dir + '/model.json'
-
+    
 cots = ["punch", "minio", "zookeeper", "spark", "elastic", "opendistro_security", "operator", "binaries",
         "analytics-deployment",
         "analytics-client", "shiva", "gateway", "storm", "kafka", "logstash", "metricbeat", "filebeat", "packetbeat",
@@ -59,8 +59,8 @@ def unzip_punch_archive(deployer):
         rc = os.system(cmd)
         if rc==0:
             with open(build_dir + "/" + deployer_folder_name + "/.unzipped", "w") as activate:
-                activate.write(datetime.datetime.now())
-            logging.info(' punchplatform deployer archive successfully unzipped')
+                activate.write(str(datetime.now()))
+            logging.info('punchplatform deployer archive successfully unzipped')
         else:
             logging.error("unable to unzip deployer in folderwith command '%s'"%(cmd))
             exit(42)
