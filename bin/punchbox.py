@@ -55,11 +55,16 @@ def unzip_punch_archive(deployer):
         elif len(deployers) > 1:
             logging.error('cannot guess deployer path from directories in \"{}\" because multiple possibilities exist :{}'.format(build_dir, deployers))
     if not os.path.exists(build_dir + "/" + deployer_folder_name + "/.unzipped"):
-        cmd = 'unzip {0} -o -d {1}'.format(deployer, build_dir)
-        os.system(cmd)
-        with open(build_dir + "/" + deployer_folder_name + "/.unzipped", "a") as activate:
-            activate.write(datetime.datetime.now())
-        logging.info(' punchplatform deployer archive successfully unzipped')
+        cmd = 'unzip -o -d {1} {0}'.format(deployer, build_dir) 
+        rc = os.system(cmd)
+        if rc==0:
+            with open(build_dir + "/" + deployer_folder_name + "/.unzipped", "w") as activate:
+                activate.write(datetime.datetime.now())
+            logging.info(' punchplatform deployer archive successfully unzipped')
+        else:
+            logging.error("unable to unzip deployer in folderwith command '%s'"%(cmd))
+            exit(42)
+        fi
 
 
 def load_user_config(user_config_file):

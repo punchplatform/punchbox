@@ -18,6 +18,11 @@ VALIDATION_TIMER_NAME=punch-validation.timer
 VALIDATION_SERVICE_SCRIPT=${PUNCHBOX_SCRIPT_DIR}/${VALIDATION_SERVICE_NAME}
 VALIDATION_TIMER_SCRIPT=${PUNCHBOX_SCRIPT_DIR}/${VALIDATION_TIMER_NAME}
 
+VENV_MARKERFILE=${DIR}/.venv/.installed
+DEPENDENCIES_INSTALLED_MARKERFILE=${DIR}/vagrant/.dependencies_installed
+PEX_GENERATED_MARKERFILE=${DIR}/bin/pex/.all_pex_generated
+ALLTOOLS_INSTALLED_MARKERFILE=${DIR}/.alltools_installed
+
 # Color Functions
 ECHO=$(shell which echo)
 cyan=${ECHO} -e "\x1b[36m $1\x1b[0m$2"
@@ -59,7 +64,8 @@ help:
 	@$(call green, "validation-scheduler-centos-32G", "- hour=2 \: setup an automatic cron for integration test each day at 2 am")
 	@$(call green, "update-deployer-configuration", "- reapply templating if modifications has been done to punch configurations")
 
-.venv/.installed:
+
+${VENV_MARKERFILE}:
 	@$(call blue, "************  CREATE PYTHON 3 .venv  VIRTUALENV  ************")
 	@if [ ! -e "${DIR}/.venv/bin/activate" ] ; then python3 -m venv ${DIR}/.venv ; fi
 	@. ${DIR}/.venv/bin/activate && pip install -U pip wheel setuptools -q
@@ -73,6 +79,9 @@ clean: clean-vagrant clean-deployer
 	@rm -rf ${DIR}/activate.sh
 	@rm -rf ${DIR}/bin/pex/punchbox_pex/punchbox.pex
 	@rm -rf ${DIR}/bin/pex/ansible_pex/ansible.pex
+	@rm -rf ${PEX_GENERATED_MARKERFILEX}
+	@rm -rf ${DEPENDENCIES_INSTALLED_MARKERFILE}
+	@rm -rf ${ALLTOOLS_INSTALLED_MARKERFILE}
 	@rm -rf ${DIR}/ansible/punchbox.*
 	@-find ${DIR} -name '*.pyc' -exec rm -f {} +
 	@-find ${DIR} -name '*.pyo' -exec rm -f {} +
@@ -80,11 +89,12 @@ clean: clean-vagrant clean-deployer
 	@-find ${DIR} -name '__pycache__' -exec rm -fr {} +
 	@$(call red, "WIPED: build vagrantfile activate.sh punchbox.pex ansible.pex and pyc/pyo files")
 
-${ACTIVATE_SH}:${ACTIVATE_TEMPLATE} Makefile
+${ACTIVATE_SH}: ${ACTIVATE_TEMPLATE} Makefile
 	@echo "  GENERATING '${ACTIVATE_SH}'..."
 	@sed 's#.*PUNCHBOX_DIR=.*#export PUNCHBOX_DIR='${DIR}'#g' "${ACTIVATE_TEMPLATE}" > "${ACTIVATE_SH}"
 
-${DIR}/bin/pex/.all_pex_generated: .venv/.installed ${ACTIVATE_SH} ${PUNCHBOX_PEX_REQUIREMENTS} ${ANSIBLE_PEX_REQUIREMENTS} requirements.txt bin/punchbox.py
+
+${PEX_GENERATED_MARKERFILE}: ${VENV_MARKERFILE} ${PUNCHBOX_PEX_REQUIREMENTS} ${ANSIBLE_PEX_REQUIREMENTS} requirements.txt bin/punchbox.py
 	@$(call green, "Installing PunchBox python dependencies virtualenv...")
 	@. ${DIR}/.venv/bin/activate && pip install -r requirements.txt -q
 	@$(call green, "************ BUILDING PEX PACKAGES for punchbox and Ansible ************")
@@ -96,9 +106,14 @@ ${DIR}/vagrant/.dependencies_installed:
 	@$(call green, "************ ADDING VAGRANT DEPENDENCIES ************")
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-disksize
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-vbguest
-	touch $@
+	@touch $@
 
-install: .venv/.installed ${DIR}/bin/pex/.all_pex_generated ${ACTIVATE_SH}
+
+${ALLTOOLS_INSTALLED_MARKERFILE}: ${VENV_MARKERFILE} ${DEPENDENCIES_INSTALLED_MARKERFILE} ${PEX_GENERATED_MARKERFILE} ${ACTIVATE_SH}
+	@touch $@
+
+
+install: ${ALLTOOLS_INSTALLED_MARKERFILE}
 	@$(call blue, "************  INSTALL STATUS ************")
 	@[ -e "${HOME}/.ssh/id_rsa.pub" ] || { echo ".ssh/id_rsa.pub not found in user home directory. Maybe try running 'ssh-keygen' without specific option." 2>&1 && exit 42 ; }
 	@which jq 1>/dev/null || { echo "jq command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
@@ -108,7 +123,7 @@ install: .venv/.installed ${DIR}/bin/pex/.all_pex_generated ${ACTIVATE_SH}
 	@$(call green, "PunchBox pex:", "${PUNCHBOX_PEX}")
 	@$(call green, "Ansible pex:", "${ANSIBLE_PEX}")
 	@$(call green, "activate.sh:", "${ACTIVATE_SH}")
-	@$(call green, "installation complete", "you should be able to use other commands !")
+	@$(call green, "install complete", "type 'make' for available targets !")
 
 
 configure-deployer:
@@ -128,10 +143,10 @@ clean-vagrant:
 	@eval ${CLEANUP_COMMAND}
 	@rm -rf ${DIR}/vagrant/Vagrantfile
 
-deployed-configuration-32G: install
+deployed-configuration-32G: ${ALLTOOLS_INSTALLED_MARKERFILE}
 	@echo ${DIR}/configurations/complete_punch_32G.json > ${DIR}/.deployed_configuration
 
-deployed-configuration-16G: install
+deployed-configuration-16G: ${ALLTOOLS_INSTALLED_MARKERFILE}
 	@echo ${DIR}/configurations/complete_punch_16G.json > ${DIR}/.deployed_configuration
 
 punchbox-ubuntu-32G: deployed-configuration-32G
@@ -190,15 +205,15 @@ punchbox-centos-16G: deployed-configuration-16G
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 
-update-deployer-configuration: ${ACTIVATE_SH}
+update-deployer-configuration: ${ALLTOOLS_INSTALLED_MARKERFILE}
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
 								--punch-user-config ${DIR}/punch/configurations/validation
 
-start-vagrant: install ${DIR}/vagrant/.dependencies_installed ${ACTIVATE_SH}
+start-vagrant:  ${ALLTOOLS_INSTALLED_MARKERFILE}
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --start-vagrant
 
-deploy-punch: ${ACTIVATE_SH}
+deploy-punch:  ${ALLTOOLS_INSTALLED_MARKERFILE}
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --generate-platform-config \
 								  --templates-dir ${DIR}/punch/deployment_template/ \
@@ -208,7 +223,7 @@ deploy-punch: ${ACTIVATE_SH}
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
-deploy-config:
+deploy-config:  ${ALLTOOLS_INSTALLED_MARKERFILE}
 	@. ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
 
 local-integration-vagrant:

@@ -54,3 +54,4 @@ bin/pex/.all_pex_generated
 build
 
 vagrant/.dependencies_installed
+.alltools_installed
