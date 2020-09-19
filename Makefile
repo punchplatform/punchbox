@@ -98,7 +98,7 @@ ${DIR}/vagrant/.dependencies_installed:
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-vbguest
 	touch $@
 
-install: .venv/.installed ${DIR}/bin/pex/.all_pex_generated
+install: .venv/.installed ${DIR}/bin/pex/.all_pex_generated ${ACTIVATE_SH}
 	@$(call blue, "************  INSTALL STATUS ************")
 	@[ -e "${HOME}/.ssh/id_rsa.pub" ] || { echo ".ssh/id_rsa.pub not found in user home directory. Maybe try running 'ssh-keygen' without specific option." 2>&1 && exit 42 ; }
 	@which jq 1>/dev/null || { echo "jq command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
@@ -180,7 +180,7 @@ punchbox-centos-32G-validation: deployed-configuration-32G
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --validation
 
-punchbox-centos-16G: deployed-configuration-16G
+punchbox-centos-16G: deployed-configuration-16G 
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
@@ -190,15 +190,15 @@ punchbox-centos-16G: deployed-configuration-16G
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 
-update-deployer-configuration:
+update-deployer-configuration: ${ACTIVATE_SH}
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
 								--punch-user-config ${DIR}/punch/configurations/validation
 
-start-vagrant: install ${DIR}/vagrant/.dependencies_installed
+start-vagrant: install ${DIR}/vagrant/.dependencies_installed ${ACTIVATE_SH}
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --start-vagrant
 
-deploy-punch:
+deploy-punch: ${ACTIVATE_SH}
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --generate-platform-config \
 								  --templates-dir ${DIR}/punch/deployment_template/ \
