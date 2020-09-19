@@ -52,5 +52,5 @@ venv
 .deployed_configuration
 bin/pex/.all_pex_generated
 build
-.activate.template
 
+vagrant/.dependencies_installed
