@@ -64,7 +64,6 @@ def unzip_punch_archive(deployer):
         else:
             logging.error("unable to unzip deployer in folderwith command '%s'"%(cmd))
             exit(42)
-        fi
 
 
 def load_user_config(user_config_file):
