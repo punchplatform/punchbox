@@ -43,7 +43,6 @@ endif
 help:
 	@$(call cyan,"PunchBox Commands", ":")
 	@$(call green, "install", "- build punchbox prerequisites")
-	@$(call green, "vagrant-dependencies", "- install necessary dependencies for vagrant")
 	@$(call green, "configure-deployer", "- configure the punchbox to address directly the installed deployer. Mandatory to deploy")
 	@$(call green, "punchbox-ubuntu-32G", "- generate all configurations for a punch deployment on ubuntu targets - 32GB")
 	@$(call green, "punchbox-ubuntu-32G-validation", "- generate all configurations for a punch validation deployment on ubuntu targets - 32GB")
