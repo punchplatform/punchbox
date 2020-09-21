@@ -103,6 +103,7 @@ ${PEX_GENERATED_MARKERFILE}: ${VENV_MARKERFILE} ${PUNCHBOX_PEX_REQUIREMENTS} ${A
 	@touch $@
 
 ${DIR}/vagrant/.dependencies_installed:
+	@which vagrant 1>/dev/null || { echo "'vagrant' command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 	@$(call green, "************ ADDING VAGRANT DEPENDENCIES ************")
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-disksize
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-vbguest
