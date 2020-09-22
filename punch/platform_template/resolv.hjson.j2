@@ -21,6 +21,8 @@
             user: admin
             password: admin
          }
+         ssl: true
+         ssl_trusted_certificate: "{{punch.installation_directory}}/certificates/punch-ca.pem"
          {% endif %}
       }
    }
@@ -104,7 +106,14 @@
                port:9200
             }
          ]
-
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         ssl: true
+         ssl_trusted_certificate: "{{installation_directory}}/certificates/punch-ca.pem"
+         {% endif %}
       }
    }
 
@@ -129,6 +138,8 @@
             user: admin
             password: admin
          }
+         ssl: true
+         ssl_trusted_certificate: "{{installation_directory}}/certificates/punch-ca.pem"
          {% endif %}
       }
    }
@@ -165,6 +176,8 @@
             user: admin
             password: admin
          }
+         ssl: true
+         ssl_trusted_certificate: "{{installation_directory}}/certificates/punch-ca.pem"
          {% endif %}
       }
    }
@@ -203,7 +216,14 @@
                port:9200
             }
          ]
-
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         ssl: true
+         ssl_trusted_certificate: "{{installation_directory}}/certificates/punch-ca.pem"
+         {% endif %}
       }
    }
   

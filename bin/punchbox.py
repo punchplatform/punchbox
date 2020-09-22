@@ -1,15 +1,12 @@
 import argparse
-import fnmatch
 import json
 import logging
 import os
 import subprocess
-import uuid
-from distutils.dir_util import copy_tree
+from datetime import datetime
 from shutil import copy2, copytree, ignore_patterns
 from sys import exit
 from typing import List, Dict
-from datetime import datetime
 
 import jinja2
 from jinja2.exceptions import UndefinedError
@@ -113,16 +110,15 @@ def destroy_vagrant_boxes():
         v.destroy()
         logging.info(' vagrant boxes successfully stopped')
 
-def patch_security_model(model: Dict):
-    local_es_certs = "{}/../punch/resources/security/certs/elasticsearch".format(ROOT_DIR)
-    local_kibana_certs = "{}/../punch/resources/security/certs/kibana".format(ROOT_DIR)
-    local_user_certs = "{}/../punch/resources/security/certs/user".format(ROOT_DIR)
-    local_gateway_keystore = "{}/../punch/resources/security/keystores/gateway/gateway.keystore".format(ROOT_DIR)
+def patch_security_model(model: Dict, servers: List):
+    security_dir="{}/../punch/resources/security/platform_32G".format(ROOT_DIR)
+
     model['security'] = {}
-    model['security']['local_es_certs'] = local_es_certs
-    model['security']['local_kibana_certs'] = local_kibana_certs
-    model['security']['local_user_certs'] = local_user_certs
-    model['security']['local_gateway_keystore'] = local_gateway_keystore
+    model['security']['security_dir'] = security_dir
+    model['security']['servers'] = {}
+    for server in servers:
+        model['security']['servers'][server] = {}
+        model['security']['servers'][server]['certs'] = "{}/../punch/resources/security/certs/{}".format(ROOT_DIR, server)
 
     return model
 
@@ -155,7 +151,8 @@ def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = No
         model['iface'] = "ens4"
     # security model
     if security:
-        model = patch_security_model(model)
+        servers: List = platform_config['targets']['info'].keys()
+        model = patch_security_model(model, servers)
 
     model = json.dumps({**model, **platform_config['punch']}, indent=4, sort_keys=True)
     model_file = open(generated_model, "w+")

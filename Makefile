@@ -125,7 +125,7 @@ deployed-configuration-16G: ${ALLTOOLS_INSTALLED_MARKERFILE}
 
 .PHONY: punchbox-ubuntu-16G punchbox-ubuntu-32G punchbox-ubuntu-32G-validation
 
-punchbox-ubuntu-16G: deployed-configuration-16G  ## Generate all configurations for a punch deployment on ubuntu targets - 16GB 
+punchbox-ubuntu-16G: deployed-configuration-16G  ## Generate all configurations for a punch deployment on ubuntu targets - 16GB
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
@@ -193,7 +193,7 @@ punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all config
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --security
-				
+
 punchbox-centos-32G-validation: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets - 32GB
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
@@ -244,7 +244,7 @@ local-integration-vagrant:  ## Use this rule instead of deploy-config if you are
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		cd ${DIR}/vagrant && \
 		${VAGRANT} ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh; exit"
- 
+
 update-deployer-configuration: ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Use this rule to update validation platform configuration files
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
 								--punch-user-config ${DIR}/punch/configurations/validation
@@ -351,7 +351,7 @@ clean-deployer:  ## Remove the installed deployer
 	@rm -rf ${DIR}/punch/build/punch-deployer-*
 	@$(call red, "Will not be removed: do it manually", "${DIR}/.deployer and ${DIR}/.deployed_configuration")
 
-clean-punch-config:  ## Remove Punchplatform Configurations 
+clean-punch-config:  ## Remove Punchplatform Configurations
 	@$(call red, "CLEANING PUNCH CONFIGURATIONS", "${DIR}/punch/build/pp-conf/*")
 	@rm -rf ${DIR}/punch/build/pp-conf/
 

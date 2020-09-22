@@ -36,7 +36,8 @@
     "data_storage_directory": "/data",
     "elasticsearch": {
       "servers": [
-        "server2"
+        "server2",
+        "server3"
       ],
       "cluster_production_transport_address": "server2",
       "memory": "512m"

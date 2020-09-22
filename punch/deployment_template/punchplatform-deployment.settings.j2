@@ -19,7 +19,7 @@
       }
    },
 
-
+ 
     {% if shiva is defined %}
     "shiva": {
     "shiva_version": "{{ version.shiva }}",
@@ -126,8 +126,8 @@
 
    {% endif %}
 
-   {% if gateway is defined %}
-   {% set server_ip = [] %}
+  {% if gateway is defined %}
+  {% set server_ip = [] %}
   {% set port = "9200" %}
   {% for server in elasticsearch.servers  %}
   {% set server_ip = server_ip.append( server+":"+port ) %}
@@ -146,19 +146,19 @@
             "port": 4242
             {% if security is defined %}
             ,
-            "ssl": {
-              "enabled": false,
-              "local_key_store_path": "{{security.local_gateway_keystore}}",
-              "key_store_type": "jks",
-              "key_store_password": "gateway",
-              "key_alias": "gateway",
-              "key_password": "gateway",
-              "es_client": {
-                "enabled": true,
-                "private_key": "{{server}}-client-1-key-pkcs8.pem",
-                "certificate": "{{server}}-client-1-cert.pem",
-                "trusted_certificate": "{{server}}-ca.pem"
-              }
+            "server_ssl": {
+              "local_key_store_dir": "{{security.security_dir}}/{{server}}/gateway",
+              "key_store_name": "gateway-keystore.p12",
+              "key_store_type": "PKCS12",
+              "key_store_password": "secret123",
+              "key_alias": "gateway-server-key"
+            },
+            "es_client_ssl":{
+                "local_ssl_certs_dir": "{{security.security_dir}}/{{server}}/gateway",
+                "private_key_name": "gateway-client-1-key-pkcs8.pem",
+                "certificate_name": "gateway-client-1-cert.pem",
+                "trusted_certificate_name": "punch-ca.pem",
+                "use_keys_for_data_cluster": false
             }
             {% endif %}
           }
@@ -174,7 +174,6 @@
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
             {% if security is defined %}
             ,
-            "ssl_enabled": false,
             "metrics_credentials": {
                 "user": "admin",
                 "password": "admin"
@@ -188,7 +187,6 @@
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
             {% if security is defined %}
             ,
-            "ssl_enabled": false,
             "credentials": {
                 "user": "admin",
                 "password": "admin"
@@ -205,6 +203,13 @@
                 "type": "elasticsearch",
                 "hosts": {{ server_ip | tojson }},
                 "index": "resources-metadata"
+                {% if security is defined %}
+                ,
+                "credentials": {
+                    "user": "admin",
+                    "password": "admin"
+                }
+                {% endif %}
               }
             ],
             "data": [
@@ -260,6 +265,19 @@
             "transport_address" : "{{ server }}",
             "bind_address" : "_{{ iface }}_",
             "rack_id" : "{{ loop.index }}"
+            {% if security is defined %}
+            ,
+            "local_ssl_certs_dir": "{{security.security_dir}}/{{server}}/es",
+            "admin_pemkey_name": "admin-super-1-key-pkcs8.pem",
+            "admin_pemcert_name": "admin-super-1-cert.pem",
+            "admin_pemtrustedcas_name": "punch-ca.pem",
+            "ssl_transport_pemkey_name": "node-{{server}}-super-1-key-pkcs8.pem",
+            "ssl_transport_pemcert_name": "node-{{server}}-super-1-cert.pem",
+            "ssl_transport_pemtrustedcas_name": "punch-ca.pem",
+            "ssl_http_pemkey_name": "http-{{server}}-server-1-key-pkcs8.pem",
+            "ssl_http_pemcert_name": "http-{{server}}-server-1-cert.pem",
+            "ssl_http_pemtrustedcas_name": "punch-ca.pem"
+            {% endif %}
           }
           {% if not loop.last %}
           ,
@@ -285,23 +303,20 @@
         "plugins":{
           "opendistro_security": {
             "opendistro_security_version": "{{ version.opendistro_security }}",
-            "local_ssl_certs_dir": "{{security.local_es_certs}}",
-            "admin_pemkey_name": "admin-key.pem",
-            "admin_pemcert_name": "admin-cert.pem",
-            "admin_pemtrustedcas_name": "cachain.pem",
-            "ssl_transport_pemkey_name": "node-key.pem",
-            "ssl_transport_pemcert_name": "node-cert.pem",
-            "ssl_transport_pemtrustedcas_name": "cachain.pem",
-            "ssl_http_enabled": false,
-            "ssl_http_pemkey_name": "server2-key.pem",
-            "ssl_http_pemcert_name": "server2-cert.pem",
-            "ssl_http_pemtrustedcas_name": "server2-cachain.pem",
-            "authcz_admin_dn": ["emailAddress=nodesuper1@thales.com,CN=nodesuper1,OU=ts,O=thales,L=paris,ST=idf,C=fr"],
-            "nodes_dn": ["emailAddress=nodesuper2@thales.com,CN=nodesuper2,OU=ts,O=thales,L=paris,ST=idf,C=fr"],
+            "ssl_http_enabled": true,
+            "ssl_transport_enforce_hostname_verification": true,
+            "authcz_admin_dn": [
+              "emailAddress=admin-super-1@easyssl.com,CN=server2,OU=AC,O=AwsomeCompany,L=Paris,ST=IdF,C=FR"
+            ],
+            "nodes_dn": [
+              "emailAddress=node-server2-super-1@easyssl.com,CN=server2,OU=AC,O=AwsomeCompany,L=Paris,ST=IdF,C=FR",
+              "emailAddress=node-server3-super-1@easyssl.com,CN=server3,OU=AC,O=AwsomeCompany,L=Paris,ST=IdF,C=FR"
+            ],
+            "ssl_http_enabled_ciphers": ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"],
+            "ssl_http_enabled_protocols": ["TLSv1.2"],
+            "ssl_transport_enabled_ciphers": ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"],
+            "ssl_transport_enabled_protocols": ["TLSv1.2"],
             "kibana_index": ".kibana-admin"
-          },
-          "opendistro_alerting": {
-            "opendistro_alerting_version": "{{ version.opendistro_security }}"
           }
         }
         {% endif %}
@@ -369,24 +384,46 @@
   },
    {% endif %}
 
-   {% if kibana is defined %}
-   "kibana" : {
+  {% if kibana is defined %}
+  "kibana" : {
   "kibana_version" : "{{ version.elastic }}",
     "domains" : {
       "admin" : {
-        "es_cluster_target": "es_search",
-        "es_type_of_nodes_targeted": "data_node",
+        "gateway_cluster_target": "gateway_32g",
         "kibana_port" : 5601,
         "type" : "administration"
         {% if security is defined %}
         ,
-        "server_ssl_enabled": false,
-        "local_ssl_certs_dir": "{{security.local_kibana_certs}}",
-        "server_ssl_key_name": "kibana-server-key.pem",
-        "server_ssl_certificate_name": "kibana-server-cert.pem",
-        "elasticsearch_ssl_enabled": false,
-        "elasticsearch_ssl_verificationMode": "none",
-        "elasticsearch_ssl_certificateAuthorities_names": ["cachain.pem"]
+        "server_ssl_enabled": true,
+        "local_ssl_certs_dir": "{{security.security_dir}}/server1/kibana",
+        "server_ssl_key_name": "kibana-server-1-key-pkcs8.pem",
+        "server_ssl_certificate_name": "kibana-server-1-cert.pem",
+        "elasticsearch_ssl_enabled": true,
+        "elasticsearch_ssl_verificationMode": "full",
+        "elasticsearch_ssl_certificateAuthorities_names": ["punch-ca.pem"]
+        {% endif %}
+        {% if gateway is defined %}
+        {% set server_ip = [] %}
+        {% set port = "4242" %}
+        {% if security is defined %}{% set scheme = "https" %}{% else %}{% set scheme = "http" %}{% endif %}
+        {% for server in gateway.servers  %}
+        {% set server_ip = server_ip.append( scheme + "://"+server+":"+port ) %}
+        {% endfor %}
+        ,
+        "plugins":{
+          "punchplatform": {
+            "rest_api": {
+              "hosts": {{ server_ip | tojson }}
+              {% if security is defined %}
+              ,
+              "ssl":{
+                "enabled": true,
+                "certificate_authorities_names": ["punch-ca.pem"]
+              }
+              {% endif %}
+            }
+          }
+        }
         {% endif %}
       }
     },
@@ -394,33 +431,18 @@
     {% for server in kibana.servers %}
       "{{ server }}" : {
         "address" : "{{ server }}"
-      }
-      {% if not loop.last %}
-      ,
-      {% endif %}
+      }{% if not loop.last %},{% endif %}
     {% endfor %}
     },
     "plugins":{
-      {% if gateway is defined %}
-      {% set server_ip = [] %}
-      {% set port = "4242" %}
-      {% for server in gateway.servers  %}
-      {% set server_ip = server_ip.append( "http://"+server+":"+port ) %}
-      {% endfor %}
-      "punchplatform": {
-        "punchplatform_version": "{{ version.punch }}",
-        "rest_api": {
-          "hosts": {{ server_ip | tojson }}
-        }
+    "punchplatform": {
+        "punchplatform_version": "{{ version.punch }}"
       },
       "punchplatform_feedback": {
         "punchplatform_feedback_version": "{{ version.punch }}"
       }
-      {% endif %}
       {% if security is defined %}
-      {% if gateway is defined %}
       ,
-      {% endif %}
       "opendistro_security": {
         "opendistro_security_version": "{{ version.opendistro_security }}"
       },
