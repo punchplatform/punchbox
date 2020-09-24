@@ -1,0 +1,15 @@
+{
+	Tuple document = [logs][log];
+	Tuple taxonomy;
+
+	// set default values
+	document:[alarm][id] = "110008";
+	document:[alarm][sev] = "2";
+
+	// override if any normalization found
+	if (document:[web][request][rc] && document:[web][request][method]) {
+		findByKey("taxonomy", "code").on(document:[web][request][method]+"_"+document:[web][request][rc]).into(taxonomy);
+		document:[alarm][id] = taxonomy.asArray().get(0).get("nf_alarm");
+		document:[alarm][sev] = taxonomy.asArray().get(0).get("nf_sev");
+	}
+}

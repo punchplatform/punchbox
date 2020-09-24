@@ -1,0 +1,14 @@
+{
+    "version" : "6.0",
+    "start_by_tenant" : false,
+    "stop_by_tenant" : true,
+    "applications": [
+        {
+            "name": "single_topology",
+            "runtime" : "storm",
+            "execution_mode": "cluster",
+            "cluster": "local",
+            "reload_action": "kill_then_start"
+        }
+    ]
+}

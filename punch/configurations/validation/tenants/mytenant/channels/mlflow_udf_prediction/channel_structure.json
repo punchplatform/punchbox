@@ -1,0 +1,27 @@
+{
+  "stop_by_tenant": true,
+  "version": "6.1",
+  "start_by_tenant": true,
+  "applications": [
+    {
+      "args": [
+        "start",
+        "-p",
+        "mlflow_udf_prediction_reduce.hjson",
+        "--runtime", "pyspark",
+	"--verbose"
+      ],
+      "cluster": "local",
+      "shiva_runner_tags": [
+        "local"
+      ],
+        "resources": [
+		"mlflow_udf_prediction_reduce.hjson"
+        ],
+      "name": "mlflow-udf-prediction",
+      "runtime": "shiva",
+       "quartzcron_schedule": "0/30 * * * * ? *",
+      "command": "punchlinectl"
+    }
+  ]
+}

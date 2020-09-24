@@ -21,7 +21,7 @@
 			additional initial segment for SECONDS. So here, we mean run the task at 0 min 0 sec of each hour of each day
 			of any weekday, any day in month, any month (see https://www.freeformatter.com/cron-expression-generator-quartz.html)
 		*/
-        quartzcron_schedule: 0 * * ? * * *
+        quartzcron_schedule: 0 0 * ? * * *
        }
 
 	]

@@ -1,0 +1,26 @@
+name: Aggregation success
+
+type: metric_aggregation
+
+index: mytenant-aggregations-*
+
+metric_agg_key: doc_count
+metric_agg_type: max
+max_threshold: 1000
+doc_type: _doc
+timestamp_field: timestamp
+buffer_time:
+  minutes: 10
+realert:
+ minutes: 15
+
+alert_text_type: alert_text_only
+alert_text: "\n Aggregation channel ended with success ! \n Which validates that plans, spark executions in foreground mode through shiva and storm streaming channels are operating properly!\n Max value of doc_count : {0}\n Hits : {1}\n Matched : {2}\n Timestamp : {3}"
+alert_text_args: ["metric_doc_count_max","num_hits","num_matches","timestamp"]
+
+alert:
+- command
+
+command:
+  - "/bin/echo"
+  - "alert: Aggregation channel ended with success"

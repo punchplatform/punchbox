@@ -1,0 +1,59 @@
+{
+    # the default template to use for generating actual configuration files    
+    "channel_structure_profile": "input_kafka_processing",
+    
+    # the three mandatory tenant related properties
+    "tenant": "mytenant",
+    "channel": "websense_web_security",
+    "vendor": "websense",
+
+    # define channel runtime type
+    "channel_type": "storm",
+    "cluster_name": "main",
+    
+    # where the data comes from
+    "input": {
+        "port": 9904,
+        "host": "localhost"
+    },
+
+    # the processings you want to run on the data stream
+    "processing": {
+        "workers": 1,
+        "executors": 1,
+        "punchlets": [
+            { "punchlet": "standard/common/input.punch" }, 
+            { "punchlet": "standard/common/parsing_syslog_header.punch" }, 
+            { "punchlet": "standard/websense_web_security/parsing.punch"}, 
+            { 
+                "punchlet": "standard/websense_web_security/enrichment.punch",
+                "punchlet_json_resources": [
+                    "standard/websense_web_security/enrichment_category.json",
+                    "standard/websense_web_security/enrichment_disposition.json"
+                ]
+            },
+            { "punchlet": "standard/common/geoip.punch"}
+        ]
+    },
+
+    # where the resulting data goes
+    "output" : {
+        "elasticsearch": {
+            "cluster": "es_search",
+            "executors" : 1
+        }
+    },
+
+    # some important runtime settings
+    "runtime_settings" : {
+        "childopts": "-server -Xms128m -Xmx128m"
+    },
+
+    # where the monitoring real time metrics should go
+    "metrics": {
+        "type": "elasticsearch",
+        "settings": {
+            "cluster" : "es_search"
+        }
+    }
+}

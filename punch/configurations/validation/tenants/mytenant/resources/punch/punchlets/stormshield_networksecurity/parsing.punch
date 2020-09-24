@@ -1,0 +1,179 @@
+{
+  //////////////////////////////////////////
+  //       BLOCK : INPUT CHECK            //
+  //////////////////////////////////////////
+
+  // Parser last updated on 22/10/2019
+
+  // The log (without syslog headers) is assumed to be received in [logs][data]
+  if (![logs][data]) {
+      raise("no input data : this parser expects to receive it under [logs][data]");
+  }
+
+  Tuple document = [logs][log];
+  Tuple tmp;
+  Tuple enrichment;
+
+  if (!kv().on([logs][data]).into(tmp:[kv])) {
+    raise("Not a recognized KV input for StormShield Network Security");
+  }
+
+  //////////////////////////////////////////
+  //       BLOCK : FIELD TYPE             //
+  //////////////////////////////////////////
+
+  switch(tmp:[kv][logtype]) {
+    case "filter":
+      document:[type] = "fw";
+      document:[alarm][name] = tmp:[kv][action];
+      break;
+
+    case "connection":
+      document:[type] = "fw";
+      document:[alarm][name] = tmp:[kv][action];
+      document:[session][duration] = tmp:[kv][duration];
+      document:[session][in][byte] = tmp:[kv][rcvd];
+      document:[session][out][byte] = tmp:[kv][sent];
+      document:[target][host][nat][ip] = tmp:[kv][origdst];
+      document:[target][host][nat][port] = tmp:[kv][origdstport];
+
+      break;
+
+    case "server":
+      document:[type] = "sys";
+      document:[init][host][ip] = tmp:[kv][address];
+      document:[session][id] = tmp:[kv][sessionid];
+      break;
+
+    case "system":
+      document:[type] = "sys";
+      
+      break;
+
+    case "auth":
+      document:[type] = "auth";
+      break;
+
+    case "monitor":
+      document:[type] = "perf";
+      break;
+
+    case "alarm":
+      document:[type] = "ids";
+      break;
+
+    default:
+         raise("New log type dectected with tmp:[kv][logtype] equals to '" + tmp:[kv][logtype] + "'");
+  }
+
+  // alarm
+  document:[alarm][id] = tmp:[kv][classification] + "-" + tmp:[kv][alarmid];
+  document:[alarm][name] = tmp:[kv][msg];
+  document:[alarm][sev] = tmp:[kv][pri];
+
+  // obs
+  tmp:[obs_ts] = tmp:[kv][time] + tmp:[kv][tz];
+  document:[obs][ts] = date("iso", "YYYY-MM-dd HH:mm:ssZ").on(tmp:[obs_ts]).get();
+  document:[obs][host][name] = tmp:[kv][fw];
+
+  // init
+  document:[init][host][ip] = tmp:[kv][src];
+  document:[init][host][port] = tmp:[kv][srcport];
+  document:[init][host][mac] = tmp:[kv][srcmac];
+
+  document:[init][host][if].append(tmp:[kv][srcif]);
+  document:[init][host][if].append(tmp:[kv][srcifname]);
+
+  document:[init][usr][name] = tmp:[kv][user];
+
+  // target
+  document:[target][host][ip] = tmp:[kv][dst];
+  document:[target][host][port] = tmp:[kv][dstport];
+  document:[target][host][if].append(tmp:[kv][dstif]);
+  document:[target][host][if].append(tmp:[kv][dstifname]);
+
+  // action
+  document:[action] = tmp:[kv][action];
+
+  // app
+  document:[app][name] = tmp:[kv][dstportname];
+  if(tmp:[kv][ipproto]) {
+    document:[app][proto][name].append(tmp:[kv][proto]);
+    document:[app][proto][name].append(tmp:[kv][ipproto]);
+  } else {
+    document:[app][proto][name] = tmp:[kv][proto];
+  }
+  document:[app][return][code] = tmp:[kv][error];
+  document:[app][name] = tmp:[kv][service];
+  document:[app][method] = tmp:[kv][method];
+
+  // rule
+  document:[rule][id] = tmp:[kv][ruleid];
+  document:[rule][name] = tmp:[kv][rulename];
+
+  /** Enrichment Logtype **/
+  switch(tmp:[kv][logtype]) {
+    case "filter":
+      document:[enrichment][logtype] = "filter";
+      document:[alarm][name] = tmp:[kv][action];
+      break;
+
+    case "connection":
+      document:[enrichment][logtype] = "connection";
+      document:[alarm][name] = tmp:[kv][action];
+      break;
+
+    /*case "server":
+      document:[enrichment][logtype] = "server";
+      document:[init][host][ip] = tmp:[kv][address];
+      document:[session][id] = tmp:[kv][sessionid];
+      break;
+    */
+
+    case "system":
+      document:[enrichment][logtype] = "system";
+      
+      break;
+
+    case "auth":
+      document:[enrichment][logtype] = "auth";
+      break;
+
+    case "monitor":
+      document:[enrichment][logtype] = "monitor";
+      break;
+
+    case "alarm":
+      document:[enrichment][logtype] = "alarm";
+      break;
+
+    default:
+         raise("New log type dectected with tmp:[kv][logtype] equals to '" + tmp:[kv][logtype] + "'");
+  }
+
+  /** Enrichment Action **/
+  switch(tmp:[kv][action]) {
+    case "block":
+      document:[enrichment][action] = "DENY";
+     // document:[alarm][name] = tmp:[kv][action];
+      break;
+
+    /*case "server":
+      document:[enrichment][logtype] = "server";
+      document:[init][host][ip] = tmp:[kv][address];
+      document:[session][id] = tmp:[kv][sessionid];
+      break;
+    */
+
+    case "pass":
+      document:[enrichment][action] = "ACCEPT";
+      break;
+
+    default:
+         raise("New log type dectected with tmp:[kv][action] equals to '" + tmp:[kv][action] + "'");
+  }
+
+    document:[parser][name] = "Stormshield";
+    document:[parser][version] = "1.0.2";
+
+}

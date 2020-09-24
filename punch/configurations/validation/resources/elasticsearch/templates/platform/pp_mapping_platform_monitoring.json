@@ -34,6 +34,9 @@
         "@timestamp": {
           "format": "dateOptionalTime",
           "type": "date"
+        },
+        "alert_messages": {
+          "type": "keyword"
         }
       }
   },

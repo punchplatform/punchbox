@@ -1,10 +1,7 @@
 	{
 		version: "6.0"
-		tenant: onesky
-		cchannel: lmr_input
 		runtime: shiva
 		type: punchline
-		name: local_events_dispatcher
 		/* The purpose of this punchline is to send various types of platform events to different indices
 		so that they have different retention rules.
 

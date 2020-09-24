@@ -1,0 +1,9 @@
+{
+	Tuple document = [logs][log];	
+	Tuple hash = getResourceTuple("http_codes");
+
+	if (document:[web][request][rc]) {
+		String http_code = document:[web][request][rc];
+		document:[action] = hash.get(http_code);
+	}
+}

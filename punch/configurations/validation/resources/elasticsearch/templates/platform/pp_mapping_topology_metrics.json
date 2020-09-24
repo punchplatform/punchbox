@@ -21,6 +21,19 @@
         },
         "spark.application.id": {
           "type": "keyword"
+        },
+        "storm": {
+            "type": "object",
+            "properties": {
+                "worker": {
+                    "type": "object",
+                    "properties":{
+                      "id": {
+                        "type": "keyword"
+                      }
+                    }
+                }
+            }
         }
       }
   },

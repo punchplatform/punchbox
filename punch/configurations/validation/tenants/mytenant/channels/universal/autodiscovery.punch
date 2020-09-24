@@ -1,0 +1,99 @@
+// 
+// This punchlet finds out the type of log received on a single
+// channel, and adds a [type] field so that further the chain, 
+// topologies can dispatch the log to the right parser. 
+//
+// Guessing if a log is a sourcefire apche or cisco logs requires trying
+// to match patterns (regexes, substrings, etc..). Of course this is cpu
+// consuming and you do not want to do that for each incoming log.
+//
+// Here what is assumed is that each log sender sends the same type of logs.
+// Therefore, once we know that a sender sends (say) apache logs, we
+// simply rememvber that for subsequent logs. 
+//
+// Senders are identified by their source ip and source port number.
+// The punchlet keeps a statefull map to remember each. 
+//
+// This punchlet is interesting as it relies on grok and kv
+// operators to try matching patterns using a very compact notation. 
+//
+public class Dispatcher extends Punchlet {
+
+  Map<String, Map<Long, String>> map;
+
+  public void activate() {
+        this.map = new HashMap<String, Map<Long, String>>();
+  }
+
+  String match(String srcIp, long srcPort, String type) {
+      map.get(srcIp).put(srcPort, type);
+      return type;
+  }
+
+  public void execute(Tuple root) {
+    String log = [logs][log];
+    String srcIp = [logs][_ppf_remote_host].asString();
+    long srcPort = [logs][_ppf_remote_port].asLong();
+    
+    // first time ever we see this source ip sender
+    if (!map.containsKey(srcIp)) {
+      map.put(srcIp, new HashMap<Long, String>());
+    }
+
+    String logType = map.get(srcIp).get(srcPort);
+    if (logType == null) {
+   
+      // first time we see this sender (identified by its source ip and
+      // port number) send a log. Leut us guess what kind of log he sends.
+
+      
+      if (
+
+        grok(
+          "(sourcefiredc|%{DATA}(.cgi|.pl)): %{SF_HEADER}")
+        // make the grok operator try the pattern on all substrings
+        // this of course is inefficient, but powerfull.
+        .evaluate()
+        .on(log)) {
+          
+        logType = match(srcIp, srcPort, "sourcefire");
+      
+      } else if (
+
+        grok("%{COMBINEDAPACHELOG}")
+        .evaluate()
+        .on(log)) {
+
+        logType = match(srcIp, srcPort, "apache_httpd");
+      
+      } else if (
+        
+        kv()
+        .on(log)
+        // make the kv operator try on all substrings. Just like 
+        // for the grok example above this is inneficcient but 
+        // powerfull to find out if we hava a match.
+        .hasKeyWithValue("vendor", "Websense")
+        .match()) {
+
+        logType = match(srcIp, srcPort, "websense_web_security");
+      
+      } else if (
+
+        kv()
+        .on(log)
+        .hasKeyWithValue("logtype", "filter", "server", "system", "auth", "monitor", "alarm")
+        .match()) {
+
+        logType = match(srcIp, srcPort, "stormshield_networksecurity");
+      
+      } else {
+
+        // give up. But do not retry on subsequent messages.
+        logType = match(srcIp, srcPort, "unknown");
+      
+      }
+    }
+    [logs][_log_type] = logType;
+  }
+}

@@ -1,0 +1,67 @@
+{
+  type: punchline
+  runtime: spark
+  channel: default
+  version: "6.0"
+  tenant: default
+  dag:
+  [
+    {
+      settings:
+      {
+        input_data:
+        [
+          {
+            date: "{{ from }}"
+            name: from_date
+          }
+          {
+            date: "{{ to }}"
+            name: to_date
+          }
+        ]
+      }
+      component: input
+      publish:
+      [
+        {
+          stream: data
+        }
+      ]
+      type: dataset_generator
+    }
+    {
+      type: sql
+      component: sql
+      settings: {
+        statement: SELECT * FROM input_data
+      }
+      publish: [
+        {
+          stream: data
+        }
+      ]
+      subscribe: [
+        {
+          stream: data
+          component: input
+        }
+      ]
+    }
+    {
+      settings:
+      {
+        truncate: false
+      }
+      component: show
+      subscribe:
+      [
+        {
+          component: sql
+          stream: data
+        }
+      ]
+      type: show
+    }
+  ]
+}

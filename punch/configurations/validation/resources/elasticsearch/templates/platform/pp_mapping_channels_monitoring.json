@@ -34,7 +34,11 @@
         "@timestamp": {
           "format": "dateOptionalTime||epoch_millis",
           "type": "date"
-        }
+        },
+	"alert_messages": {
+	    "type": "keyword"
+	}
+
       }
   },
   "index_patterns": [

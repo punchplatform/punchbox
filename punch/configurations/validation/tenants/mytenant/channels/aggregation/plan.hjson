@@ -26,7 +26,6 @@
       {
         type: elasticsearch
         index_name: platform-plan-cursor
-        ssl: false
       }
     ]
   }

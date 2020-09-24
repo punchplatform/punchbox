@@ -1,0 +1,14 @@
+{
+    "version": "5.0",
+    "start_by_tenant" : true,
+    "stop_by_tenant" : true,
+    "jobs": [
+        {
+            "name": "single_topology",
+            "type": "storm",
+            "execution_mode": "cluster",
+            "cluster": "main",
+            "reload_action": "kill_then_start"
+        }
+    ]
+}

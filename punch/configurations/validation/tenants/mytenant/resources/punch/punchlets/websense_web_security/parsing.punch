@@ -1,0 +1,106 @@
+{
+
+  ///////////////////////////////////////////
+  //  BLOCK : INPUT CHECK
+  ///////////////////////////////////////////
+
+  if (![logs][data]) {
+    throw new PunchRuntimeException("no input data : this parser expect to receive it under [logs][data]");
+  }
+    Tuple tmp;
+    Tuple document = [logs][log];
+
+  ///////////////////////////////////////////
+  //  BLOCK : SYNTAX ANALYSIS
+  ///////////////////////////////////////////
+
+  // Added by oscar barbier on 10/10/2018 (PUN-318) oscar@punchplatform.com -- Edited on 14/12/2018 (PUN-413) -- Updated on 30/01/2019 (PP-2847)
+  // There was a problem while parsing a log with a space in the URL (we can not use the key-value operator for that field)
+  // the following line extract directly the URL but it recquires that it is at the very end of the raw log
+  if (!dissect("%{firstpart} url=%{url}").on([logs][data]).into(tmp:[dissect])) { 
+    throw new PunchRuntimeException("URL missing from logs : unable to parse"); 
+  }
+
+  // get the first part of the logs
+  [logs][data] = tmp:[dissect][firstpart];
+
+  // run kv on this part
+  if (!kv().on([logs][data]).into(tmp:[kv])) {
+    throw new PunchRuntimeException("parsing error");
+  }
+
+  // Remove empty fields
+  for (String key : tmp:[kv].getKeys()) {
+    if (tmp:[kv][${key}] == "") {
+      remove(tmp:[kv][${key}]);
+    }
+  }
+  
+
+  ///////////////////////////////////////////
+  //  BLOCK : FIELD BINDING
+  ///////////////////////////////////////////
+
+  // mandatory
+  document:[parser][name]    = "websense_web_security";
+  document:[parser][version] = "2.0.0";
+  document:[type]            = "wse";
+
+  // init
+  grok("^%{GREEDYDATA}/%{DATA:document:[init][usr][name]}$").on(tmp:[kv][user]);
+  if (grok("^%{IPV4}$").on(tmp:[kv][src_host])) {
+    document:[init][host][ip] = tmp:[kv][src_host];
+  } else {
+    document:[init][host][name] = tmp:[kv][src_host];
+  }
+  if (tmp:[kv][src_port]) document:[init][host][port] = tmp:[kv][src_port].asLong();
+  if (tmp:[kv][user] && !tmp:[kv][user].asString().equals("-")) {
+    document:[init][usr][name] = tmp:[kv][user];
+  }
+
+  // target
+  document:[target][host][ip] = tmp:[kv][dst_ip];
+  document:[target][host][name] = tmp:[kv][dst_host];
+  if (tmp:[kv][dst_port]) document:[target][host][port] = tmp:[kv][dst_port].asLong();
+  if (!grok("%{URIWHITESPACE:tmp:[grokresult]}").on(tmp:[dissect][url])) {
+    logger().warn("PERFORMANCE WARNING: the URI grok has failed for tmp:[dissect][url]='{}'", tmp:[dissect][url]);
+  }
+  document:[target][uri][url]  = tmp:[grokresult][host];
+  document:[target][uri][urn]  = tmp:[grokresult][path];
+  document:[target][uri][full] = tmp:[dissect][url];
+
+  // app
+  document:[app][proto][name] = tmp:[grokresult][proto];
+  document:[app][version]     = tmp:[kv][product_version];
+
+  // session
+  if (tmp:[kv][bytes_in]) document:[session][in][byte]   = tmp:[kv][bytes_in].asLong();
+  if (tmp:[kv][bytes_out]) document:[session][out][byte] = tmp:[kv][bytes_out].asLong();
+  if (tmp:[kv][duration]) document:[session][duration]   = tmp:[kv][duration].asLong();
+
+  // alarm
+  document:[alarm][sev] = tmp:[kv][severity];
+
+  // web
+  document:[web][request][method]      = tmp:[kv][http_method];
+  document:[web][header][content_type] = tmp:[kv][http_content_type];
+  document:[web][header][user_agent]   = tmp:[kv][http_user_agent];
+  document:[web][request][rc]          = tmp:[kv][http_response];
+
+  // action
+  document:[action] = tmp:[kv][action];
+
+  // rule
+  document:[rule][name] = tmp:[kv][policy];
+
+  // special fields (dedicated to websense)
+  document:[web][request][proxy_rc] = tmp:[kv][http_proxy_status_code];
+  document:[websense][role]        = tmp:[kv][role];
+  document:[websense][product]     = tmp:[kv][product];
+  document:[websense][disposition] = tmp:[kv][disposition];
+  document:[websense][category]    = tmp:[kv][category];
+  if (tmp:[kv][reason] && !tmp:[kv][reason].asString().equals("-")) {
+    document:[websense][reason]    = tmp:[kv][reason];
+  }
+
+}

@@ -1,0 +1,148 @@
+{
+  "version": "6.0",
+  "runtime": "storm",
+  "type": "punchline",
+  "meta": {
+    "vendor": "sourcefire"
+  },
+  "dag": [
+    {
+      "type": "syslog_input",
+      "settings": {
+        "listen": {
+          "proto": "tcp",
+          "host": "0.0.0.0",
+          "port": 9902
+        },
+        "self_monitoring.activation": true,
+        "self_monitoring.period": 10
+      },
+        "publish": [
+          {
+            "stream": "logs",
+            "fields": [
+              "log",
+              "_ppf_local_host",
+              "_ppf_local_port",
+              "_ppf_remote_host",
+              "_ppf_remote_port",
+              "_ppf_timestamp",
+              "_ppf_id"
+            ]
+          },
+          {
+            "stream": "_ppf_metrics",
+            "fields": [
+              "_ppf_latency"
+            ]
+          }
+        ]
+      
+    },
+    {
+      "type": "punchlet_node",
+      "settings": {
+        "punchlet_json_resources": [],
+        "punchlet": [
+          "punchlets/common/input.punch",
+          "punchlets/common/parsing_syslog_header.punch",
+          "punchlets/sourcefire/parsing.punch",
+          "punchlets/common/geoip.punch"
+        ]
+      },
+        "subscribe": [
+          {
+            "component": "syslog_input",
+            "stream": "logs"
+          },
+          {
+            "component": "syslog_input",
+            "stream": "_ppf_metrics"
+          }
+        ],
+        "publish": [
+          {
+            "stream": "logs",
+            "fields": [
+              "log",
+              "_ppf_id"
+            ]
+          },
+          {
+            "stream": "_ppf_errors",
+            "fields": [
+              "_ppf_error_message",
+              "_ppf_error_document",
+              "_ppf_id"
+            ]
+          },
+          {
+            "stream": "_ppf_metrics",
+            "fields": [
+              "_ppf_latency"
+            ]
+          }
+        ]
+    },
+    {
+      "type": "elasticsearch_output",
+      "settings": {
+        "per_stream_settings": [
+          {
+            "stream": "logs",
+            "index": {
+              "type": "daily",
+              "prefix": "mytenant-events-"
+            },
+            "document_json_field": "log",
+            "document_id_field": "_ppf_id",
+            "additional_document_value_fields": [
+              {
+                "type": "date",
+                "document_field": "@timestamp",
+                "format": "iso"
+              }
+            ]
+          },
+          {
+            "stream": "_ppf_errors",
+            "document_json_field": "_ppf_error_document",
+            "additional_document_value_fields": [
+              { "type": "tuple_field", "document_field": "ppf_error_message", "tuple_field": "_ppf_error_message" },
+              { "type": "date", "document_field": "@timestamp", "format": "iso" }
+            ],
+            "index": {
+              "type": "daily",
+              "prefix": "mytenant-events-"
+            },
+            "document_id_field": "_ppf_id"
+          }
+        ]
+      },
+        "subscribe": [
+          {
+            "component": "punchlet_node",
+            "stream": "logs"
+          },
+          {
+            "component": "punchlet_node",
+            "stream": "_ppf_errors"
+          },
+          {
+            "component": "punchlet_node",
+            "stream": "_ppf_metrics"
+          }
+        ]
+      }
+  ],
+  "metrics": {
+    "reporters": [
+      {
+        "type": "kafka"
+      }
+    ]
+  },
+  "settings": {
+    "topology.worker.childopts": "-server -Xms1g -Xmx4g"
+  }
+}
