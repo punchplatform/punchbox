@@ -198,36 +198,43 @@ def import_user_resources(punch_user_config, platform_config_file, validation):
         env = jinja2.Environment(loader=loader)
         ltemplates = env.list_templates()
         for t in ltemplates:
-            template = env.get_template(t)
-            render = template.render(
-                spark_master= platform_config["punch"]["spark"]["masters"][0],
-                elasticsearch_host= platform_config["punch"]["elasticsearch"]["servers"][0],
-                shiva_host=platform_config["punch"]["shiva"]["servers"][0],
-                validation_id= int(datetime.now().timestamp()),
-                validation_time= datetime.now().isoformat(timespec="seconds"),
-                nb_to_validate= len([f for f in os.listdir(tenant_validation_dir)]),
-                livedemo_api_url= livedemo_api_url,
-                user= os.getenv('USER', default='anonymous'),
-                sysname= os.uname().sysname,
-                release= os.uname().release,
-                hostname= os.uname().nodename,
-                vagrant_config= os.path.basename(platform_config_file),
-                vagrant_os= platform_config["targets"]["meta"]["os"],
-                gateway_host= platform_config["punch"]["gateway"]["servers"][0],
-                branch= subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ppunch_dir).strip().decode(),
-                commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode(),
-                commit_date= subprocess.check_output(["git","log","-1","--date=format:%Y-%m-%dT%H:%M","--format=%ad"],cwd=ppunch_dir).strip().decode())
-            file = open(tenants_target_dir + t, "w+")
-            file.write(render)
-            file.close()
+            if not ('validation' in t):
+                logging.debug("Skipping rendering of '%s' as it is not a validation template.",t)
+            else:
+                try:
+                    template = env.get_template(t)
+                    render = template.render(
+                        spark_master= platform_config["punch"]["spark"]["masters"][0],
+                        elasticsearch_host= platform_config["punch"]["elasticsearch"]["servers"][0],
+                        shiva_host=platform_config["punch"]["shiva"]["servers"][0],
+                        validation_id= int(datetime.now().timestamp()),
+                        validation_time= datetime.now().isoformat(timespec="seconds"),
+                        nb_to_validate= len([f for f in os.listdir(tenant_validation_dir)]),
+                        livedemo_api_url= livedemo_api_url,
+                        user= os.getenv('USER', default='anonymous'),
+                        sysname= os.uname().sysname,
+                        release= os.uname().release,
+                        hostname= os.uname().nodename,
+                        vagrant_config= os.path.basename(platform_config_file),
+                        vagrant_os= platform_config["targets"]["meta"]["os"],
+                        gateway_host= platform_config["punch"]["gateway"]["servers"][0],
+                        branch= subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ppunch_dir).strip().decode(),
+                        commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode(),
+                        commit_date= subprocess.check_output(["git","log","-1","--date=format:%Y-%m-%dT%H:%M","--format=%ad"],cwd=ppunch_dir).strip().decode())
+                    file = open(tenants_target_dir + t, "w+")
+                    file.write(render)
+                    file.close()
+                except Exception as e:
+                    logging.error('Failure while working on template "%s".', t)
+                    raise
         logging.info(' punch validation configuration successfully imported in %s', build_conf_dir)
 
 ## CREATE A VALIDATION SHELL ##
 def create_platform_shell(validation, platform_config, security=False):
     file_loader = jinja2.FileSystemLoader(platform_templates)
     env = jinja2.Environment(loader=file_loader)
-    platform_template = env.get_template(platform_template_shell)
     try:
+        platform_template = env.get_template(platform_template_shell)
         platform_render = platform_template.render(punch=platform_config['punch'], os=platform_config['targets']['meta']['os'])
         platform_shell = open(platform_shell_target, "w+")
         platform_shell.write(platform_render)
