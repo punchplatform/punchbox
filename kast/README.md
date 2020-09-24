@@ -121,6 +121,19 @@ ansible-playbook -i hosts containerd_runtime_install.yml -u vagrant --private-ke
 ```
 
 #### Run role kube 
+Before run the kube role you need to set the parameter `nic` with the network card to be use by your kube cluster. If you use a Vagrant cluster or punchbox you need to set this parameter to `nic: eth1`.
+
+The configuration file is `/roles/kube/boot/defaults/main.yml`
+
+```yml
+# Network card to use for internal
+# can be: first-found, for first non loopback or name like eth0
+# default first-found
+nic: eth1
+```
+
+Then you can run the role to deploy your cluster Kubernetes.
+
 ```sh
 ansible-playbook -i hosts kube.yml -u vagrant
 ```
@@ -156,7 +169,7 @@ kubectl get pods --all-namespaces -o wide
 
 ![](./images/test_kube.gif)
 
-### 4. Run Kubernetes from your laptop
+### 4. Run kubectl commands from your laptop
 
 if you want to run kubectl command directly from you laptop, you need to install kubectl and run following commands :
 
