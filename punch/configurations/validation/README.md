@@ -52,7 +52,7 @@ make clean
 
 **Note 2**: make sure that the desired branch of pp-punch is already built, in general the master branch; 
 
-**Note 3**: it is mandatory for punchbox and pp-punch to be in the same working directory;
+**Note 3**: to specify pp-punch repository, set PUNCH_DIR before executing make rules; 
 
 **Note 4**: to report to other endpoint than the platform itself, set LIVEDEMO_API_URL before executing make rules;
 
