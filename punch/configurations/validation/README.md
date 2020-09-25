@@ -56,6 +56,8 @@ make clean
 
 **Note 4**: to report to other endpoint than the platform itself, set LIVEDEMO_API_URL before executing make rules;
 
+**Note 4**: make sure you have run `make configure-deployer` at least once and update punchbox/.deployer file manually if needed
+
 Example:
 
 ```sh
