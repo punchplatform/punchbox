@@ -1,0 +1,198 @@
+{
+  "version": "6.0",
+  "runtime": "storm",
+  "type": "punchline",
+  "dag": [
+    {
+      "type": "syslog_input",
+      "settings": {
+        "listen": {
+          "proto": "tcp",
+          "host": "0.0.0.0",
+          "port": 10000
+        }
+      },
+        "executors": 1,
+        "publish": [
+          {
+            "stream": "logs",
+            "fields": [
+              "log",
+              "_ppf_local_host",
+              "_ppf_local_port",
+              "_ppf_remote_host",
+              "_ppf_remote_port",
+              "_ppf_id",
+              "_ppf_timestamp"
+            ]
+          }
+        ]
+    },
+    {
+      "type": "punchlet_node",
+      "settings": {
+        "punchlet": [ "./autodiscovery.punch" ]
+      },
+        "subscribe": [
+          {
+            "component": "syslog_input",
+            "stream": "logs"
+          }
+        ],
+        "publish": [
+          {
+            "stream": "logs",
+            "fields": [ 
+              "log", 
+              "_log_type", 
+              "_ppf_local_host",
+              "_ppf_local_port",
+              "_ppf_remote_host",
+              "_ppf_remote_port",
+              "_ppf_id",
+              "_ppf_timestamp"
+            ]
+          }
+        ]
+    },
+    {
+      "type": "punch_dispatcher_node",
+      "settings": {
+        "dispatcher_field" : "_log_type",
+        "dispatcher_map" : {
+          "sourcefire" : {
+            "punchlet" : [
+              "./input.punch",
+              "./parsing_syslog_header.punch",
+              "punchlets/sourcefire/parsing.punch",
+              "punchlets/common/geoip.punch"
+            ]
+          },
+          "apache_httpd" : {
+            "punchlet_json_resources" : [
+              "punchlets/apache_httpd/http_codes.json",
+              "punchlets/apache_httpd/taxonomy.json"
+            ],
+            "punchlet" : [
+              "./input.punch",
+              "./parsing_syslog_header.punch",
+              "punchlets/apache_httpd/parsing.punch",
+              "punchlets/apache_httpd/enrichment.punch",
+              "punchlets/apache_httpd/normalization.punch",
+              "punchlets/common/geoip.punch"
+            ]
+          },
+          "stormshield_networksecurity" : {
+            "punchlet": [
+              "./input.punch",
+              "./parsing_syslog_header.punch",
+              "punchlets/stormshield_networksecurity/parsing.punch",
+              "punchlets/common/geoip.punch"
+            ]
+          },
+          "websense_web_security" : {
+            "punchlet_json_resources": [
+              "punchlets/websense_web_security/enrichment_category.json",
+              "punchlets/websense_web_security/enrichment_disposition.json"
+            ],
+            "punchlet": [
+              "./input.punch",
+              "./parsing_syslog_header.punch",
+              "punchlets/websense_web_security/parsing.punch",
+              "punchlets/websense_web_security/enrichment.punch",
+              "punchlets/common/geoip.punch"
+            ]
+          }
+        }
+      },
+        "executors": 1,
+        "publish": [
+          {
+            "stream": "logs",
+            "fields": [
+              "raw_log",
+              "log",
+              "_ppf_id",
+              "_ppf_timestamp",
+              "es_index"
+            ]
+          },
+          {
+            "stream": "_ppf_errors",
+            "fields": [
+              "_ppf_error_message",
+              "_ppf_error_document",
+              "_ppf_id"
+            ]
+          }
+        ],
+        "subscribe": [
+          {
+            "component": "punchlet_node",
+            "stream": "logs",
+            "grouping": "localOrShuffle"
+          }
+        ]
+    },
+    {
+      "type": "elasticsearch_output",
+      "settings": {
+        "per_stream_settings": [
+          {
+            "stream": "logs",
+            "index": {
+              "type": "daily",
+              "prefix": "mytenant-events-"
+            },
+            "document_json_field": "log",
+            "document_id_field": "_ppf_id",
+            "additional_document_value_fields": [
+              {
+                "type": "date",
+                "document_field": "@timestamp",
+                "format": "iso"
+              }
+            ]
+          },
+          {
+            "stream": "_ppf_errors",
+            "document_json_field": "_ppf_error_document",
+            "additional_document_value_fields": [
+              { "type": "tuple_field", "document_field": "ppf_error_message", "tuple_field": "_ppf_error_message" },
+              { "type": "date", "document_field": "@timestamp", "format": "iso" }
+            ],
+            "index": {
+              "type": "daily",
+              "prefix": "mytenant-events-"
+            },
+            "document_id_field": "_ppf_id"
+          }
+        ]
+      },
+        "executors": 1,
+        "subscribe": [
+          {
+            "component": "punch_dispatcher_node",
+            "stream": "logs"
+          },
+          {
+            "component": "punch_dispatcher_node",
+            "stream": "_ppf_errors"
+          }
+        ]
+      }
+  ],
+  "metrics": {
+    "reporters": [
+      {
+        "type": "kafka"
+      }
+    ]
+  },
+  "settings": {
+    "topology.max.spout.pending": 10000,
+    "topology.enable.message.timeouts": true,
+    "topology.message.timeout.secs": 30,
+    "topology.worker.childopts": "-server -Xms1g -Xmx4g",
+  }
+}

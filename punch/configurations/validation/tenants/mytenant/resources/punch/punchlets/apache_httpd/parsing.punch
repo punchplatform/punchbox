@@ -1,0 +1,83 @@
+{
+
+    ///////////////////////////////////////////
+    //  BLOCK : INPUT CHECK
+    ///////////////////////////////////////////
+
+    if (!root:[logs][data]) {
+        throw new PunchRuntimeException("No input data : This parser expect to receive it under [logs][data]");
+    }
+
+    String payload = root:[logs][data].asString();
+    Tuple document = root:[logs][log];
+    Tuple tmp;
+
+
+    ///////////////////////////////////////////
+    //  BLOCK : SYNTAX ANALYSIS & FIELD BINDING
+    ///////////////////////////////////////////
+
+    // Traffic event
+    // Jan 17 08:10:31 host25 189.144.140.2 - ced [01/Jan/2013:02:00:00 +0100] "GET /ref/index.html HTTP/1.1" 200 3279 "http://www.semicomplete.com/blog/geekery/bypassing-captive-portals.html" "Mozilla/5.0 (Windows; U; Windows NT 6.0; sv-SE) AppleWebKit/525.27.1 (KHTML, like Gecko) Version/3.2.1 Safari/525.27.1"
+    if(grok("^%{IP}").on(payload)) {
+        if (!grok("%{COMBINEDAPACHELOG:tmp:[grok]}").on(payload)) {
+             throw new PunchRuntimeException("grok failed to parse apache log");
+        }
+
+        // mandatory
+        document:[parser][name] = "apache_httpd";
+        document:[parser][version] = "1.2.0";
+
+        // type
+        document:[type] = "web";
+
+        // obs
+        date("iso", "dd/MMM/yyyy:H:mm:ss Z").on(tmp:[grok][timestamp]).into(document:[obs][ts]);
+
+        // init
+        document:[init][host][ip] = tmp:[grok][clientip];
+        if (tmp:[grok][auth] && !tmp:[grok][auth].asString().equals("-")) {
+            document:[init][usr][name] = tmp:[grok][auth];
+        }
+        /* 'tmp:[grok][ident]' is not used, not considered reliable */
+
+        // target
+        document:[target][uri][urn] = tmp:[grok][request];
+
+        // session
+        if(tmp:[grok][bytes]) document:[session][out][byte] = tmp:[grok][bytes].asLong();
+
+        // web
+        document:[web][request][method] = tmp:[grok][verb];
+        document:[web][request][rc] = tmp:[grok][response];
+        document:[web][header][referer] = tmp:[grok][referrer];
+        document:[web][header][version] = tmp:[grok][httpversion];
+        document:[web][header][user_agent] = tmp:[grok][agent];
+
+    }
+
+    // System events
+    // [Thu Jul 27 22:17:01.366789 2017] [unixd:alert] [pid 30790] (1)Operation not permitted: AH02156: setgid: unable to set group id to Group 0
+    else if(grok("\[%{DATA:tmp:[grok][date]}\] \[%{DATA:tmp:[grok][proc]}:%{DATA:tmp:[grok][alarmsev]}\] \[pid %{INT:tmp:[grok][process_id]}\] %{GREEDYDATA:tmp:[grok][alarmname]}").on(payload)) {
+
+        // type
+        document:[type] = "sys";
+
+        // obs
+        document:[obs][process][id] = tmp:[grok][process_id];
+        document:[obs][ts] = date("iso", "EEE MMM dd HH:mm:ss.SSSSSS yyyy").on(tmp:[grok][date]).get();
+
+        // alarm
+        document:[alarm][name] = tmp:[grok][alarmname];
+        document:[alarm][sev] = tmp:[grok][alarmsev];
+
+        // init
+        document:[init][process][name] = tmp:[grok][proc];
+
+    }
+
+    else {
+        throw new PunchRuntimeException("grok failed to parse apache log");
+    }
+
+}

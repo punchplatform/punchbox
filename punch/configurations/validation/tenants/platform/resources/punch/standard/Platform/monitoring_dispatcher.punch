@@ -62,7 +62,12 @@
 			docType = [doc][type];
 	    } else if ( [doc][@metadata][beat] ) { 
 			docType =  [doc][@metadata][beat]; 
-		} 
+		}
+		else if ( [doc][service][type] ) { 
+			docType =  [doc][service][type]; 
+		} else if ( [doc][target][type] ) { 
+			docType =  [doc][target][type]; 
+		}  
 
 		// The timestamp of the eventis normally available in the incoming json standard field following beats convention:
 		String dateString = null;
@@ -82,6 +87,12 @@
 				indexPrefix = "platform-health-";
 				break;
 			case "storm":
+				indexPrefix = tenant + "-metrics-";
+				break;
+			case "spark":
+				indexPrefix = tenant + "-metrics-";
+				break;
+			case "spark-application":
 				indexPrefix = tenant + "-metrics-";
 				break;
 			case "punch":

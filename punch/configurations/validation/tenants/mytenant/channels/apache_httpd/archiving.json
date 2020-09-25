@@ -34,12 +34,15 @@
       "settings": {
         "strategy": "at_least_once",
         "destination": "file:///tmp/archive-logs/storage",
-        "topic": "httpd",
+        "access_key": "minioadmin",
+        "secret_key": "minioadmin",
         "timestamp_field": "_ppf_timestamp",
         "file_prefix_pattern": "%{topic}/%{date}/puncharchive-%{tags}-%{offset}",
+        "encoding": "csv",
         "compression_format" : "GZIP",
+        "streaming" : true,
         "create_root" : true,
-        "batch_size": 1000,
+        "batch_size": 10000,
         "batch_expiration_timeout": "10s",
         "fields": [
           "_ppf_id",

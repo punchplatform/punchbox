@@ -1,0 +1,27 @@
+{
+  // To avoid a redundant copy, and allow a fast forwarding of the raw log 
+  // to various downstream destination (Correlator, archiving/extraction...), 
+  // the raw log is moved to a dedicated field. 
+  [logs][log][raw_log] = [logs][log];
+  [logs][log][size] = [logs][log][raw_log].length();
+   
+  //
+  // The entry spout sends that information using dedicated Storm
+  // fields. Make sure you subscribe to these fields in your topology 
+  // configuration.
+  //
+  if ([logs][_ppf_timestamp]) {
+    [logs][log][lmc][input][ts] = date("iso").on([logs][_ppf_timestamp].toString()).get();
+  } 
+
+  [logs][log][col][host][name] = getHostName();
+  [logs][log][col][host][ip]   = [logs][_ppf_local_host];
+  [logs][log][col][host][port] = [logs][_ppf_local_port];
+  [logs][log][rep][host][ip]   = [logs][_ppf_remote_host];
+  [logs][log][tenant] = world:[meta][tenant];
+  [logs][log][channel] = world:[meta][channel];
+  [logs][log][vendor] = [logs][_log_type];
+
+  // this is a normalised field set by a downstream parser
+  [logs][log][type] = "unknown";
+}

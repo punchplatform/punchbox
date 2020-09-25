@@ -43,9 +43,17 @@
     {
       "type": "punchlet_node",
       "settings": {
+        "punchlet_json_resources": [
+          "punchlets/apache_httpd/http_codes.json",
+          "punchlets/apache_httpd/taxonomy.json"
+        ],
         "punchlet": [
           "punchlets/common/input.punch",
-          "punchlets/common/parsing_syslog_header.punch"     
+          "punchlets/common/parsing_syslog_header.punch",
+          "punchlets/apache_httpd/parsing.punch",
+          "punchlets/apache_httpd/enrichment.punch",
+          "punchlets/apache_httpd/normalization.punch",
+          "punchlets/common/geoip.punch"
         ]
       },
         "subscribe": [
@@ -161,6 +169,6 @@
     ]
   },
   "settings": {
-    "topology.worker.childopts": "-server -Xms256m -Xmx256m"
+    "topology.worker.childopts": "-server -Xms1g -Xmx4g"
   }
 }

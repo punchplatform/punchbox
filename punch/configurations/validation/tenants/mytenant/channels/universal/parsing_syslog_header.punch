@@ -1,0 +1,76 @@
+{
+
+  if (![logs][log][raw_log]) {
+      raise("the expected [logs][log][raw_log] is missing");
+  }
+  // This will throw a PunchRuntime exception in case the raw log
+  // field is not a string
+  String rawLog = [logs][log][raw_log].asString();
+
+  // We will store the parsed log fields under [logs][log],
+  // i.e. [logs]log][vendor], etc ..
+  // 
+  // Only for convenience do we use a parsedLog tuple, to 
+  // avoid writing [logs][log] every time.
+  Tuple parsedLog = [logs][log];
+  parsedLog:[message] = rawLog;
+
+  Tuple tmp;
+  if (rawLog.startsWith("<")) {
+
+    // Here we try first to match the pattern 'timestamp <facility.severity> host' (facility is optional).
+    // If that fails we give a try for '<facility.severity> timestamp host' 
+
+  // There is a possibility (by using default configuration) to have a <priority> instead of a facility
+  // Reminder : Priority = ( facility x 8 ) + severity
+  // In order to preserve the data normalisation, if we detect a priority, the parser will automatically try to convert it into a <facility.severity>
+
+    if (
+      grok("%{SYSLOGFACILITY} %{SYSLOGTIMESTAMP:tmp:[rep][ts]} ?%{SYSLOGHOST:tmp:[rep][host]} %{GREEDYDATA:root:[logs][data]}")
+      .on(rawLog)) {
+      // fall through
+    } else if (
+      grok("%{SYSLOGPRIORITY:tmp:[data]}%{SYSLOGTIMESTAMP:tmp:[rep][ts]} ?%{SYSLOGHOST:tmp:[rep][host]} %{GREEDYDATA:root:[logs][data]}")
+      .on(rawLog)) {
+      
+      try {
+        final int priority = Integer.parseInt(tmp:[data][priority].asString());
+        final int facility = ( priority / 8 );
+        final int severity = priority - ( facility * 8 );
+        root:[logs][log][alarm][facility] = facility;
+        root:[logs][log][alarm][sev] = severity;
+      } catch(NumberFormatException e) {
+        raise("parsing error : not a valid priority|facility|severity header "+ tmp:[data].toString());
+      }
+    } else {
+        raise("parsing error : not a recognized \"<facility.severity> timestamp host\" syslog header");
+    }
+  } else {
+    if (!grok("%{SYSLOGTIMESTAMP:tmp:[rep][ts]} (?:%{SYSLOGFACILITY} )?%{SYSLOGHOST:tmp:[rep][host]} %{GREEDYDATA:root:[logs][data]}")
+        .on(rawLog)) {
+       raise("parsing error : not a recognized \"timestamp (<facility>) host\" syslog header");
+    }
+  }
+
+  // The grok operator worked. Set the reporter part timestamp
+  if (tmp:[rep][ts]) {
+    try {
+      date("iso", "MMM dd HH:mm:ss").on(tmp:[rep][ts]).into(parsedLog:[rep][ts]);
+    } catch (java.lang.Exception e) {
+      date("iso", "MMM  d HH:mm:ss").on(tmp:[rep][ts]).into(parsedLog:[rep][ts]);
+    }
+  }
+
+  if (tmp:[rep][host]) {
+    if (grok("^%{IPV4}").on(tmp:[rep][host])) {
+      parsedLog:[rep][host][ip] = tmp:[rep][host];
+    } else if (grok("^%{IPV6}").on(tmp:[rep][host])) {
+      // TODO deal with IPV6
+      parsedLog:[rep][host][name] = tmp:[rep][host];
+    } else {
+      parsedLog:[rep][host][name] = tmp:[rep][host];
+    }
+  }
+  parsedLog:[obs][host][name] = parsedLog:[rep][host][name];
+  parsedLog:[obs][host][ip]   = parsedLog:[rep][host][ip];
+}

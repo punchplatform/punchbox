@@ -36,7 +36,8 @@
         "punchlet_json_resources": [],
         "punchlet": [
           "punchlets/common/input.punch",
-          "punchlets/common/parsing_syslog_header.punch"
+          "punchlets/common/parsing_syslog_header.punch",
+          "punchlets/stormshield_networksecurity/parsing.punch"
           ]
       },
         "subscribe": [

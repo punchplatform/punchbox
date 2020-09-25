@@ -12,6 +12,7 @@
   dag:
   [
     {
+      type: elastic_input
       settings:
       {
         query:
@@ -63,9 +64,6 @@
             }
           }
         }
-        elastic_settings: {
-         es.size: 1
-        }
         index: "{{ input_index }}"
         aggregation: true
         timestamp:
@@ -81,7 +79,7 @@
           stream: data
         }
       ]
-      type: elastic_input
+
     }
     {
       settings:

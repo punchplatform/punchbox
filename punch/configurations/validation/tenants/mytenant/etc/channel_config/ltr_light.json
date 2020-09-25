@@ -1,0 +1,16 @@
+{
+  "channel_structure_profile": "ltr_light",
+  "tenant": "mytenant",
+  "channel": "ltr_light",
+  "vendor": "ltr_light",
+  "input": {
+    "port": 9901
+  },
+  "output": {
+    "destination": "127.0.0.1",
+    "port": 9999
+  },
+  "kafka": {
+    "cluster_name": "local"
+  }
+}

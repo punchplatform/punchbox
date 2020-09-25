@@ -1,0 +1,134 @@
+// @test(fields=[logs][data]) sourcefiredc: SFIMS: [1:993:11] WEB-IIS iisadmin access [Classification: Web Application Attack] [Priority: 1] {TCP} 10.116.28.60:51218 -> 10.116.24.225:80"
+{
+    if (![logs][data]) {
+      throw new PunchRuntimeException("no input data : this parser expect to receive it under [logs][data]");
+    }
+
+    Tuple tmp;
+    Tuple doc = [logs][log];
+
+    ///////////////////////////////////////////
+    //  BLOCK : SYNTAX ANALYSIS
+    ///////////////////////////////////////////
+    //
+    // Examples :
+    // - [sourcefiredc-audit] SOURCEFIREMNGT01P: admin@1.111.1.11, Access Control Policy > FIRST RULE POLICY > DAPXY01P, Apply Failure
+    // - HMNOTIFY: CPU Usage (Sensor SOURCEFIREINTOUT01P): Severity: recovery: Using CPU7 62.00%
+    // - [sourcefiredc-audit] SOURCEFIREMNGT01P: Default User@Default User IP, Overview > Reporting > Report Templates > RAR Exfiltration Report, Generate Report
+    // - [sourcefiredc-audit] SOURCEFIREMNGT01P: pipou@localhost, SRU Install, INSTALL
+    // - Correlation Event: All Intrusion Events/Alertes vers Collector Manager at Fri Jan 27 10:01:18 2017 UTC: [1:34463:2] \"APP-DETECT TeamViewer remote administration tool outbound connection attempt\" [Impact: Currently Not Vulnerable] From \"THSIDSPXY01P\" at Fri Jan 27 09:57:08 2017 UTC [Classification: Potential Corporate Policy Violation] [Priority: 1] {tcp} 1.111.1.11:51969 (unknown)->1.111.1.11:8080 (unknown)
+    // - SFIMS: [Primary Detection Engine (e8a41cd0-5cc4-11e5-b22f-82f97030470a)][Seg20_S_Sieges_IN][1:31978:5] \"OS-OTHER Bash CGI environment variable injection attempt\" [Classification: Attempted Administrator Privilege Gain] User: Unknown, Application: Unknown, Client: Firefox, App Protocol: HTTP, Interface Ingress: s1p1, Interface Egress: s1p2, Security Zone Ingress: Seg20-S-Sieges-BB-IN, Security Zone Egress: Seg20-S-Sieges-BB-OUT, Context: Unknown, SSL Flow Status: N/A, SSL Actual Action: N/A, SSL Certificate: 0000000000000000000000000000000000000000, SSL Subject CN: N/A, SSL Subject Country: N/A, SSL Subject OU: N/A, SSL Subject Org: N/A, SSL Issuer CN: N/A, SSL Issuer Country: N/A, SSL Issuer OU: N/A, SSL Issuer Org: N/A, SSL Valid Start Date: N/A, SSL Valid End Date: N/A, [Priority: 1] {TCP} 10.110.130.50:50250 -> 10.100.8.50:8000
+
+    if (!grok("(sourcefiredc|%{DATA}(.cgi|.pl)): %{SF_HEADER:tmp:[headers][app_name]} %{GREEDYDATA:tmp:[payload]}").on(root:[logs][data])) {
+
+        if (grok("%{SF_DROP}").on(root:[logs][data])){
+            root.empty();
+            return;
+        }
+        throw new PunchRuntimeException("The log does not match Sourcefire header type");
+    }
+
+    boolean hasError = false;
+    String process_name ="";
+    switch (tmp:[headers][app_name]){
+
+        // Correlation Event MSG + SFIMS
+        case "Correlation Event:":
+        hasError=!grok("%{SF_CORRELATION_EVENT:tmp:[grok]}").on(tmp:[payload]);
+        break;
+
+        // Sourcefire audit
+        case "[sourcefiredc-audit]":
+        process_name = "sourcefiredc-audit";
+        hasError= !grok("%{SF_AUDIT:tmp:[grok]}").on(tmp:[payload]);
+        break;
+
+        // Hardware monitore notification
+        case "HMNOTIFY:":
+        process_name = "HMNOTIFY";
+        hasError = !grok("%{SF_HMNOTIFY:tmp:[grok]}").on(tmp:[payload]);
+        break;
+
+        // Sourcefire
+        case "SFIMS:":
+        process_name = "SFIMS";
+        hasError = !grok("%{SF_SFIMS:tmp:[grok]}").on(tmp:[payload]);
+        break;
+
+        // s1p3_s1p4 is Normal
+        default :
+        hasError = true;
+        break;
+    }
+
+    if (hasError) {
+        throw new PunchRuntimeException("New '" + tmp:[headers][app_name] + "' log detected. A parser update is needed.");
+    }
+
+
+    ///////////////////////////////////////////
+    //  BLOCK : FIELD BINDING
+    ///////////////////////////////////////////
+    //
+    // N.B. : [app][proto][name] is the field between "{}" by default, but can be overridden by App protocol field.
+    //
+
+    // mandatory
+    doc:[parser][name]     = "sourcefire";
+    doc:[parser][version]  = "1.1.0";
+    doc:[type]             = "ids";
+
+    // obs
+    doc:[obs][host][name] = tmp:[grok][obs];
+    if (tmp:[grok][ts]){
+        String cleanDate = tmp:[grok][ts].asString().replace(" UTC", "").replace("  ", " ");
+        doc:[obs][ts] = date("iso","EEE MMM d HH:mm:ss yyyy").on(cleanDate).get();
+    }
+    if (tmp:[grok][raw_process_id]) {
+        // put the pid under [obs][process][id]
+        dissect("[%{}:%{id}:%{}]").on(tmp:[grok][raw_process_id]).into((doc:[obs][process]));
+    }
+    if (!process_name.isEmpty()) doc:[obs][process][name] = process_name;
+
+    // init
+    doc:[init][group][name]                          = tmp:[grok][security_zone_ingress];
+    doc:[init][host][if]                             = tmp:[grok][interface_ingress];
+    doc:[init][host][ip]                             = tmp:[grok][src_ip];
+    doc:[init][host][name]                           = tmp:[grok][host_name];
+    doc:[init][process][name]                        = tmp:[grok][client];
+    doc:[init][usr][name]                            = tmp:[grok][usr_name];
+    if (tmp:[grok][src_port]) doc:[init][host][port] = tmp:[grok][src_port].asLong();
+
+    // target
+    doc:[target][group][name]                          = tmp:[grok][security_zone_egress];
+    doc:[target][host][if]                             = tmp:[grok][interface_egress];
+    doc:[target][host][ip]                             = tmp:[grok][dst_ip];
+    if (tmp:[grok][dst_port]) doc:[target][host][port] = tmp:[grok][dst_port].asLong();
+    if (tmp:[grok][user]
+        && !tmp:[grok][user].asString().equals("Unknown")) {
+        doc:[target][usr][name]                        = tmp:[grok][user];
+    }
+
+    // alarm
+    doc:[alarm][description]                    = tmp:[grok][alarm_desc];
+    doc:[alarm][name]                           = tmp:[grok][alarm_name];
+    if (tmp:[grok][priority]) doc:[alarm][sev]  = tmp:[grok][priority].asLong();
+
+    // app
+    if (tmp:[grok][application] && !tmp:[grok][application].asString().equals("Unknown")) {
+        doc:[app][name]         = tmp:[grok][application];
+    }
+    if (tmp:[grok][app_protocol]) {
+        doc:[app][proto][name]  = tmp:[grok][app_protocol];
+    } else {
+        doc:[app][proto][name]  = tmp:[grok][protocol];
+    }
+
+    doc:[ids][impact] = tmp:[grok][impact];
+
+    doc:[rule][name] = tmp:[grok][rule_name];
+
+    doc:[sourcefire][context]         = tmp:[grok][context];
+    doc:[sourcefire][ssl_certificate] = tmp:[grok][ssl_certificate];
+
+}

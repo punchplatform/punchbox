@@ -24,7 +24,8 @@ echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
 punchctl -t mytenant start --channel stormshield_networksecurity
 punchctl -t mytenant start --channel aggregation
 punchctl -t mytenant start --channel apache_httpd
-punchctl -t mytenant start --channel admin
+punchctl -t mytenant start --channel monitoring
+punchctl -t mytenant start --channel housekeeping
 
 echo -e "${BLUE}INFO:${RESET} Start channels from tenant mytenant"
 punchctl -t validation start

@@ -1,0 +1,14 @@
+{
+  Tuple document = [logs][log];
+  Tuple enrichment;
+  
+  if (document:[websense][disposition]) {
+    findByKey("enrichment_disposition", "id").on(document:[websense][disposition]).into(enrichment);
+    document:[websense][disposition_label] = enrichment.asArray().get(0).get("name");
+  }
+
+  if (document:[websense][category]) {
+    findByKey("enrichment_category", "number").on(document:[websense][category]).into(enrichment);
+    document:[websense][category_label] = enrichment.asArray().get(0).get("name");
+  }
+}

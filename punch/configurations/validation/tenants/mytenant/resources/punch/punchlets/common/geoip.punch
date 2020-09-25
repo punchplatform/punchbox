@@ -1,0 +1,29 @@
+{
+	root = root:[logs][log];
+
+	List<String> hostFields = new ArrayList<String>();
+	hostFields.add("init");
+	hostFields.add("obs");
+	hostFields.add("target");
+
+	for (String hf : hostFields){
+
+		if ([${hf}][host][ip]) {
+	
+			String ip = [${hf}][host][ip];
+			if(ip.contains(".")) {
+    	        ipv4Range()
+        	        .cidrField("network")
+            	    .matchFields("geo_point","cc","country_name","city")
+                	.on(ip)
+                	.into([logs][log][init][host][geoip]);
+			} else if (ip.contains(":")) {
+				ipv6Range()
+                	.cidrField("network")
+                	.matchFields("geo_point","cc","country_name","city")
+                	.on(ip)
+                	.into([logs][log][init][host][geoip]);
+			}
+		}
+	}
+}
