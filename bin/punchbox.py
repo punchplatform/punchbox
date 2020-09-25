@@ -43,21 +43,23 @@ cots = ["punch", "minio", "zookeeper", "spark", "elastic", "opendistro_security"
         "analytics-client", "shiva", "gateway", "storm", "kafka", "logstash", "metricbeat", "filebeat", "packetbeat",
         "auditbeat"]
 
-
-def unzip_punch_archive(deployer):
-    deployer_folder_name = os.path.splitext(os.path.basename(deployer))[0]
-    if not os.path.exists(build_dir + "/" + deployer_folder_name):
-        deployers = [ f.name for f in list(os.scandir(build_dir)) 
+def check_archive_existence(deployer_folder_name):
+    deployers = [ f.name for f in list(os.scandir(build_dir)) 
             if (f.is_dir() and (f.name.startswith('punch-deployer') or f.name.startswith('punchplatform-deployer') )) 
         ]
-        if len(deployers) == 1:
-            deployer_folder_name = deployer[0]
-        elif len(deployers) > 1:
-            logging.error('cannot guess deployer path from directories in \"{}\" because multiple possibilities exist :{}'.format(build_dir, deployers))
+    if len(deployers) == 1:
+        deployer_folder_name = deployers[0]
+    elif len(deployers) > 1:
+        logging.error('cannot guess deployer path from directories in \"{}\" because multiple possibilities exist :{}'.format(build_dir, deployers))        
+    return deployer_folder_name
+
+def unzip_punch_archive(deployer):
+    deployer_folder_name = check_archive_existence(os.path.splitext(os.path.basename(deployer))[0])
     if not os.path.exists(build_dir + "/" + deployer_folder_name + "/.unzipped"):
         cmd = 'unzip -o -d {1} {0}'.format(deployer, build_dir) 
         rc = os.system(cmd)
         if rc==0:
+            deployer_folder_name = check_archive_existence(deployer_folder_name)
             with open(build_dir + "/" + deployer_folder_name + "/.unzipped", "w") as activate:
                 activate.write(str(datetime.now()))
             logging.info('punchplatform deployer archive successfully unzipped')
@@ -130,9 +132,9 @@ def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = No
                    security: bool = False):
     data = {}
     model = {}
+    deployer_folder_name = check_archive_existence(os.path.splitext(os.path.basename(deployer))[0])
     for component in cots:
-        version_of = build_dir + "/" + os.path.splitext(os.path.basename(deployer))[
-            0] + "/bin/punchplatform-versionof.sh"
+        version_of = build_dir + "/" + deployer_folder_name + "/bin/punchplatform-versionof.sh"
         cmd = "{0} --legacy {1}".format(version_of, component)
         result = subprocess.check_output(cmd, shell=True)
         data[component] = result.decode("utf-8").rstrip()
