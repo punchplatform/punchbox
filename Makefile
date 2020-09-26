@@ -292,7 +292,7 @@ validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4, which will s
 
 ##@ Cleanup
 
-.PHONY: clean
+.PHONY: clean clean-deployer clean-punch-config clean-vagrant clean-validation-scheduler
 
 clean: clean-vagrant clean-deployer ## Cleanup vagrant and deployer
 	@$(call blue, "************  CLEAN  ************")
@@ -310,8 +310,6 @@ clean: clean-vagrant clean-deployer ## Cleanup vagrant and deployer
 	@-find ${DIR} -name '*~' -exec rm -f {} +
 	@-find ${DIR} -name '__pycache__' -exec rm -fr {} +
 	@$(call red, "WIPED: build vagrantfile activate.sh punchbox.pex ansible.pex and pyc/pyo files")
-
-.PHONY: clean-deployer clean-punch-config clean-vagrant clean-validation-scheduler
 
 clean-deployer:  ## Remove the installed deployer
 	@$(call red, "CLEANING OLD DEPLOYER ARCHIVES", "${DIR}/punch/build/punch-deployer-*")
@@ -335,5 +333,7 @@ clean-validation-scheduler:  ## Remove installed validation scheduler for curren
 
 ##@ Helpers
 
-help:  ## Display this help
+.PHONY: help
+
+help:  ## Display help menu
 	@awk 'BEGIN {FS = ":.*##"; printf "\033[36m\033[0m\n"} /^[0-9a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
