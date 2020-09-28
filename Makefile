@@ -220,15 +220,16 @@ update-deployer-configuration: ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Use this rul
 
 .PHONY: validation-scheduler-ubuntu-32G validation-scheduler-centos-32G
 
-validation-scheduler-ubuntu-32G:  ## Takes as parameter ex: hour=4, which will set a timer at every 4 a.m
+validation-scheduler-ubuntu-32G:  ## Takes as parameter ex: hour=4 and punch_dir=/my/pp-punch, which will set a timer at 4 a.m everyday
 	@[ "${hour}" ] || ( $(call red, "hour not set", "example hour=4"); exit 1 )
+	@[ "${punch_dir}" ] || ( $(call red, "punch_dir not set", "example punch_dir=/home/punch/pp-punch"); exit 1 )
 	@$(call green, "Generating systemd Scheduling script", "${PUNCHBOX_SCRIPT_DIR}")
 	@mkdir -p ${PUNCHBOX_SCRIPT_DIR}
 	@echo "[Unit]" > ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Description=run a local integration platform once each day at $(hour) oclock for Ubuntu 32G OS" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Service]" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo Environment="LIVEDEMO_API_URL=${LIVEDEMO_API_URL} PUNCH_DIR=${PUNCH_DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo Environment="LIVEDEMO_API_URL=${LIVEDEMO_API_URL} PUNCH_DIR=$(punch_dir)" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} clean; ${MAKE} install; ${MAKE} punchbox-ubuntu-32G-validation; ${MAKE} start-vagrant; ${MAKE} deploy-punch; ${MAKE} local-integration-vagrant'" >> ${VALIDATION_SERVICE_SCRIPT}
@@ -255,15 +256,16 @@ validation-scheduler-ubuntu-32G:  ## Takes as parameter ex: hour=4, which will s
 	@$(call blue, "Next event will be on", "")
 	@systemctl --user list-timers
 
-validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4, which will set a timer at every 4 a.m
+validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4 and punch_dir=/my/pp-punch,, which will set a timer 4 a.m everyday
 	@[ "${hour}" ] || ( $(call red, "hour not set", "example hour=4"); exit 1 )
+	@[ "${punch_dir}" ] || ( $(call red, "punch_dir not set", "example punch_dir=/home/punch/pp-punch"); exit 1 )
 	@$(call green, "Generating systemd Scheduling script", "${PUNCHBOX_SCRIPT_DIR}")
 	@mkdir -p ${PUNCHBOX_SCRIPT_DIR}
 	@echo "[Unit]" > ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Description=run a local integration platform once each day at $(hour) oclock for CentOS 32G OS" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Service]" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo Environment="LIVEDEMO_API_URL=${LIVEDEMO_API_URL} PUNCH_DIR=${PUNCH_DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo Environment="LIVEDEMO_API_URL=${LIVEDEMO_API_URL} PUNCH_DIR=$(punch_dir)" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} clean; ${MAKE} install; ${MAKE} punchbox-centos-32G-validation; ${MAKE} start-vagrant; ${MAKE} deploy-punch; ${MAKE} local-integration-vagrant'" >> ${VALIDATION_SERVICE_SCRIPT}
