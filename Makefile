@@ -256,7 +256,7 @@ validation-scheduler-ubuntu-32G:  ## Takes as parameter ex: hour=4 and punch_dir
 	@$(call blue, "Next event will be on", "")
 	@systemctl --user list-timers
 
-validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4 and punch_dir=/my/pp-punch,, which will set a timer 4 a.m everyday
+validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4 and punch_dir=/my/pp-punch, which will set a timer 4 a.m everyday
 	@[ "${hour}" ] || ( $(call red, "hour not set", "example hour=4"); exit 1 )
 	@[ "${punch_dir}" ] || ( $(call red, "punch_dir not set", "example punch_dir=/home/punch/pp-punch"); exit 1 )
 	@$(call green, "Generating systemd Scheduling script", "${PUNCHBOX_SCRIPT_DIR}")
