@@ -232,7 +232,7 @@ validation-scheduler-ubuntu-32G:  ## Takes as parameter ex: hour=4 and punch_dir
 	@echo Environment="LIVEDEMO_API_URL=${LIVEDEMO_API_URL} PUNCH_DIR=$(punch_dir)" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} clean; ${MAKE} install; ${MAKE} punchbox-ubuntu-32G-validation; ${MAKE} start-vagrant; ${MAKE} deploy-punch; ${MAKE} local-integration-vagrant'" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} clean; ${MAKE} install; ${MAKE} configure-deployer; ${MAKE} punchbox-ubuntu-32G-validation; ${MAKE} start-vagrant; ${MAKE} deploy-punch; ${MAKE} local-integration-vagrant'" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Install]" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WantedBy=multi-user.target" >> ${VALIDATION_SERVICE_SCRIPT}
@@ -268,7 +268,7 @@ validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4 and punch_dir
 	@echo Environment="LIVEDEMO_API_URL=${LIVEDEMO_API_URL} PUNCH_DIR=$(punch_dir)" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "Type=oneshot" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WorkingDirectory=${DIR}" >> ${VALIDATION_SERVICE_SCRIPT}
-	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} clean; ${MAKE} install; ${MAKE} punchbox-centos-32G-validation; ${MAKE} start-vagrant; ${MAKE} deploy-punch; ${MAKE} local-integration-vagrant'" >> ${VALIDATION_SERVICE_SCRIPT}
+	@echo ExecStart="${BASH} -c 'PATH=${PATH}; ${MAKE} clean; ${MAKE} install; ${MAKE} configure-deployer; ${MAKE} punchbox-centos-32G-validation; ${MAKE} start-vagrant; ${MAKE} deploy-punch; ${MAKE} local-integration-vagrant'" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "[Install]" >> ${VALIDATION_SERVICE_SCRIPT}
 	@echo "WantedBy=multi-user.target" >> ${VALIDATION_SERVICE_SCRIPT}
@@ -316,6 +316,7 @@ clean: clean-vagrant clean-deployer ## Cleanup vagrant and deployer
 clean-deployer:  ## Remove the installed deployer
 	@$(call red, "CLEANING OLD DEPLOYER ARCHIVES", "${DIR}/punch/build/punch-deployer-*")
 	@rm -rf ${DIR}/punch/build/punch-deployer-*
+	@$(call red, "Will not be removed: do it manually", "${DIR}/.deployer and ${DIR}/.deployed_configuration")
 
 clean-punch-config:  ## Remove Punchplatform Configurations 
 	@$(call red, "CLEANING PUNCH CONFIGURATIONS", "${DIR}/punch/build/pp-conf/*")
