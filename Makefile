@@ -38,6 +38,16 @@ else
 	CLEANUP_COMMAND="echo '------>  Vagrantfile does not exist yet... Nothing to wipe <------'"
 endif
 
+ifeq ("$(wildcard ${DIR}/.deployer)","")
+	ifeq ($(strip $(PUNCH_DIR)),)
+		GENERATE_DEPLOYER_COMMAND="echo ${DEFAULT_DEPLOYER_ZIP_PATH} > ${DIR}/.deployer"
+	else
+		GENERATE_DEPLOYER_COMMAND="echo ${PUNCH_DIR}/packagings/punch-deployer/target/punch-deployer-*.zip > ${DIR}/.deployer"
+	endif
+else
+	GENERATE_DEPLOYER_COMMAND="echo '------>  .deployer already exists... nothing to do <------'"
+endif
+
 ifeq (, $(shell which python3))
  $(error "No python3 installed, it is required. Make sure you also install python3 venv")
 endif
@@ -100,7 +110,7 @@ install: ${ALLTOOLS_INSTALLED_MARKERFILE} ## Build Punchbox Prerequisites
 
 configure-deployer:  ## Setup deployer path in .deployer, change it to yours
 	@$(call green, "Deployer zip path in .deployer change it\'s content to match yours:", "${DIR}/.deployer")
-	@echo ${DEFAULT_DEPLOYER_ZIP_PATH} > ${DIR}/.deployer
+	@eval ${GENERATE_DEPLOYER_COMMAND}
 
 deployed-configuration-32G: ${ALLTOOLS_INSTALLED_MARKERFILE}
 	@echo ${DIR}/configurations/complete_punch_32G.json > ${DIR}/.deployed_configuration
@@ -256,7 +266,7 @@ validation-scheduler-ubuntu-32G:  ## Takes as parameter ex: hour=4 and punch_dir
 	@$(call blue, "Next event will be on", "")
 	@systemctl --user list-timers
 
-validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4 and punch_dir=/my/pp-punch, which will set a timer 4 a.m everyday
+validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4 and punch_dir=/my/pp-punch, which will set a timer at 4 a.m everyday
 	@[ "${hour}" ] || ( $(call red, "hour not set", "example hour=4"); exit 1 )
 	@[ "${punch_dir}" ] || ( $(call red, "punch_dir not set", "example punch_dir=/home/punch/pp-punch"); exit 1 )
 	@$(call green, "Generating systemd Scheduling script", "${PUNCHBOX_SCRIPT_DIR}")
