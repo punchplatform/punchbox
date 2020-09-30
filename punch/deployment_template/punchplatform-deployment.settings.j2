@@ -188,7 +188,11 @@
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
             {% if security is defined %}
             ,
-            "ssl_enabled": false
+            "ssl_enabled": false,
+            "credentials": {
+                "user": "admin",
+                "password": "admin"
+            }
             {% endif %}
           }
         },
