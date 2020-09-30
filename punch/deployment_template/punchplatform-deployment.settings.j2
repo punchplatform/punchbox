@@ -174,9 +174,12 @@
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
             {% if security is defined %}
             ,
-            "ssl_enabled": false
+            "ssl_enabled": false,
+            "metrics_credentials": {
+                "user": "admin",
+                "password": "admin"
+            }
             {% endif %}
-
           },
           "metric_cluster": {
             "cluster_id": "es_search",
