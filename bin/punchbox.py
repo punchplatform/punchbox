@@ -196,6 +196,7 @@ def import_user_resources(punch_user_config, platform_config_file, validation):
         tenant_validation_dir= os.path.join(punch_user_config,'tenants/validation/channels/elastalert_validation/rules/success')
         livedemo_api_url=os.getenv('LIVEDEMO_API_URL', default="http://test")
         ppunch_dir = os.getenv('PUNCH_DIR', default=top_dir)
+        validation_now = datetime.now()
         loader = jinja2.FileSystemLoader(punch_user_config + '/tenants')
         env = jinja2.Environment(loader=loader)
         ltemplates = env.list_templates()
@@ -209,16 +210,16 @@ def import_user_resources(punch_user_config, platform_config_file, validation):
                         spark_master= platform_config["punch"]["spark"]["masters"][0],
                         elasticsearch_host= platform_config["punch"]["elasticsearch"]["servers"][0],
                         shiva_host=platform_config["punch"]["shiva"]["servers"][0],
-                        validation_id= int(datetime.now().timestamp()),
-                        validation_time= datetime.now().isoformat(timespec="seconds"),
+                        validation_id= int(validation_now.timestamp()),
+                        validation_time= validation_now.isoformat(timespec="seconds"),
                         nb_to_validate= len([f for f in os.listdir(tenant_validation_dir)]),
                         livedemo_api_url= livedemo_api_url,
                         user= os.getenv('USER', default='anonymous'),
                         sysname= os.uname().sysname,
                         release= os.uname().release,
                         hostname= os.uname().nodename,
-                        vagrant_config= os.path.basename(platform_config_file),
-                        vagrant_os= platform_config["targets"]["meta"]["os"],
+                        target_config= os.path.basename(platform_config_file),
+                        target_os= platform_config["targets"]["meta"]["os"],
                         gateway_host= platform_config["punch"]["gateway"]["servers"][0],
                         branch= subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ppunch_dir).strip().decode(),
                         commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode(),
