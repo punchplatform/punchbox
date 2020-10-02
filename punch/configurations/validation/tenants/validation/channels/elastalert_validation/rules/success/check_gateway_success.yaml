@@ -9,7 +9,7 @@ filter:
     query_string:
       query: "newman.assertions.failed: 0 AND newman.assertions.skipped: 0"
 
-num_events: 24
+num_events: 27
 timeframe:
   minutes: 15
 doc_type: _doc

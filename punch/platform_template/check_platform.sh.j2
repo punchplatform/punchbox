@@ -58,7 +58,9 @@ sudo npm install -g newman newman-reporter-json-udp >> /dev/null 2>&1
 
 UDP_IP=$(ping {{ punch.shiva.servers[0] }} -c 1 -q 2>&1 | grep -Po "(\d{1,3}\.){3}\d{1,3}")
 newman run $PUNCHPLATFORM_CONF_DIR/tenants/validation/channels/gateway_validation/postman/collection.json \
--e $PUNCHPLATFORM_CONF_DIR/tenants/validation/channels/gateway_validation/postman/env.json -r json-udp --reporter-json-udp-ip $UDP_IP --reporter-json-udp-port 9999 >> /dev/null 2>&1
+-e $PUNCHPLATFORM_CONF_DIR/tenants/validation/channels/gateway_validation/postman/env.json \
+--working-dir $PUNCHPLATFORM_CONF_DIR/tenants/validation/channels/gateway_validation/postman \
+-r json-udp --reporter-json-udp-ip $UDP_IP --reporter-json-udp-port 9999 >> /dev/null 2>&1
 
 echo -e "${BLUE}INFO:${RESET} Wait for 15 min, logs are being inserted in platform"
 sleep 900
