@@ -8,6 +8,17 @@
       "dynamic_templates": [
       ],
       "properties": {
+        "job": {
+          "properties": {
+            "runtime": {
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
         "client": {
           "properties": {
             "ip": {

@@ -3,9 +3,9 @@
 	 * written in a Kafka topic using the "JSON" format so only
 	 * one field is generated. Here, we re-do the "Y" to send
 	 * events to the right Elasticsearch index
-	 * We need separate indices, because retention rules are not the same for different platform events types, 
+	 * We need separate indices, because retention rules are not the same for different platform events types,
 	 * and to ease querying.
-	 * (e.g. 1 year for punchctl operator commands audit events, 
+	 * (e.g. 1 year for punchctl operator commands audit events,
 	 * 3 days for system metrics, a few days more for platform health...)
 
 	 * This is a reference configuration item for DAVE 6.0 release - checked 21/07/2020 by CVF
@@ -23,9 +23,9 @@
 		if (world:[meta][platform_id]) {
 			platform = world:[meta][platform_id] ;
 		}
-		
+
 		if ( world:[meta][tenant] ) {
-			tenant = world:[meta][tenant]; 
+			tenant = world:[meta][tenant];
 		}
 		String release_index_prefix = "";
 		if (world:[meta][index_prefix]) {
@@ -57,21 +57,21 @@
 		}
 
 
-		
+
 		if ( [doc][type] ) {
 			docType = [doc][type];
-	    } else if ( [doc][@metadata][beat] ) { 
-			docType =  [doc][@metadata][beat]; 
+	    } else if ( [doc][@metadata][beat] ) {
+			docType =  [doc][@metadata][beat];
 		}
-		else if ( [doc][service][type] ) { 
-			docType =  [doc][service][type]; 
-		} else if ( [doc][target][type] ) { 
-			docType =  [doc][target][type]; 
-		}  
+		else if ( [doc][service][type] ) {
+			docType =  [doc][service][type];
+		} else if ( [doc][target][type] ) {
+			docType =  [doc][target][type];
+		}
 
 		// The timestamp of the eventis normally available in the incoming json standard field following beats convention:
 		String dateString = null;
-		if ([doc][@timestamp]) { 
+		if ([doc][@timestamp]) {
 			dateString = [doc][@timestamp];
 		}
 
@@ -89,6 +89,10 @@
 			case "storm":
 				indexPrefix = tenant + "-metrics-";
 				break;
+			case "gateway-execution":
+			case "gateway":
+			    indexPrefix = tenant + "-gateway-logs-";
+			    break;
 			case "spark":
 				indexPrefix = tenant + "-metrics-";
 				break;
@@ -116,14 +120,14 @@
 		if (dateString != null) {
 			if (indexType == "daily") {
 					// here, the input date is : 2019-10-10T17:07:39.951Z
-				 elasticsearch_date = date("yyyy.MM.dd", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").on(dateString).get();  
+				 elasticsearch_date = date("yyyy.MM.dd", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").on(dateString).get();
 			} else {
-				// Monthly case 
+				// Monthly case
 					// here, the input date is : 2019-10-10T17:07:39.951Z
-				 elasticsearch_date = date("yyyy.MM", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").on(dateString).get();  
+				 elasticsearch_date = date("yyyy.MM", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").on(dateString).get();
 			}
 		}
 		[index] = indexPrefix +  release_index_prefix + elasticsearch_date;
 
-	} 
+	}
 

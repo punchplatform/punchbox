@@ -1,4 +1,4 @@
-{   
+{
     "platform": {
     "platform_id": "punchplatform-primary",
     "setups_root": "{{ installation_directory }}",
@@ -6,10 +6,10 @@
     "remote_logs_root_directory": "/var/log/punchplatform",
     "punchplatform_daemons_user": "{{ operator.username }}",
     "punchplatform_group": "{{ operator.username }}",
-    "binaries_version": "{{ version.binaries }}", 
+    "binaries_version": "{{ version.binaries }}",
     "reporters" : ["myreporter"]
     },
-    
+
     "reporters": {
       "myreporter" : {
         "type": "kafka",
@@ -20,7 +20,7 @@
       }
    },
 
- 
+
     {% if shiva is defined %}
     "shiva": {
     "shiva_version": "{{ version.shiva }}",
@@ -32,7 +32,7 @@
           {% if shiva.mode == "kafka" %}
           ,
           "kafka_cluster": "local"
-          {% endif %} 
+          {% endif %}
         },
         "servers": {
         {% for server in shiva.servers %}
@@ -43,7 +43,7 @@
           }
       {% if not loop.last %}
       ,
-      {% endif %} 
+      {% endif %}
       {% endfor %}
         }
       }
@@ -96,7 +96,7 @@
           }
           {% if not loop.last %}
           ,
-          {% endif %} 
+          {% endif %}
         {% endfor %}
         },
         "spark_workers_by_punchplatform_spark": 1,
@@ -123,8 +123,8 @@
       }
     }
     },
-  
-   {% endif %}  
+
+   {% endif %}
 
    {% if gateway is defined %}
    {% set server_ip = [] %}
@@ -184,7 +184,7 @@
           "metric_cluster": {
             "cluster_id": "es_search",
             "hosts": {{ server_ip | tojson }},
-            "index_name": "gateway-logs",
+            "index_name": "mytenant-gateway-logs",
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
             {% if security is defined %}
             ,
@@ -232,7 +232,7 @@
               {"id" : {{ loop.index }}, "broker" : "{{broker}}" }
               {% if not loop.last %}
               ,
-              {% endif %} 
+              {% endif %}
               {%- endfor %}
         ],
         "zk_cluster" : "local",
@@ -263,7 +263,7 @@
           }
           {% if not loop.last %}
           ,
-          {% endif %} 
+          {% endif %}
           {% endfor %}
         },
         "http_api_port" : 9200,
@@ -397,7 +397,7 @@
       }
       {% if not loop.last %}
       ,
-      {% endif %} 
+      {% endif %}
     {% endfor %}
     },
     "plugins":{
@@ -431,7 +431,7 @@
     }
   },
     {% endif %}
-    
+
     "metricbeat" : {
     "metricbeat_version" : "{{ version.metricbeat }}",
     "modules" : {

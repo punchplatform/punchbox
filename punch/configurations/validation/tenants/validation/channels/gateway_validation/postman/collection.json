@@ -498,7 +498,7 @@
 									"var resp = JSON.parse(responseBody);",
 									"pm.environment.set(\"execution_id\", resp.id);",
 									"",
-									"setTimeout(function(){}, [5000]);"
+									"setTimeout(function(){}, [10000]);"
 								],
 								"type": "text/javascript"
 							}
