@@ -76,6 +76,7 @@ ${DIR}/vagrant/.dependencies_installed:
 	@$(call green, "************ ADDING VAGRANT DEPENDENCIES ************")
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-disksize
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-vbguest
+	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-reload
 	@touch $@
 
 

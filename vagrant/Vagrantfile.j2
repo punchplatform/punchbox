@@ -7,6 +7,8 @@ unless Vagrant.has_plugin?("vagrant-vbguest")
 end
 
 Vagrant.configure("2") do |config|
+  config.vbguest.auto_reboot = true
+  config.vbguest.auto_update = false
 
   # Auto install required Vagrant plugins
   config.vagrant.plugins = ["vagrant-disksize"]
