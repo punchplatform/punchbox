@@ -2,9 +2,6 @@
   "version": "6.0",
   "runtime": "storm",
   "type": "punchline",
-  "meta": {
-    "vendor": "sourcefire"
-  },
   "dag": [
     {
       "type": "syslog_input",

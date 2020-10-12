@@ -87,7 +87,7 @@
 		spark.additional.pex: mlflow_udf.pex
 		spark.pre_punchline_execution: nodes.mlflow_udf.udf_loading.mlflow_model_loading_pre_execution.MlflowModelLoadingPreExecution
 		spark.punch.mlflow.model.type: clustering 
-		spark.punch.mlflow.model.uri: /home/pierre/pp/pp-punch/packagings/punch-standalone/target/punch-standalone-6.1.1-SNAPSHOT-linux/conf/tenants/mytenant/channels/mlflow_rest/KMeans
+		spark.punch.mlflow.model.uri: /home/pierre/pp/pp-punch/packagings/punch-standalone/target/punch-standalone-6.2.0-SNAPSHOT-linux/conf/tenants/mytenant/channels/mlflow_rest/KMeans
 		spark.executorEnv.ARROW_PRE_0_15_IPC_FORMAT: 1
 
 	}

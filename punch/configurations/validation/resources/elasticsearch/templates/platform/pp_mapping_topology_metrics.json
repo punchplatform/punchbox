@@ -22,6 +22,9 @@
         "spark.application.id": {
           "type": "keyword"
         },
+        "metrics_producer_id" : {
+          "type" : "keyword"
+        },
         "storm": {
             "type": "object",
             "properties": {

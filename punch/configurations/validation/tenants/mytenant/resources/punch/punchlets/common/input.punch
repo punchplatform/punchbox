@@ -1,56 +1,56 @@
 {
-  // However this require the punchlet ot be deployed upfront in your channel,
-  // before the very first Kafka. And that in turn can require a punchlet only for that,
-  // which is costly (refer to the best practice section in the documentation).
-  // Instead you can require the first entry syslog spout to add a unique id. That id
-  // is vehiculated using a dedicated Storm field. You can see it traversing your punchlet. Do this:
-  // 
-  // print(root);
-  // 
-  // or activate a log4j logger. In this example we rely on that efficient scheme to transport
-  // the uniqie id, if you check the topology configuration file you will find it published by all spouts
-  // and bolts (local_uuid)
+  /* This standard punchlet is in charge of storing in normalized elasticsearch document fields
+     the input raw data, and metadata added by the Punchplatform first input node (often a syslog spout)
+
+      This is a reference configuration item developed for DAVE 6.1.1 release - 10/10/2020 by CVF
   
-  // To avoid redundant copy, and allow fast forwarding of raw log (Correlator, archiving/extraction...), raw log is moved
-  // To a separate Storm Field
-  [logs][log][raw_log] = [logs][log];
-
-  [logs][log][size] = [logs][log][raw_log].length();
+  
+     The SyslogSpout sends that information using dedicated Storm
+     fields. Make sure you subscribe to these fields in your topology 
+     configuration.
    
-  //
-  // The SyslogSpout sends that information using dedicated Storm
-  // fields. Make sure you subscribe to these fields in your topology 
-  // configuration.
-  //
+      *  _ppf_id (unique identifier for the log) will be used as Elasticsearch document id ==> not stored in the document itself
+               this unique id is key to deduplication of replayed logs (in any case of incident/unstable communication situation).
+      *  _ppf_timestamp (timestamp of entry in punchplatform) ==> lmc.input.ts field in the final indexed document.
+      *  _ppf_local_host (local binding ip of the networy entry point in punchplatform) ==> col.host.ip field in the final indexed document.
+      *  _ppf_local_port (local listening port of the networy entry point in punchplatform) ==> col.host.port field in the final indexed document.
+      *  _ppf_remote_host (source ip of the sender/forwarder device that sent the network frame to punchplatform) ==> rep.host.ip field in the final indexed document.
+  */
 
+
+  // To protect the raw log from alteration, and to allow archiving of this raw log without 
+  // the associated parsed or enrichment, the raw log is moved to a
+  // separate storm field ('raw_log'), that may be appended later to the main json document (before Elasticsearch indexing for example).
+  [logs][raw_log] = [logs][log];
+
+  // If an input timestamp is available from the input point, it is in milliseconds since Epoch.
+  // Let's convert it in a more human-readable format (the backend normally supports insertion
+  // of both formats
   if ([logs][_ppf_timestamp]) {
     [logs][log][lmc][input][ts] = date("iso").on([logs][_ppf_timestamp].toString()).get();
   } 
 
-  [logs][log][col][host][name] = getHostName();
+  // computation of the raw log size for statistics purpose in the logs backend
+  [logs][log][size] = [logs][raw_log].length();
+   
+
+  // Until we know better (with further parsing), the logs collector is the punchplatform entry point
+  // and the log reporter is the log sender ip. And the type of log is yet unknown.
   [logs][log][col][host][ip]   = [logs][_ppf_local_host];
   [logs][log][col][host][port] = [logs][_ppf_local_port];
   [logs][log][rep][host][ip]   = [logs][_ppf_remote_host];
   [logs][log][type] = "unknown";
+  [logs][log][tenant] = world:[tenant];
+  [logs][log][channel] = world:[channel];
+  [logs][log][vendor] = world:[meta][vendor];
 
-  //
-  // In you topology file, you can define arbitrary fields under "meta". 
-  // Here we use this to set the tenant and vendor.
-  //
-  if (world:[meta][tenant]) {
-    [logs][log][tenant] = world:[meta][tenant];
+  // A channel name MAY or MAYNOT be the same as the log 'technology' (apache_httpd, juniper_secure_gateway....).
+  // depending on channels mutualization. A custom value can be provided using 'meta.technology' in the punchline)
+  
+  if ( world:[meta][technology] ) {
+    [logs][log][technology] = world:[meta][technology];
   } else {
-    [logs][log][tenant] = "unknown";
-  }
-  if (world:[meta][vendor]) {
-    [logs][log][vendor] = world:[meta][vendor];
-  } else {
-    [logs][log][vendor] = "unknown";
-  }
-  if (world:[meta][channel]) {
-    [logs][log][channel] = world:[meta][channel];
-  } else {
-    [logs][log][channel] = "unknown";
+    [logs][log][technology] = world:[channel];
   }
 
 }

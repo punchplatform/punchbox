@@ -14,35 +14,32 @@
         "topic": "mytenant_apache_httpd_archiving",
         "start_offset_strategy": "last_committed"
       },
-        "executors": 1,
-        "fail_action": "exit",
-        "publish": [
-          {
-            "stream": "logs",
-            "fields": [
-              "log",
-              "_ppf_id",
-              "_ppf_timestamp",
-              "_ppf_partition_id",
-              "_ppf_partition_offset"
-            ]
-          }
-        ]
+      "executors": 1,
+      "fail_action": "exit",
+      "publish": [
+        {
+          "stream": "logs",
+          "fields": [
+            "log",
+            "_ppf_id",
+            "_ppf_timestamp",
+            "_ppf_partition_id",
+            "_ppf_partition_offset"
+          ]
+        }
+      ]
     },
     {
       "type": "file_output",
       "settings": {
         "strategy": "at_least_once",
         "destination": "file:///tmp/archive-logs/storage",
-        "access_key": "minioadmin",
-        "secret_key": "minioadmin",
+        "topic": "httpd",
         "timestamp_field": "_ppf_timestamp",
         "file_prefix_pattern": "%{topic}/%{date}/puncharchive-%{tags}-%{offset}",
-        "encoding": "csv",
-        "compression_format" : "GZIP",
-        "streaming" : true,
-        "create_root" : true,
-        "batch_size": 10000,
+        "compression_format": "GZIP",
+        "create_root": true,
+        "batch_size": 1000,
         "batch_expiration_timeout": "10s",
         "fields": [
           "_ppf_id",
@@ -50,21 +47,21 @@
           "log"
         ]
       },
-        "executors": 1,
-        "subscribe": [
-          {
-            "component": "kafka_input",
-            "stream": "logs"
-          }
-        ],
-        "publish": [
-          {
-            "stream": "metadatas",
-            "fields": [
-              "metadata"
-            ]
-          }
-        ]
+      "executors": 1,
+      "subscribe": [
+        {
+          "component": "kafka_input",
+          "stream": "logs"
+        }
+      ],
+      "publish": [
+        {
+          "stream": "metadatas",
+          "fields": [
+            "metadata"
+          ]
+        }
+      ]
     },
     {
       "type": "elasticsearch_output",
@@ -76,15 +73,17 @@
         "document_json_field": "metadata",
         "batch_size": 1,
         "reindex_failed_documents": true,
-	       "error_index": { "type": "daily", "prefix": "mytenant-archive-errors"}
-
+        "error_index": {
+          "type": "daily",
+          "prefix": "mytenant-archive-errors"
+        }
       },
-        "subscribe": [
-          {
-            "component": "file_output",
-            "stream": "metadatas"
-          }
-        ]
+      "subscribe": [
+        {
+          "component": "file_output",
+          "stream": "metadatas"
+        }
+      ]
     }
   ],
   "metrics": {

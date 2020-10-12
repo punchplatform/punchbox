@@ -78,6 +78,9 @@
             "uncompressed_size": {
               "type": "integer"
             },
+            "encoding": {
+              "type": "keyword"
+            },
             "compression": {
               "properties": {
                 "format": {

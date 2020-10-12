@@ -3,10 +3,9 @@
   "runtime": "storm",
   "type": "punchline",
   "meta": {
-    "tenant": "mytenant",
-    "channel": "apache_httpd",
-    "vendor": "apache_httpd"
+    "vendor": "apache"
   },
+
   "dag": [
     {
       "type": "syslog_input",
