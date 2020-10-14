@@ -56,6 +56,11 @@
 		}
         }
     },
+    "minio" : {
+	"servers" : [
+		"server2"
+	]
+    },
     "zookeeper": {
       "servers": [
         "server2"
