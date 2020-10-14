@@ -38,7 +38,7 @@ platform_shell_target = build_conf_dir + "/check_platform.sh"
 vagrantfile_target = vagrant_dir + '/Vagrantfile'
 generated_model = build_dir + '/model.json'
     
-cots = ["punch", "minio", "zookeeper", "spark", "elastic", "opendistro_security", "operator", "binaries",
+cots = ["punch", "minio", "mlflow", "zookeeper", "spark", "elastic", "opendistro_security", "operator", "binaries",
         "analytics-deployment",
         "analytics-client", "shiva", "gateway", "storm", "kafka", "logstash", "metricbeat", "filebeat", "packetbeat",
         "auditbeat"]
