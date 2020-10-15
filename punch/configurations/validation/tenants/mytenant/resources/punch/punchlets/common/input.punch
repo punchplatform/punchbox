@@ -22,6 +22,7 @@
   // the associated parsed or enrichment, the raw log is moved to a
   // separate storm field ('raw_log'), that may be appended later to the main json document (before Elasticsearch indexing for example).
   [logs][raw_log] = [logs][log];
+  [logs][log][raw_log] = [logs][raw_log];
 
   // If an input timestamp is available from the input point, it is in milliseconds since Epoch.
   // Let's convert it in a more human-readable format (the backend normally supports insertion

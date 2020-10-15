@@ -30,13 +30,25 @@
           {
             "type": "close_indices",
             "indices_prefix": "platform-monitoring-",
-            "older_than_days": 7,
+            "older_than_days": 3,
             "indices_naming_time_format": "%Y.%m.%d"
           },
           {
             "type": "delete_indices",
             "indices_prefix": "platform-monitoring-",
-            "older_than_days": 12,
+            "older_than_days": 7,
+            "indices_naming_time_format": "%Y.%m.%d"
+          },
+            {
+            "type": "close_indices",
+            "indices_prefix": "platform-metricbeat-",
+            "older_than_days": 2,
+            "indices_naming_time_format": "%Y.%m.%d"
+          },
+          {
+            "type": "delete_indices",
+            "indices_prefix": "platform-metricbeat-",
+            "older_than_days": 5,
             "indices_naming_time_format": "%Y.%m.%d"
           }
         ]
