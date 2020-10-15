@@ -52,7 +52,6 @@
 		if ( [doc][platform][tenant] ) {
 			tenant = [doc][platform][tenant];
 		} else {
-
 			[doc][platform][tenant] = tenant;
 		}
 
