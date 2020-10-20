@@ -236,12 +236,14 @@ deploy-config:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploys PunchPlatform confi
 
 local-integration-vagrant:  ## Use this rule instead of deploy-config if you are planning to do validation
 	@$(call green, "Copying Needed files to server1 for local integration test", "/home/vagrant/pp-conf")
-	@. ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
 	@$(call green, "Check if vagrant boxes are up", "")
 	@cd ${DIR}/vagrant && ${VAGRANT} up
 	@$(call green, "Executing on server1", "/home/vagrant/pp-conf/check_platform.sh")
-	@cd ${DIR}/vagrant && ${VAGRANT} ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh; exit"
-
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		cd ${DIR}/vagrant && \
+		${VAGRANT} ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh; exit"
+ 
 update-deployer-configuration: ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Use this rule to update validation platform configuration files
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
 								--punch-user-config ${DIR}/punch/configurations/validation
