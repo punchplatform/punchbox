@@ -232,7 +232,8 @@ deploy-punch:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy PunchPlatform to targ
 .PHONY: deploy-config local-integration-vagrant update-deployer-configuration
 
 deploy-config:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploys PunchPlatform configuration files to targets
-	@. ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh -cp -u vagrant
 
 local-integration-vagrant:  ## Use this rule instead of deploy-config if you are planning to do validation
 	@$(call green, "Copying Needed files to server1 for local integration test", "/home/vagrant/pp-conf")
