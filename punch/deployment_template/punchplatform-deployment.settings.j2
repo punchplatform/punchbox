@@ -6,8 +6,7 @@
     "remote_logs_root_directory": "/var/log/punchplatform",
     "punchplatform_daemons_user": "{{ operator.username }}",
     "punchplatform_group": "{{ operator.username }}",
-    "binaries_version": "{{ version.binaries }}",
-    "reporters" : ["myreporter"]
+    "binaries_version": "{{ version.binaries }}"
     },
 
     "reporters": {
@@ -54,6 +53,7 @@
     "punchplatform_operator" : {
       "punchplatform_operator_environment_version": "{{ version.operator }}",
       "configuration_name_dir_from_home" : "pp-conf",
+      "reporters" : ["myreporter"],
         {%- set temp_servers = [] %}
         {%- for server in zookeeper.servers %}
            {%- do temp_servers.append(server + ":2181/punchplatform-primary") %}
