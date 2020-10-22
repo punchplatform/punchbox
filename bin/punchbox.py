@@ -184,7 +184,7 @@ def create_resolver(platform_config, security=False):
   logging.info(' platform resolv.hjson successfully generated in %s', resolv_target)
 
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
-def import_user_resources(punch_user_config, platform_config_file, validation):
+def import_user_resources(punch_user_config, platform_config_file, validation, target_os):
     if validation is False:
         ignore = ["*.properties", "resolv.*", "validation"]
         my_copy_tree(punch_user_config, build_conf_dir, ignore=ignore)
@@ -219,7 +219,7 @@ def import_user_resources(punch_user_config, platform_config_file, validation):
                         release= os.uname().release,
                         hostname= os.uname().nodename,
                         target_config= os.path.basename(platform_config_file),
-                        target_os= platform_config["targets"]["meta"]["os"],
+                        target_os= target_os if target_os is not None else platform_config["targets"]["meta"]["os"],
                         gateway_host= platform_config["punch"]["gateway"]["servers"][0],
                         branch= subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ppunch_dir).strip().decode(),
                         commit= subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ppunch_dir).strip().decode(),
@@ -296,7 +296,7 @@ def main():
                        parser.parse_args().os, parser.parse_args().interface, parser.parse_args().security)
 
     if parser.parse_args().punch_user_config is not None:
-        import_user_resources(parser.parse_args().punch_user_config, parser.parse_args().platform_config_file, parser.parse_args().validation )
+        import_user_resources(parser.parse_args().punch_user_config, parser.parse_args().platform_config_file, parser.parse_args().validation, parser.parse_args().os)
         if "empty" not in parser.parse_args().platform_config_file:
             create_resolver(platform_config,  parser.parse_args().security)
             if parser.parse_args().validation is True:
