@@ -55,7 +55,7 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "echo 'tmpfs /tmp tmpfs size=4g 0 0' >> /etc/fstab"
 
       # Disabling SElinux
-      server.vm.provision "shell", inline: "sudo sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config"
+      server.vm.provision "shell", inline: "sudo sed -i 's/SELINUX=.*/SELINUX=disabled/' /etc/selinux/config"
       server.vm.provision "shell", inline: "sudo setenforce 0"
 
       # Disabling firewalld
