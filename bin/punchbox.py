@@ -84,6 +84,16 @@ def my_copy_tree(src, dst, ignore: List[str] = None):
             else:
                 map(lambda x: copy2(s, d), filter(lambda y: y not in s, ignore))
 
+def get_versions (deployer):
+    data = {}
+    deployer_folder_name = check_archive_existence(os.path.splitext(os.path.basename(deployer))[0])
+    for component in cots:
+        version_of = build_dir + "/" + deployer_folder_name + "/bin/punchplatform-versionof.sh"
+        cmd = "{0} --legacy {1}".format(version_of, component)
+        result = subprocess.check_output(cmd, shell=True)
+        data[component] = result.decode("utf-8").rstrip()
+
+    return data
 
 ## VAGRANT MANAGEMENT ##
 def create_vagrantfile(platform_config, vagrant_os: str=None):
@@ -110,15 +120,10 @@ def destroy_vagrant_boxes():
         v.destroy()
         logging.info(' vagrant boxes successfully stopped')
 
-def patch_security_model(model: Dict, servers: List):
-    security_dir="{}/../punch/resources/security/platform_32G".format(ROOT_DIR)
-
+def patch_security_model(model: Dict):
+    security_dir="{}/../punch/resources/security".format(ROOT_DIR)
     model['security'] = {}
     model['security']['security_dir'] = security_dir
-    model['security']['servers'] = {}
-    for server in servers:
-        model['security']['servers'][server] = {}
-        model['security']['servers'][server]['certs'] = "{}/../punch/resources/security/certs/{}".format(ROOT_DIR, server)
 
     return model
 
@@ -126,14 +131,10 @@ def patch_security_model(model: Dict, servers: List):
 ## GENERATE FILE MODEL ##
 def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = None, vagrant_interface: str = None,
                    security: bool = False):
-    data = {}
+
     model = {}
-    deployer_folder_name = check_archive_existence(os.path.splitext(os.path.basename(deployer))[0])
-    for component in cots:
-        version_of = build_dir + "/" + deployer_folder_name + "/bin/punchplatform-versionof.sh"
-        cmd = "{0} --legacy {1}".format(version_of, component)
-        result = subprocess.check_output(cmd, shell=True)
-        data[component] = result.decode("utf-8").rstrip()
+    data = get_versions(deployer)
+
     # vagrant model
     model['version'] = data
     # os
@@ -151,8 +152,7 @@ def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = No
         model['iface'] = "ens4"
     # security model
     if security:
-        servers: List = platform_config['targets']['info'].keys()
-        model = patch_security_model(model, servers)
+        model = patch_security_model(model)
 
     model = json.dumps({**model, **platform_config['punch']}, indent=4, sort_keys=True)
     model_file = open(generated_model, "w+")
@@ -162,25 +162,28 @@ def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = No
     return model
 
 
-## CREATE PP-CONF ##
+# CREATE PP-CONF #
 def create_ppconf():
     if not os.path.exists(build_conf_dir):
         logging.info(' creating build configuration directory %s', build_conf_dir)
         os.makedirs(build_conf_dir)
 
-## CREATE RESOLV FILE ##
-def create_resolver(platform_config, security=False):
-  file_loader = jinja2.FileSystemLoader(platform_templates)
-  env = jinja2.Environment(loader=file_loader)
-  resolv_template = env.get_template(resolv_template_file)
-  resolv_render = resolv_template.render(punch=platform_config["punch"],
-                                         security=security)
-  resolv_file = open(resolv_target, "w+")
-  resolv_file.write(resolv_render)
-  resolv_file.close()
-  logging.info(' platform resolv.hjson successfully generated in %s', resolv_target)
 
-## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
+# CREATE RESOLV FILE #
+def create_resolver(platform_config, deployer, security=False):
+    file_loader = jinja2.FileSystemLoader(platform_templates)
+    env = jinja2.Environment(loader=file_loader)
+    data = get_versions(deployer)
+
+    resolv_template = env.get_template(resolv_template_file)
+    resolv_render = resolv_template.render(punch=platform_config["punch"], versions=data, security=security)
+    resolv_file = open(resolv_target, "w+")
+    resolv_file.write(resolv_render)
+    resolv_file.close()
+    logging.info(' platform resolv.hjson successfully generated in %s', resolv_target)
+
+
+# IMPORT CHANNELS AND RESOURCES IN PP-CONF #
 def import_user_resources(punch_user_config, platform_config_file, validation, target_os):
     if validation is False:
         ignore = ["*.properties", "resolv.*", "validation"]
@@ -229,7 +232,8 @@ def import_user_resources(punch_user_config, platform_config_file, validation, t
                     raise
         logging.info(' punch validation configuration successfully imported in %s', build_conf_dir)
 
-## CREATE A VALIDATION SHELL ##
+
+# CREATE A VALIDATION SHELL #
 def create_platform_shell(validation, platform_config, security=False):
     file_loader = jinja2.FileSystemLoader(platform_templates)
     env = jinja2.Environment(loader=file_loader)
@@ -294,12 +298,13 @@ def main():
 
     if parser.parse_args().punch_user_config is not None:
         import_user_resources(parser.parse_args().punch_user_config, parser.parse_args().platform_config_file, parser.parse_args().validation, parser.parse_args().os)
-        if "empty" not in parser.parse_args().platform_config_file:
-            create_resolver(platform_config,  parser.parse_args().security)
+        if "empty" not in parser.parse_args().platform_config_file and parser.parse_args().deployer is not None:
+            create_resolver(platform_config, parser.parse_args().deployer, parser.parse_args().security)
             if parser.parse_args().validation is True:
                 create_platform_shell(parser.parse_args().validation, platform_config, parser.parse_args().security)
         else:
             logging.info(" empty configuration detected: skipping \'resolv.hjson\' and \'check_platform\' generation")
+
 
 if __name__ == "__main__":
     main()
