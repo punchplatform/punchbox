@@ -141,7 +141,7 @@ punchbox-ubuntu-32G: deployed-configuration-32G  ## Generate all configurations 
 				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-ubuntu-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets with RBAC security over the ELK configuration - 32GB
+punchbox-ubuntu-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets with RBAC + SSL security over the ELK configuration - 32GB
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -157,6 +157,16 @@ punchbox-ubuntu-32G-validation: deployed-configuration-32G  ## Generate all conf
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --deployer $(shell cat ${DIR}/.deployer) \
+				 --validation
+
+punchbox-ubuntu-32G-validation-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets with RBAC + SSL security over the ELK configuration - 32GB
+	@$(call green, "Deploying 32G PunchBox")
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
+				 --generate-vagrantfile \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --deployer $(shell cat ${DIR}/.deployer) \
+				 -- security \
 				 --validation
 
 ##@   Deploy for validation or production a CentOS PunchBox
@@ -183,7 +193,7 @@ punchbox-centos-32G: deployed-configuration-32G  ## Generate all configurations 
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets with RBAC security over the ELK configuration - 32GB
+punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets with RBAC + SSL security over the ELK configuration - 32GB
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -195,6 +205,17 @@ punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all config
 				 --security
 
 punchbox-centos-32G-validation: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets - 32GB
+	@$(call green, "Deploying 32G PunchBox")
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
+				 --generate-vagrantfile \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --os centos/7 \
+				 --interface eth1 \
+				 --deployer $(shell cat ${DIR}/.deployer) \
+				 --validation
+
+punchbox-centos-32G-validation-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets with RBAC + SSL security over the ELK configuration - 32GB
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
