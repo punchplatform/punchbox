@@ -2,16 +2,16 @@
 
    {% if punch.elasticsearch is defined %}
    // All ES input/output nodes (Storm nodes)
-   elasticsearch_nodes:{ 
-      selection:{ 
+   elasticsearch_nodes:{
+      selection:{
          tenant:*
          channel:*
          runtime:*
       }
       match:$.dag[?(@.type=='elasticsearch_input' || @.type=='elasticsearch_output')].settings
-      additional_values:{ 
-         http_hosts:[ 
-            { 
+      additional_values:{
+         http_hosts:[
+            {
                host:{{ punch.elasticsearch.cluster_production_transport_address }}
                port:9200
             }
@@ -22,7 +22,10 @@
             password: admin
          }
          ssl: true
-         ssl_trusted_certificate: "{{punch.installation_directory}}/certificates/punch-ca.pem"
+         ssl_keystore_pass: secret123
+         ssl_keystore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punchline-keystore.jks
+         ssl_truststore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punch-truststore.jks
+         ssl_truststore_pass: secret123
          {% endif %}
       }
    }
@@ -43,6 +46,11 @@
          elastic_settings:{
             es.net.http.auth.user: admin
             es.net.http.auth.pass: admin
+            es.net.ssl: false
+            es.net.ssl.keystore.pass: secret123
+            es.net.ssl.keystore.location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.spark}}/conf/punchline-keystore.jks
+            es.net.ssl.truststore.location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.spark}}/conf/punch-truststore.jks
+            es.net.ssl.truststore.pass: secret123
          }
          {% endif %}
       }
@@ -139,7 +147,10 @@
             password: admin
          }
          ssl: true
-         ssl_trusted_certificate: "{{installation_directory}}/certificates/punch-ca.pem"
+         ssl_keystore_pass: secret123
+         ssl_keystore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.spark}}/conf/punchline-keystore.jks
+         ssl_truststore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.spark}}/conf/punch-truststore.jks
+         ssl_truststore_pass: secret123
          {% endif %}
       }
    }
@@ -158,6 +169,11 @@
             user: admin
             password: admin
          }
+         ssl: true
+         ssl_keystore_pass: secret123
+         ssl_keystore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punchline-keystore.jks
+         ssl_truststore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punch-truststore.jks
+         ssl_truststore_pass: secret123
          {% endif %}
       }
    }
@@ -177,7 +193,10 @@
             password: admin
          }
          ssl: true
-         ssl_trusted_certificate: "{{installation_directory}}/certificates/punch-ca.pem"
+         ssl_keystore_pass: secret123
+         ssl_keystore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punchline-keystore.jks
+         ssl_truststore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punch-truststore.jks
+         ssl_truststore_pass: secret123
          {% endif %}
       }
    }
@@ -222,7 +241,10 @@
             password: admin
          }
          ssl: true
-         ssl_trusted_certificate: "{{installation_directory}}/certificates/punch-ca.pem"
+         ssl_keystore_pass: secret123
+         ssl_keystore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punchline-keystore.jks
+         ssl_truststore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punch-truststore.jks
+         ssl_truststore_pass: secret123
          {% endif %}
       }
    }

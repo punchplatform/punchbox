@@ -39,6 +39,10 @@
             "runner": true,
             "can_be_master": true,
             "tags": [ "local" ]
+            {% if security is defined %}
+            ,
+            "local_ssl_certs_dir": "{{security.security_dir}}/punchline"
+            {% endif %}
           }
       {% if not loop.last %}
       ,
@@ -93,6 +97,10 @@
             "listen_interface" : "{{ iface }}",
             "slave_port" : 7078,
             "webui_port" : 8084
+            {% if security %}
+            ,
+            "local_ssl_certs_dir": "{{security.security_dir}}/punchline"
+            {% endif %}
           }
           {% if not loop.last %}
           ,
@@ -147,18 +155,17 @@
             {% if security is defined %}
             ,
             "server_ssl": {
-              "local_key_store_dir": "{{security.security_dir}}/{{server}}/gateway",
+              "local_key_store_dir": "{{security.security_dir}}/gateway",
               "key_store_name": "gateway-keystore.p12",
               "key_store_type": "PKCS12",
               "key_store_password": "secret123",
-              "key_alias": "gateway-server-key"
+              "key_alias": "gateway-key"
             },
             "es_client_ssl":{
-                "local_ssl_certs_dir": "{{security.security_dir}}/{{server}}/gateway",
-                "private_key_name": "gateway-client-1-key-pkcs8.pem",
-                "certificate_name": "gateway-client-1-cert.pem",
-                "trusted_certificate_name": "punch-ca.pem",
-                "use_keys_for_data_cluster": false
+                "local_ssl_certs_dir": "{{security.security_dir}}/gateway",
+                "private_key_name": "gateway-super-1-key-pkcs8.pem",
+                "certificate_name": "gateway-super-1-cert.pem",
+                "trusted_certificate_name": "punch-ca.pem"
             }
             {% endif %}
           }
@@ -267,15 +274,15 @@
             "rack_id" : "{{ loop.index }}"
             {% if security is defined %}
             ,
-            "local_ssl_certs_dir": "{{security.security_dir}}/{{server}}/es",
-            "admin_pemkey_name": "admin-super-1-key-pkcs8.pem",
-            "admin_pemcert_name": "admin-super-1-cert.pem",
+            "local_ssl_certs_dir": "{{security.security_dir}}/es",
+            "admin_pemkey_name": "es-admin-super-1-key-pkcs8.pem",
+            "admin_pemcert_name": "es-admin-super-1-cert.pem",
             "admin_pemtrustedcas_name": "punch-ca.pem",
-            "ssl_transport_pemkey_name": "node-{{server}}-super-1-key-pkcs8.pem",
-            "ssl_transport_pemcert_name": "node-{{server}}-super-1-cert.pem",
+            "ssl_transport_pemkey_name": "es-node-super-1-key-pkcs8.pem",
+            "ssl_transport_pemcert_name": "es-node-super-1-cert.pem",
             "ssl_transport_pemtrustedcas_name": "punch-ca.pem",
-            "ssl_http_pemkey_name": "http-{{server}}-server-1-key-pkcs8.pem",
-            "ssl_http_pemcert_name": "http-{{server}}-server-1-cert.pem",
+            "ssl_http_pemkey_name": "es-node-super-1-key-pkcs8.pem",
+            "ssl_http_pemcert_name": "es-node-super-1-cert.pem",
             "ssl_http_pemtrustedcas_name": "punch-ca.pem"
             {% endif %}
           }
@@ -306,11 +313,10 @@
             "ssl_http_enabled": true,
             "ssl_transport_enforce_hostname_verification": true,
             "authcz_admin_dn": [
-              "emailAddress=admin-super-1@easyssl.com,CN=server2,OU=AC,O=AwsomeCompany,L=Paris,ST=IdF,C=FR"
+              "emailAddress=es-admin-super-1@easyssl.com,CN=es-admin,OU=AC,O=AwsomeCompany,L=Paris,ST=IdF,C=FR"
             ],
             "nodes_dn": [
-              "emailAddress=node-server2-super-1@easyssl.com,CN=server2,OU=AC,O=AwsomeCompany,L=Paris,ST=IdF,C=FR",
-              "emailAddress=node-server3-super-1@easyssl.com,CN=server3,OU=AC,O=AwsomeCompany,L=Paris,ST=IdF,C=FR"
+              "emailAddress=es-node-super-1@easyssl.com,CN=es-node,OU=AC,O=AwsomeCompany,L=Paris,ST=IdF,C=FR"
             ],
             "ssl_http_enabled_ciphers": ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"],
             "ssl_http_enabled_protocols": ["TLSv1.2"],
@@ -346,6 +352,14 @@
         "workers_childopts" : "{{ storm.workers_childopts }}",
         "supervisor_memory_mb" : {{ storm.supervisor_memory_mb }},
         "supervisor_cpu" : 2
+        {% if security is defined %}
+        ,
+        "local_ssl_certs_dirs": {
+            {% for slave in storm.slaves %}
+            "{{slave}}": "{{security.security_dir}}/punchline"{% if not loop.last %},{% endif %}
+            {% endfor %}
+        }
+        {% endif %}
       }
     }
   },
@@ -395,9 +409,9 @@
         {% if security is defined %}
         ,
         "server_ssl_enabled": true,
-        "local_ssl_certs_dir": "{{security.security_dir}}/server1/kibana",
-        "server_ssl_key_name": "kibana-server-1-key-pkcs8.pem",
-        "server_ssl_certificate_name": "kibana-server-1-cert.pem",
+        "local_ssl_certs_dir": "{{security.security_dir}}/kibana",
+        "server_ssl_key_name": "kibana-super-1-key-pkcs8.pem",
+        "server_ssl_certificate_name": "kibana-super-1-cert.pem",
         "elasticsearch_ssl_enabled": true,
         "elasticsearch_ssl_verificationMode": "full",
         "elasticsearch_ssl_certificateAuthorities_names": ["punch-ca.pem"]
@@ -478,6 +492,3 @@
   }
 
 }
-
-
-
