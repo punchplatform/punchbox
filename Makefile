@@ -205,6 +205,52 @@ punchbox-centos-32G-validation: deployed-configuration-32G  ## Generate all conf
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --validation
 
+##@   Deploy for validation or production a Rhel(Red Hat Enterprise Linux) PunchBox
+
+.PHONY: punchbox-rhel-16G punchbox-rhel-32G punchbox-rhel-32G-validation
+
+punchbox-rhel-16G: deployed-configuration-16G  ## Generate all configurations for a punch deployment on rhel targets - 16GB
+	@$(call green, "Deploying 16G PunchBox")
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
+				 --generate-vagrantfile \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --os rhel/8 \
+				 --interface eth1 \
+				 --deployer $(shell cat ${DIR}/.deployer)
+
+punchbox-rhel-32G: deployed-configuration-32G  ## Generate all configurations for a punch deployment on rhel targets - 32GB
+	@$(call green, "Deploying 32G PunchBox")
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
+				 --generate-vagrantfile \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --os rhel/8 \
+				 --interface eth1 \
+				 --deployer $(shell cat ${DIR}/.deployer)
+
+punchbox-rhel-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on rhel targets with RBAC security over the ELK configuration - 32GB
+	@$(call green, "Deploying 32G PunchBox")
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
+				 --generate-vagrantfile \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --os rhel/8 \
+				 --interface eth1 \
+				 --deployer $(shell cat ${DIR}/.deployer) \
+				 --security
+				
+punchbox-rhel-32G-validation: deployed-configuration-32G  ## Generate all configurations for a punch deployment on rhel targets - 32GB
+	@$(call green, "Deploying 32G PunchBox")
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
+				 --generate-vagrantfile \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --os rhel/8 \
+				 --interface eth1 \
+				 --deployer $(shell cat ${DIR}/.deployer) \
+				 --validation
+
 ##@ Step 4
 
 .PHONY: start-vagrant
@@ -324,7 +370,6 @@ validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4 and punch_dir
 	@systemctl --user start ${VALIDATION_TIMER_NAME}
 	@$(call blue, "Next event will be on", "")
 	@systemctl --user list-timers
-
 ##@ Cleanup
 
 .PHONY: clean clean-deployer clean-punch-config clean-vagrant clean-validation-scheduler
