@@ -1,0 +1,152 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# # Data Access Protected Demo
+# ### This notebook aims to build a classification model to detect malicious ElasticSearch queries.
+# ### The final model will be expose throught a REST Service
+# ### Our Gateway will forward queries to the REST Service wich will perform predictions
+
+# ## Datasets generations
+# - Primitive : Dataset generated
+# - Generation_1 : Labeled Dataset
+# - Generation_2 : Keep valuable values
+
+# In[1]:
+
+
+#Imports
+import requests
+import json
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+import mlflow
+import mlflow.sklearn
+from DataScienceTracker.ModelTracking import ModelTracking
+
+
+# ### MLFlow Settings
+
+# In[2]:
+
+
+#MLFLOW Settings
+hostname = "{{ mlflow_server }}"
+port = {{ mlflow_port }}
+experiment_name = "dap_demo"
+
+modelTracking = ModelTracking(hostname, port, experiment_name)
+modelTracking.init_mlflow()
+
+
+# ### Load Primitive Dataset
+
+# In[3]:
+
+
+sample_size = 1000
+document_size = [i for i in range(0, sample_size)]
+latency_s = np.linspace(0, 60, sample_size)
+df_prim = pd.DataFrame()
+df_prim['query_size_requested'] = document_size
+df_prim['latency_s'] = latency_s
+df_prim.describe()
+
+
+# ### Some Data Exploration
+
+# In[4]:
+
+
+sns.set(style="darkgrid")
+figure = plt.figure(figsize=(10,5))
+sns.pairplot(df_prim)
+
+
+# In[5]:
+
+
+sns.set(style="darkgrid")
+ax = plt.subplot(1, 2, 1)
+df_prim.plot.scatter(figsize=(20, 10),ax=ax,y='latency_s', x='query_size_requested',c='g')
+
+
+# ### Data Transformations
+
+# In[6]:
+
+
+df_gen_1 = df_prim.copy()
+df_gen_1["target"] = df_gen_1['latency_s'].apply(lambda x : 1 if x >= 10 else 0)
+df_gen_1.describe()
+
+
+# In[7]:
+
+
+df_gen_2 = df_gen_1.copy()
+df_gen_2 = df_gen_2.loc[:, ['query_size_requested', 'target']]
+df_gen_2.head()
+
+
+# ### Model Evaluation
+
+# In[8]:
+
+
+train, test = train_test_split(df_gen_2, test_size=0.33)
+print(train.shape)
+print(test.shape)
+
+x_train = train.iloc[:, :-1]
+x_test = test.iloc[:, :-1]
+y_train = train.iloc[:, -1:]
+y_test = test.iloc[:, -1:]
+
+
+# In[9]:
+
+
+models = []
+
+model_name = 'LogisticRegressionPipeline'
+pipe = Pipeline([
+    ('LogisticRegression', LogisticRegression())
+])
+parameters = [
+    {
+      'LogisticRegression__random_state' : [0]
+    }
+]
+metrics_obj = [accuracy_score]
+metrics_name = ["accurancy"]
+metrics_evaluation = list(zip(metrics_obj, metrics_name))
+models.append(modelTracking.render_model_conf(model_name, pipe, parameters, metrics_evaluation))
+
+print(models)
+
+
+# In[10]:
+
+
+##With Cross Validation
+train_test_meta = {}
+train_test_meta["train"] = {}
+train_test_meta["test"] = {}
+train_test_meta["train"]["tag"] = "train_tag"
+train_test_meta["test"]["tag"] = "test_tag"
+train_test_meta["train"]["path"] = "train_path"
+train_test_meta["test"]["path"] = "test_path"
+modelTracking.apply_models_with_cv(models, x_train, y_train, x_test, y_test, train_test_meta, "Supervised_Regression_Experiment")
+
+
+# In[ ]:
+
+
+
+

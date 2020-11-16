@@ -52,9 +52,10 @@
 			"bind_address" : "0.0.0.0",
 			"port" : "5000",
 			"logs_path" : "/tmp/mlflow-logs",
-			"artifacts_path" : "/tmp/mlflow-artifacts"
+			"artifacts_path" : "S3://mlflow-artifacts"
 		}
-        }
+        },
+	"provisioning_src_path": "/data/mlflow_provisionner_src/"
     },
     "minio" : {
 	"servers" : [
