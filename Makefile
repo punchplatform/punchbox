@@ -166,7 +166,7 @@ punchbox-ubuntu-32G-validation-security: deployed-configuration-32G  ## Generate
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --deployer $(shell cat ${DIR}/.deployer) \
-				 -- security \
+				 --security \
 				 --validation
 
 ##@   Deploy for validation or production a CentOS PunchBox
@@ -224,6 +224,7 @@ punchbox-centos-32G-validation-security: deployed-configuration-32G  ## Generate
 				 --os centos/7 \
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
+				 --security \
 				 --validation
 
 ##@ Step 4

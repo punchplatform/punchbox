@@ -239,7 +239,9 @@ def create_platform_shell(validation, platform_config, security=False):
     env = jinja2.Environment(loader=file_loader)
     try:
         platform_template = env.get_template(platform_template_shell)
-        platform_render = platform_template.render(punch=platform_config['punch'], os=platform_config['targets']['meta']['os'])
+        platform_render = platform_template.render(punch=platform_config['punch'],
+                                                   os=platform_config['targets']['meta']['os'],
+                                                   security=security)
         platform_shell = open(platform_shell_target, "w+")
         platform_shell.write(platform_render)
         platform_shell.close()

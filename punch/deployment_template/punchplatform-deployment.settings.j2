@@ -97,7 +97,7 @@
             "listen_interface" : "{{ iface }}",
             "slave_port" : 7078,
             "webui_port" : 8084
-            {% if security %}
+            {% if security is defined %}
             ,
             "local_ssl_certs_dir": "{{security.security_dir}}/punchline"
             {% endif %}
@@ -154,7 +154,7 @@
             "port": 4242
             {% if security is defined %}
             ,
-            "server_ssl": {
+            "ssl": {
               "local_key_store_dir": "{{security.security_dir}}/gateway",
               "key_store_name": "gateway-keystore.p12",
               "key_store_type": "PKCS12",
@@ -272,19 +272,6 @@
             "transport_address" : "{{ server }}",
             "bind_address" : "_{{ iface }}_",
             "rack_id" : "{{ loop.index }}"
-            {% if security is defined %}
-            ,
-            "local_ssl_certs_dir": "{{security.security_dir}}/es",
-            "admin_pemkey_name": "es-admin-super-1-key-pkcs8.pem",
-            "admin_pemcert_name": "es-admin-super-1-cert.pem",
-            "admin_pemtrustedcas_name": "punch-ca.pem",
-            "ssl_transport_pemkey_name": "es-node-super-1-key-pkcs8.pem",
-            "ssl_transport_pemcert_name": "es-node-super-1-cert.pem",
-            "ssl_transport_pemtrustedcas_name": "punch-ca.pem",
-            "ssl_http_pemkey_name": "es-node-super-1-key-pkcs8.pem",
-            "ssl_http_pemcert_name": "es-node-super-1-cert.pem",
-            "ssl_http_pemtrustedcas_name": "punch-ca.pem"
-            {% endif %}
           }
           {% if not loop.last %}
           ,
@@ -312,6 +299,16 @@
             "opendistro_security_version": "{{ version.opendistro_security }}",
             "ssl_http_enabled": true,
             "ssl_transport_enforce_hostname_verification": true,
+            "local_ssl_certs_dir": "{{security.security_dir}}/es",
+            "admin_pemkey_name": "es-admin-super-1-key-pkcs8.pem",
+            "admin_pemcert_name": "es-admin-super-1-cert.pem",
+            "admin_pemtrustedcas_name": "punch-ca.pem",
+            "ssl_transport_pemkey_name": "es-node-super-1-key-pkcs8.pem",
+            "ssl_transport_pemcert_name": "es-node-super-1-cert.pem",
+            "ssl_transport_pemtrustedcas_name": "punch-ca.pem",
+            "ssl_http_pemkey_name": "es-node-super-1-key-pkcs8.pem",
+            "ssl_http_pemcert_name": "es-node-super-1-cert.pem",
+            "ssl_http_pemtrustedcas_name": "punch-ca.pem",
             "authcz_admin_dn": [
               "emailAddress=es-admin-super-1@easyssl.com,CN=es-admin,OU=AC,O=AwsomeCompany,L=Paris,ST=IdF,C=FR"
             ],
