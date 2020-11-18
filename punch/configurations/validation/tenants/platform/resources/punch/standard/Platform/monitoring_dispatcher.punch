@@ -93,10 +93,10 @@
 			    indexPrefix = tenant + "-gateway-logs-";
 			    break;
 			case "spark":
-				indexPrefix = tenant + "-metrics-";
+				indexPrefix = tenant + "-spark-metrics-";
 				break;
 			case "spark-application":
-				indexPrefix = tenant + "-metrics-";
+				indexPrefix = tenant + "-spark-metrics-";
 				break;
 			case "punch":
 				// We separate the operator commands from the verbose logs, to be able to keep these commands for more than a year, because they are needed for channels monitoring activation
