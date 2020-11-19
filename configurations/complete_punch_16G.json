@@ -28,7 +28,6 @@
       "servers": [
         "server3"
       ],
-      "cluster_production_transport_address": "server3",
       "memory": "512m"
     },
     "kibana": {
@@ -52,14 +51,12 @@
       "master": {
         "servers": [
           "server2"
-        ],
-        "cluster_production_address": "server2"
+        ]
       },
       "ui": {
         "servers": [
           "server2"
-        ],
-        "cluster_admin_url": "server2"
+        ]
       },
       "slaves": [
         "server2"
