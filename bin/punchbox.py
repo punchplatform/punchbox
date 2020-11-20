@@ -184,7 +184,7 @@ def create_resolver(platform_config, security=False):
   logging.info(' platform resolv.hjson successfully generated in %s', resolv_target)
 
 ## IMPORT CHANNELS AND RESOURCES IN PP-CONF ##
-def import_user_resources(punch_user_config, platform_config_file, validation, target_os):
+def import_user_resources(punch_user_config, platform_config_file, validation, target_os, security):
     if validation is False:
         ignore = ["*.properties", "resolv.*", "validation"]
         my_copy_tree(punch_user_config, build_conf_dir, ignore=ignore)
@@ -212,6 +212,7 @@ def import_user_resources(punch_user_config, platform_config_file, validation, t
                         shiva_host=platform_config["punch"]["shiva"]["servers"][0],
                         validation_id= int(validation_now.timestamp()),
                         validation_time= validation_now.isoformat(timespec="seconds"),
+                        security= security,
                         nb_to_validate= len([f for f in os.listdir(tenant_validation_dir)]),
                         livedemo_api_url= livedemo_api_url,
                         user= os.getenv('USER', default='anonymous'),
@@ -296,7 +297,10 @@ def main():
                        parser.parse_args().os, parser.parse_args().interface, parser.parse_args().security)
 
     if parser.parse_args().punch_user_config is not None:
-        import_user_resources(parser.parse_args().punch_user_config, parser.parse_args().platform_config_file, parser.parse_args().validation, parser.parse_args().os)
+        import_user_resources(parser.parse_args().punch_user_config,
+            parser.parse_args().platform_config_file,
+            parser.parse_args().validation, parser.parse_args().os,
+            parser.parse_args().security)
         if "empty" not in parser.parse_args().platform_config_file:
             create_resolver(platform_config,  parser.parse_args().security)
             if parser.parse_args().validation is True:

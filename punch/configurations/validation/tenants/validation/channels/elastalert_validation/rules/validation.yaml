@@ -26,6 +26,7 @@ http_post_static_payload:
     id: {{ validation_id }}
     time: {{ validation_time }}
     nb_to_validate: {{ nb_to_validate }}
+    security: {{ security }}
     state: pending
   host:
     user: {{ user }}
