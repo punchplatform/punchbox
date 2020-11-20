@@ -215,7 +215,7 @@ punchbox-rhel-16G: deployed-configuration-16G  ## Generate all configurations fo
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
-				 --os rhel/8 \
+				 --os rhel/7 \
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
@@ -225,7 +225,7 @@ punchbox-rhel-32G: deployed-configuration-32G  ## Generate all configurations fo
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
-				 --os rhel/8 \
+				 --os rhel/7 \
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
@@ -235,7 +235,7 @@ punchbox-rhel-32G-security: deployed-configuration-32G  ## Generate all configur
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
-				 --os rhel/8 \
+				 --os rhel/7 \
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --security
@@ -246,7 +246,7 @@ punchbox-rhel-32G-validation: deployed-configuration-32G  ## Generate all config
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
-				 --os rhel/8 \
+				 --os rhel/7 \
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --validation
