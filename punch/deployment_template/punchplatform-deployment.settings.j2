@@ -1,12 +1,19 @@
 {
     "platform": {
-    "platform_id": "punchplatform-primary",
-    "setups_root": "{{ installation_directory }}",
-    "remote_data_root_directory": "{{data_storage_directory}}",
-    "remote_logs_root_directory": "/var/log/punchplatform",
-    "punchplatform_daemons_user": "{{ operator.username }}",
-    "punchplatform_group": "{{ operator.username }}",
-    "binaries_version": "{{ version.binaries }}"
+        "platform_id": "punchplatform-primary",
+        "setups_root": "{{ installation_directory }}",
+        "remote_data_root_directory": "{{data_storage_directory}}",
+        "remote_logs_root_directory": "/var/log/punchplatform",
+        "punchplatform_daemons_user": "{{ operator.username }}",
+        "punchplatform_group": "{{ operator.username }}",
+        "binaries_version": "{{ version.binaries }}"
+        {% if security is defined %}
+        ,
+        "platform_local_ssl_certs_dir": "{{security.security_dir}}/platform_certs",
+        "platform_ca_name": "ca.pem",
+        "platform_truststore_name": "truststore.jks",
+        "platform_truststore_pass": "secret123"
+        {% endif %}
     },
 
     "reporters": {
@@ -33,16 +40,15 @@
           "kafka_cluster": "local"
           {% endif %}
         },
+        {% if security is defined %}
+        "ssl_enabled": true,
+        {% endif %}
         "servers": {
         {% for server in shiva.servers %}
           "{{ server }}": {
             "runner": true,
             "can_be_master": true,
             "tags": [ "local" ]
-            {% if security is defined %}
-            ,
-            "local_ssl_certs_dir": "{{security.security_dir}}/punchline"
-            {% endif %}
           }
       {% if not loop.last %}
       ,
@@ -93,20 +99,20 @@
         },
         "slaves" : {
         {% for server in spark.slaves %}
+
           "{{ server }}" : {
             "listen_interface" : "{{ iface }}",
             "slave_port" : 7078,
             "webui_port" : 8084
-            {% if security is defined %}
-            ,
-            "local_ssl_certs_dir": "{{security.security_dir}}/punchline"
-            {% endif %}
           }
           {% if not loop.last %}
           ,
           {% endif %}
         {% endfor %}
         },
+        {% if security is defined %}
+        "ssl_enabled": true,
+        {% endif %}
         "spark_workers_by_punchplatform_spark": 1,
         "zk_cluster" : "local",
         "zk_root" : "spark-main",
@@ -127,7 +133,21 @@
       "local": {
         "hosts": {{ zookeeper.servers | tojson }},
         "cluster_port": 2181,
-        "punchplatform_root_node": "/punchplatform-primary"
+        "punchplatform_root_node": "/punchplatform-primary",
+        {% if security is defined %}
+        "ssl_enabled": true,
+        "zk_client_auth": "none",
+        {% endif %}
+        "servers": {
+            {% for server in zookeeper.servers %}
+            "{{server}}": {
+                {% if security is defined %}
+                "keystore_name": "{{server}}-keystore.jks",
+                "keystore_pass": "secret123"
+                {% endif %}
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+          }
       }
     }
     },
@@ -155,17 +175,14 @@
             {% if security is defined %}
             ,
             "ssl": {
-              "local_key_store_dir": "{{security.security_dir}}/gateway",
-              "key_store_name": "gateway-keystore.p12",
-              "key_store_type": "PKCS12",
+              "key_store_name": "{{server}}-keystore.jks",
+              "key_store_type": "JKS",
               "key_store_password": "secret123",
-              "key_alias": "gateway-key"
+              "key_alias": "{{server}}"
             },
             "es_client_ssl":{
-                "local_ssl_certs_dir": "{{security.security_dir}}/gateway",
-                "private_key_name": "gateway-super-1-key-pkcs8.pem",
-                "certificate_name": "gateway-super-1-cert.pem",
-                "trusted_certificate_name": "punch-ca.pem"
+                "private_key_name": "{{server}}-key.pem",
+                "certificate_name": "{{server}}-cert.pem"
             }
             {% endif %}
           }
@@ -203,6 +220,7 @@
         },
         "resources": {
           "doc_dir": "{{ installation_directory }}/punchplatform-documentation-{{version.gateway}}/doc/html",
+          "punchlines_dir": "punchlines/mytenant",
           "archives_dir": "/tmp",
           "manager": {
             "metadata": [
@@ -241,12 +259,23 @@
       "local" : {
         "brokers_with_ids" : [
               {%- for broker in kafka.brokers %}
-              {"id" : {{ loop.index }}, "broker" : "{{broker}}" }
+              {
+                "id" : {{ loop.index }},
+                "broker" : "{{broker}}"
+                {% if security is defined %}
+                ,
+                "keystore_name": "{{broker | url_to_host }}-keystore.jks",
+                "keystore_pass": "secret123"
+                {% endif %}
+              }
               {% if not loop.last %}
               ,
               {% endif %}
               {%- endfor %}
         ],
+        {% if security is defined %}
+        "ssl_enabled": true,
+        {% endif %}
         "zk_cluster" : "local",
         "zk_root" : "kafka-local",
         "brokers_config" : "punchplatform-local-server.properties",
@@ -272,6 +301,13 @@
             "transport_address" : "{{ server }}",
             "bind_address" : "_{{ iface }}_",
             "rack_id" : "{{ loop.index }}"
+            {% if security is defined %}
+            ,
+            "admin_pemkey_name": "admin-{{server}}-key.pem",
+            "admin_pemcert_name": "admin-{{server}}-cert.pem",
+            "ssl_pemkey_name": "{{server}}-key.pem",
+            "ssl_pemcert_name": "{{server}}-cert.pem"
+            {% endif %}
           }
           {% if not loop.last %}
           ,
@@ -298,27 +334,14 @@
           "opendistro_security": {
             "opendistro_security_version": "{{ version.opendistro_security }}",
             "ssl_http_enabled": true,
-            "ssl_transport_enforce_hostname_verification": true,
-            "local_ssl_certs_dir": "{{security.security_dir}}/es",
-            "admin_pemkey_name": "es-admin-super-1-key-pkcs8.pem",
-            "admin_pemcert_name": "es-admin-super-1-cert.pem",
-            "admin_pemtrustedcas_name": "punch-ca.pem",
-            "ssl_transport_pemkey_name": "es-node-super-1-key-pkcs8.pem",
-            "ssl_transport_pemcert_name": "es-node-super-1-cert.pem",
-            "ssl_transport_pemtrustedcas_name": "punch-ca.pem",
-            "ssl_http_pemkey_name": "es-node-super-1-key-pkcs8.pem",
-            "ssl_http_pemcert_name": "es-node-super-1-cert.pem",
-            "ssl_http_pemtrustedcas_name": "punch-ca.pem",
             "authcz_admin_dn": [
-              "emailAddress=es-admin-super-1@easyssl.com,CN=es-admin,OU=AC,O=AwsomeCompany,L=Paris,ST=IdF,C=FR"
+              "emailAddress=admin-server2-super-1@easyssl.com,CN=server2,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR",
+              "emailAddress=admin-server3-super-1@easyssl.com,CN=server3,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR"
             ],
             "nodes_dn": [
-              "emailAddress=es-node-super-1@easyssl.com,CN=es-node,OU=AC,O=AwsomeCompany,L=Paris,ST=IdF,C=FR"
+              "emailAddress=server2-super-1@easyssl.com,CN=server2,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR",
+              "emailAddress=server3-super-1@easyssl.com,CN=server3,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR"
             ],
-            "ssl_http_enabled_ciphers": ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"],
-            "ssl_http_enabled_protocols": ["TLSv1.2"],
-            "ssl_transport_enabled_ciphers": ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"],
-            "ssl_transport_enabled_protocols": ["TLSv1.2"],
             "kibana_index": ".kibana-admin"
           }
         }
@@ -349,14 +372,6 @@
         "workers_childopts" : "{{ storm.workers_childopts }}",
         "supervisor_memory_mb" : {{ storm.supervisor_memory_mb }},
         "supervisor_cpu" : 2
-        {% if security is defined %}
-        ,
-        "local_ssl_certs_dirs": {
-            {% for slave in storm.slaves %}
-            "{{slave}}": "{{security.security_dir}}/punchline"{% if not loop.last %},{% endif %}
-            {% endfor %}
-        }
-        {% endif %}
       }
     }
   },
@@ -406,12 +421,11 @@
         {% if security is defined %}
         ,
         "server_ssl_enabled": true,
-        "local_ssl_certs_dir": "{{security.security_dir}}/kibana",
-        "server_ssl_key_name": "kibana-super-1-key-pkcs8.pem",
-        "server_ssl_certificate_name": "kibana-super-1-cert.pem",
+        "server_ssl_key_name": "server1-key.pem",
+        "server_ssl_certificate_name": "server1-cert.pem",
         "elasticsearch_ssl_enabled": true,
         "elasticsearch_ssl_verificationMode": "full",
-        "elasticsearch_ssl_certificateAuthorities_names": ["punch-ca.pem"]
+        "elasticsearch_ssl_certificateAuthorities_names": ["ca.pem"]
         {% endif %}
         {% if gateway is defined %}
         {% set server_ip = [] %}
@@ -427,10 +441,7 @@
               "hosts": {{ server_ip | tojson }}
               {% if security is defined %}
               ,
-              "ssl":{
-                "enabled": true,
-                "certificate_authorities_names": ["punch-ca.pem"]
-              }
+              "ssl_enabled": true
               {% endif %}
             }
           }
@@ -467,6 +478,16 @@
 
     "metricbeat" : {
     "metricbeat_version" : "{{ version.metricbeat }}",
+    "servers": {
+        {% for server in metricbeat.servers %}
+        "{{server}}": {
+            {% if security is defined %}
+            "private_key_name": "{{server}}-key.pem",
+            "certificate_name": "{{server}}-cert.pem"
+            {% endif %}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    },
     "modules" : {
       "system" : {
         "high_frequency_system_metrics": {
@@ -485,6 +506,10 @@
     },
     "elasticsearch" : {
       "cluster_id" : "es_search"
+      {% if security is defined %}
+      ,
+      "ssl_enabled": true
+      {% endif %}
     }
   }
 
