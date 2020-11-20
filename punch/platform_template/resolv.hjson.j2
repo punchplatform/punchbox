@@ -12,7 +12,7 @@
       additional_values:{ 
          http_hosts:[ 
             { 
-               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               host:{{ punch.elasticsearch.servers[0] }}
                port:9200
             }
          ]
@@ -35,7 +35,7 @@
       match:$.dag[?(@.type=='elastic_batch_input' || @.type=='elastic_batch_output' || @.type=='elastic_stream_output' || @.type=='elastic_input' || @.type=='elastic_query_stats' || @.type=='python_elastic_input' || @.type=='python_elastic_output')].settings
       additional_values:{ 
          nodes:[ 
-            {{ punch.elasticsearch.cluster_production_transport_address }}
+            {{ punch.elasticsearch.servers[0] }}
          ]
          {% if security %}
          elastic_settings:{
@@ -100,7 +100,7 @@
          reporting_interval: 30
          http_hosts:[ 
             { 
-               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               host:{{ punch.elasticsearch.servers[0] }}
                port:9200
             }
          ]
@@ -120,7 +120,7 @@
       additional_values:{ 
          nodes:[ 
            	{
-               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               host:{{ punch.elasticsearch.servers[0] }}
                port:9200
         	   } 
          ]
@@ -199,7 +199,7 @@
         reporting_interval: 30
          http_hosts:[ 
             { 
-               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               host:{{ punch.elasticsearch.servers[0] }}
                port:9200
             }
          ]

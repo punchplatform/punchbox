@@ -8,9 +8,9 @@ RESET="\033[0m"
 
 echo -e "${BLUE}INFO:${RESET} Push Elasticsearch templates"
 {% if security %}
-punchplatform-push-es-templates.sh --directory $PUNCHPLATFORM_CONF_DIR/resources/elasticsearch/templates/ --url {{ punch.elasticsearch.cluster_production_transport_address }}:9200 --username admin --password admin
+punchplatform-push-es-templates.sh --directory $PUNCHPLATFORM_CONF_DIR/resources/elasticsearch/templates/ --url {{ punch.elasticsearch.servers[0] }}:9200 --username admin --password admin
 {% else %}
-punchplatform-push-es-templates.sh --directory $PUNCHPLATFORM_CONF_DIR/resources/elasticsearch/templates/ --url {{ punch.elasticsearch.cluster_production_transport_address }}:9200
+punchplatform-push-es-templates.sh --directory $PUNCHPLATFORM_CONF_DIR/resources/elasticsearch/templates/ --url {{ punch.elasticsearch.servers[0] }}:9200
 {% endif %}
 
 echo -e "${BLUE}INFO:${RESET} Push Kibana dashboards"
