@@ -36,6 +36,8 @@ verbosity of punchbox commands.
 However, if you want to go further, please read next section which offers you more possibilities in terms of configuration
 (i.e create your punchbox config, select a specific user config ..)
 
+If you want to deploy on Redhat platform, you need a Redhat licence or a free [RHEL developer subscription](https://developers.redhat.com) that are limited to 20 VMs per account. During the installation the Makefile will ask you your credentials to register VMs on account. When you delete yours VMs, they will automatically unregister from your account. 
+
 Here it is a punch deployment on a set of ubuntu virtual machines (32gb of RAM in total). Other configurations
 are available trought in the Makefile, type `make` to see all of them 
 
