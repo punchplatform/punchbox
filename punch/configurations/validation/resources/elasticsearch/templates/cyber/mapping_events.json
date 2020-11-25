@@ -79,6 +79,7 @@
         "deviceId": {
           "type": "float"
         },
+  "ppf_topology_error_message": { "type": "keyword", "ignore_above":512},
 	"ppf_error_message": { "type": "keyword", "ignore_above":512},
 	"ppf_error_document": { "type": "text"},
 	"error_tuple_state":{  "type": "object", "dynamic": true},
@@ -192,7 +193,7 @@
           "type": "object"
         },
         "@timestamp": {
-          "format": "dateOptionalTime",
+          "format": "dateOptionalTime || epoch_millis",
           "type": "date"
         },
         "action": {
@@ -1313,6 +1314,9 @@
           "type": "object"
         },
         "tenant": {
+          "type": "keyword"
+        },
+        "technology": {
           "type": "keyword"
         },
         "type": {

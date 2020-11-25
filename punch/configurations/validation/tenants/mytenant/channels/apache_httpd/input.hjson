@@ -181,6 +181,6 @@
     ]
   }
   settings: {
-    topology.worker.childopts: "-server -Xms1g -Xmx4g"
+    topology.worker.childopts: "-server -Xms1g -Xmx1g"
   }
 }

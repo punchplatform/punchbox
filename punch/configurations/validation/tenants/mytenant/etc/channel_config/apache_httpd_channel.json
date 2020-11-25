@@ -18,23 +18,27 @@
         "host": "localhost"
     },
 
+    # define channel runtime type
+    "channel_type": "storm",
+    "cluster_name": "local",
+
     # the processings you want to run on the data stream
     "processing": {
         "workers": 1,
         "executors": 1,
         "punchlets": [
-            { "punchlet": "standard/common/input.punch" },
-            { "punchlet": "standard/common/parsing_syslog_header.punch" },
-            { "punchlet": "standard/apache_httpd/parsing.punch" },
+            { "punchlet": "punchlets/common/input.punch" },
+            { "punchlet": "punchlets/common/parsing_syslog_header.punch" },
+            { "punchlet": "punchlets/apache_httpd/parsing.punch" },
             {
-                "punchlet": "standard/apache_httpd/enrichment.punch",
-                "punchlet_json_resources": ["standard/apache_httpd/http_codes.json"]
+                "punchlet": "punchlets/apache_httpd/enrichment.punch",
+                "punchlet_json_resources": ["punchlets/apache_httpd/http_codes.json"]
             },
             {
-                "punchlet": "standard/apache_httpd/normalization.punch",
-                "punchlet_json_resources": ["standard/apache_httpd/taxonomy.json"]
+                "punchlet": "punchlets/apache_httpd/normalization.punch",
+                "punchlet_json_resources": ["punchlets/apache_httpd/taxonomy.json"]
             },
-            { "punchlet": "standard/common/geoip.punch" }
+            { "punchlet": "punchlets/common/geoip.punch" }
         ]
     },
 
@@ -48,7 +52,7 @@
 
     # some important runtime settings
     "runtime_settings" : {
-        "childopts": "-server -Xms128m -Xmx128m"
+        "childopts": "-server -Xms1g -Xmx4g"
     },
 
     # where the monitoring real time metrics should go
