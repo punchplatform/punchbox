@@ -170,7 +170,7 @@ punchbox-centos-16G: deployed-configuration-16G  ## Generate all configurations 
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --os centos/7 \
-				 --interface enp0s8 \
+				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
 punchbox-centos-32G: deployed-configuration-32G  ## Generate all configurations for a punch deployment on CentOS targets - 32GB
@@ -180,7 +180,7 @@ punchbox-centos-32G: deployed-configuration-32G  ## Generate all configurations 
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --os centos/7 \
-				 --interface enp0s8 \
+				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
 punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on CentOS targets with RBAC security over the ELK configuration - 32GB
@@ -190,7 +190,7 @@ punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all config
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --os centos/7 \
-				 --interface enp0s8 \
+				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --security
 				
@@ -200,8 +200,8 @@ punchbox-centos-32G-validation: deployed-configuration-32G  ## Generate all conf
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
 				 --generate-vagrantfile \
 				 --punch-user-config ${DIR}/punch/configurations/validation \
-				 --os centos/8 \
-				 --interface enp0s8 \
+				 --os centos/7 \
+				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --validation
 
