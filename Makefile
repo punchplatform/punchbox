@@ -163,7 +163,7 @@ punchbox-ubuntu-32G-validation: deployed-configuration-32G  ## Generate all conf
 
 .PHONY: punchbox-centos-16G punchbox-centos-32G punchbox-centos-32G-validation
 
-punchbox-centos-16G: deployed-configuration-16G  ## Generate all configurations for a punch deployment on ubuntu targets - 16GB
+punchbox-centos-16G: deployed-configuration-16G  ## Generate all configurations for a punch deployment on CentOS targets - 16GB
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
@@ -173,7 +173,7 @@ punchbox-centos-16G: deployed-configuration-16G  ## Generate all configurations 
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-centos-32G: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets - 32GB
+punchbox-centos-32G: deployed-configuration-32G  ## Generate all configurations for a punch deployment on CentOS targets - 32GB
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -183,7 +183,7 @@ punchbox-centos-32G: deployed-configuration-32G  ## Generate all configurations 
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets with RBAC security over the ELK configuration - 32GB
+punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on CentOS targets with RBAC security over the ELK configuration - 32GB
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -194,7 +194,7 @@ punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all config
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --security
 				
-punchbox-centos-32G-validation: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets - 32GB
+punchbox-centos-32G-validation: deployed-configuration-32G  ## Generate all configurations for a punch deployment on CentOS targets - 32GB
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
