@@ -19,6 +19,21 @@ Vagrant.configure("2") do |config|
     vb.linked_clone = true
   end
 
+  {%- if os == 'rhel/7'%}
+  vag_arg=ARGV[0]
+  username=''
+  password=''
+  if vag_arg == 'up' or vag_arg=='provision'
+    print "Enter your redhat username: "
+    username=STDIN.gets.chomp
+    print "\n"
+    print "Enter your password: "
+    password=STDIN.noecho(&:gets).chomp
+  end
+  {%- endif %}
+  
+
+
   {%- for server in targets.info %}
 
    config.vm.define "{{ server }}" do |server|
@@ -29,6 +44,9 @@ Vagrant.configure("2") do |config|
       server.vm.box = "eurolinux-vagrant/centos-8"
       {% elif os == 'centos/7' %}
       server.vm.box = "eurolinux-vagrant/centos-7"
+      {#- rhel boxes need a redhat dev accout to download packages #}
+      {% elif os == 'rhel/7' %}
+      server.vm.box = "generic/rhel7"
       {% else %}
       server.vm.box = "{{ os }}"
       {%- endif %}
@@ -43,8 +61,7 @@ Vagrant.configure("2") do |config|
       server.vm.network "private_network", ip: "172.28.128.2{{ loop.index }}"
 
       ## Provisionning
-      {%- set support_redhat = ["centos/7", "centos/8"] %}
-
+      {%- set support_redhat = ["centos/7", "centos/8", "rhel/7"] %}
       server.vm.provision "shell", inline: <<-EOF
         echo 'export LC_ALL=C' >> ~/.bashrc
         echo '#{PUBLIC_KEY}' >> /home/vagrant/.ssh/authorized_keys
@@ -72,6 +89,11 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
       server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
 
+      {%- if os == 'rhel/7' %}
+      server.vm.provision "shell", :inline => "sudo subscription-manager register --username $1 --password $2", :args => [username, password]
+      server.vm.provision "shell", inline: "sudo subscription-manager attach"
+      {%- endif %}
+
       {%- for server in targets.info %}
       server.vm.provision "shell", inline: "echo '172.28.128.2{{ loop.index }} {{ server }}' >> /etc/hosts"
       {%- endfor %}
@@ -81,6 +103,15 @@ Vagrant.configure("2") do |config|
         v.memory = {{ targets.info[server].memory }}
         v.cpus = {{ targets.info[server].cpu }}
       end
+
+      #To unregister the VM from the redhat developer account
+      {%- if os == 'rhel/7' %}
+      server.trigger.before :destroy do |trigger|
+        trigger.warn = "Unregister the VM from redhat developer account"
+        trigger.run_remote = {inline: "sudo subscription-manager unregister"}
+      end
+     {%- endif %}
+
     end
   {%- endfor %}
 end
