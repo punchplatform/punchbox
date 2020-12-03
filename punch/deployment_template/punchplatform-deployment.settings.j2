@@ -178,11 +178,9 @@
               "key_store_name": "{{server}}-keystore.jks",
               "key_store_type": "JKS",
               "key_store_password": "secret123",
-              "key_alias": "{{server}}"
-            },
-            "es_client_ssl":{
-                "private_key_name": "{{server}}-key.pem",
-                "certificate_name": "{{server}}-cert.pem"
+              "key_alias": "{{server}}",
+              "client_private_key_name": "{{server}}-key.pem",
+              "client_certificate_name": "{{server}}-cert.pem"
             }
             {% endif %}
           }
