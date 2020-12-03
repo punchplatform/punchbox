@@ -11,8 +11,7 @@
         ,
         "platform_local_ssl_certs_dir": "{{security.security_dir}}/platform_certs",
         "platform_ca_name": "ca.pem",
-        "platform_truststore_name": "truststore.jks",
-        "platform_truststore_pass": "secret123"
+        "platform_truststore_name": "truststore.jks"
         {% endif %}
     },
 
@@ -142,8 +141,7 @@
             {% for server in zookeeper.servers %}
             "{{server}}": {
                 {% if security is defined %}
-                "keystore_name": "{{server}}-keystore.jks",
-                "keystore_pass": "secret123"
+                "keystore_name": "{{server}}-keystore.jks"
                 {% endif %}
             }{% if not loop.last %},{% endif %}
             {% endfor %}
@@ -177,7 +175,6 @@
             "ssl": {
               "key_store_name": "{{server}}-keystore.jks",
               "key_store_type": "JKS",
-              "key_store_password": "secret123",
               "key_alias": "{{server}}"
             },
             "es_client_ssl":{
@@ -196,26 +193,12 @@
             "cluster_id": "es_search",
             "hosts" : {{ server_ip | tojson }},
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
-            {% if security is defined %}
-            ,
-            "metrics_credentials": {
-                "user": "admin",
-                "password": "admin"
-            }
-            {% endif %}
           },
           "metric_cluster": {
             "cluster_id": "es_search",
             "hosts": {{ server_ip | tojson }},
             "index_name": "mytenant-gateway-logs",
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
-            {% if security is defined %}
-            ,
-            "credentials": {
-                "user": "admin",
-                "password": "admin"
-            }
-            {% endif %}
           }
         },
         "resources": {
@@ -228,13 +211,6 @@
                 "type": "elasticsearch",
                 "hosts": {{ server_ip | tojson }},
                 "index": "resources-metadata"
-                {% if security is defined %}
-                ,
-                "credentials": {
-                    "user": "admin",
-                    "password": "admin"
-                }
-                {% endif %}
               }
             ],
             "data": [
@@ -264,8 +240,7 @@
                 "broker" : "{{broker}}"
                 {% if security is defined %}
                 ,
-                "keystore_name": "{{broker | url_to_host }}-keystore.jks",
-                "keystore_pass": "secret123"
+                "keystore_name": "{{broker | url_to_host }}-keystore.jks"
                 {% endif %}
               }
               {% if not loop.last %}

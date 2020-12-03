@@ -7,6 +7,7 @@ from datetime import datetime
 from shutil import copy2, copytree, ignore_patterns
 from sys import exit
 from typing import List, Dict
+from shutil import copyfile
 
 import jinja2
 from jinja2.exceptions import UndefinedError
@@ -27,10 +28,12 @@ platform_templates = top_dir + '/punch/platform_template'
 # Templates path
 vagrant_template_file = 'Vagrantfile.j2'
 resolv_template_file = 'resolv.hjson.j2'
+secrets_template_file = 'my_secrets.json.j2'
 platform_template_shell = 'check_platform.sh.j2'
 
 # Targets path
 resolv_target = build_conf_dir + '/resolv.hjson'
+secret_target = build_conf_dir + '/my_secrets.json'
 platform_shell_target = build_conf_dir + "/check_platform.sh"
 vagrantfile_target = vagrant_dir + '/Vagrantfile'
 generated_model = build_dir + '/model.json'
@@ -298,6 +301,8 @@ def main():
         generate_model(platform_config, parser.parse_args().deployer, parser.parse_args().generate_vagrantfile,
                        parser.parse_args().os, parser.parse_args().interface, parser.parse_args().security)
 
+    if parser.parse_args().security is not None:
+        copyfile(platform_templates+"/"+secrets_template_file, secret_target)
     if parser.parse_args().punch_user_config is not None:
         import_user_resources(parser.parse_args().punch_user_config, parser.parse_args().platform_config_file, parser.parse_args().validation, parser.parse_args().os)
         if "empty" not in parser.parse_args().platform_config_file and parser.parse_args().deployer is not None:
