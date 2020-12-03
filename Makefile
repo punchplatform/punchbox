@@ -249,6 +249,18 @@ deploy-punch:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy PunchPlatform to targ
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant
 
+.PHONY: deploy-punch
+
+deploy-punch-security:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy PunchPlatform to targets
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --generate-platform-config \
+								  --templates-dir ${DIR}/punch/deployment_template/ \
+								  --model ${DIR}/punch/build/model.json
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh -gi
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --deploy -u vagrant -e @${DIR}/punch/build/pp-conf/my_secrets.json
+
 ##@ Step 6
 
 .PHONY: deploy-config local-integration-vagrant update-deployer-configuration
