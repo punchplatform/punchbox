@@ -57,7 +57,7 @@ make start-vagrant
 make deploy-punch
 
 # Deploy punch configurations to operator nodes 
-make deploy-conf
+make deploy-config
 
 # Cleanup everything
 make clean
