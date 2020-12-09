@@ -7,6 +7,8 @@
   dag:
   [
     {
+      type: dataset_generator
+      component: input
       settings:
       {
         input_data:
@@ -21,14 +23,12 @@
           }
         ]
       }
-      component: input
       publish:
       [
         {
           stream: data
         }
       ]
-      type: dataset_generator
     }
     {
       type: sql

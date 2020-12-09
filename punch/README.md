@@ -98,7 +98,7 @@ tool that is now available to you.
 ```sh
 source $PUNCHBOX_DIR/activate.sh
 punchplatform-deployer.sh --generate-platform-config \
-    --templates-dir $PUNCHBOX_DIR/punch/platform_template/ \
+    --templates-dir $PUNCHBOX_DIR/punch/deployment_template/ \
     --model $PUNCHBOX_DIR/punch/build/model.json
 punchplatform-deployer.sh -gi
 ```
@@ -171,15 +171,16 @@ To deploy the Punchplatform alongside security measures, use the `--security` op
 ```shell
 make install
 source activate.sh
-punchbox --config configurations/complete_punch_32G.json \
-        --security
-        --punch-conf <path_to_your_punchplatform_config_folder> \
+punchbox --platform-config-file configurations/complete_punch_32G.json \
+        --punch-user-config <path_to_your_punchplatform_config_folder> \
         --deployer <path_to_your_punchplatform_deployer_zip> \
         --generate-vagrantfile \
         --start-vagrant
-source activate 
-punchplatform-deployer.sh --generate-platform-config --templates-dir punch/platform_template/ --model punch/build/model.json
+source activate.sh 
+punchplatform-deployer.sh --generate-platform-config --templates-dir punch/deployment_template/ --model punch/build/model.json
 punchplatform-deployer.sh -gi
+punchplatform-deployer.sh deploy -u vagrant
+punchplatform-deployer.sh -cp -u vagrant
 ```
 
 A secured deployment enable :

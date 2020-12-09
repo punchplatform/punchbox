@@ -62,7 +62,7 @@ def unzip_punch_archive(deployer):
             deployer_folder_name = check_archive_existence(deployer_folder_name)
             with open(build_dir + "/" + deployer_folder_name + "/.unzipped", "w") as activate:
                 activate.write(str(datetime.now()))
-            logging.info('punchplatform deployer archive successfully unzipped')
+            logging.info(' punchplatform deployer archive successfully unzipped')
         else:
             logging.error("unable to unzip deployer in folderwith command '%s'"%(cmd))
             exit(42)
