@@ -9,7 +9,7 @@
         "binaries_version": "{{ version.binaries }}"
         {% if security is defined %}
         ,
-        "platform_local_ssl_certs_dir": "{{security.security_dir}}/platform_certs",
+        "platform_local_credentials_dir": "{{security.security_dir}}/platform_certs",
         "platform_ca_name": "ca.pem",
         "platform_truststore_name": "truststore.jks"
         {% endif %}
