@@ -173,6 +173,7 @@ make install
 source activate.sh
 punchbox --platform-config-file configurations/complete_punch_32G.json \
         --punch-user-config <path_to_your_punchplatform_config_folder> \
+        --security
         --deployer <path_to_your_punchplatform_deployer_zip> \
         --generate-vagrantfile \
         --start-vagrant
