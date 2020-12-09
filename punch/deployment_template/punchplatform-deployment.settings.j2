@@ -47,7 +47,11 @@
           "{{ server }}": {
             "runner": true,
             "can_be_master": true,
-            "tags": [ "local" ]
+            "tags": [ "local" ],
+            {% if security is defined %}
+            "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
+            "custom_additional_credentials_files": ["punchlines-keystore.jks", "truststore.jks"]
+            {% endif %}
           }
       {% if not loop.last %}
       ,
@@ -98,7 +102,6 @@
         },
         "slaves" : {
         {% for server in spark.slaves %}
-
           "{{ server }}" : {
             "listen_interface" : "{{ iface }}",
             "slave_port" : 7078,
@@ -110,7 +113,14 @@
         {% endfor %}
         },
         {% if security is defined %}
-        "ssl_enabled": true,
+        "servers":{
+          {% for server in spark.slaves %}
+          "{{server}}": {
+            "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
+            "custom_additional_credentials_files": ["punchlines-keystore.jks", "truststore.jks"]
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        },
         {% endif %}
         "spark_workers_by_punchplatform_spark": 1,
         "zk_cluster" : "local",
