@@ -10,6 +10,7 @@
         {% if security is defined %}
         ,
         "platform_local_credentials_dir": "{{security.security_dir}}/platform_certs",
+        "platform_local_common_secrets_filename": "platform_common_secrets.json",
         "platform_ca_name": "ca.pem",
         "platform_truststore_name": "truststore.jks"
         {% endif %}
@@ -50,7 +51,8 @@
             "tags": [ "local" ],
             {% if security is defined %}
             "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
-            "custom_additional_credentials_files": ["punchlines-keystore.jks", "truststore.jks"]
+            "custom_additional_credentials_files": ["punchlines-keystore.jks", "truststore.jks"],
+            "custom_secrets_file": "shiva_secrets.json"
             {% endif %}
           }
       {% if not loop.last %}
@@ -84,7 +86,7 @@
                 "credentials": {
                     "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
                     "custom_additional_credentials_files": ["punchlines-keystore.jks", "truststore.jks"],
-                    "custom_secrets_filename": "user_secrets.json"
+                    "custom_secrets_file": "operator_user_secrets.json"
                 }
             }
             {% endif %}
