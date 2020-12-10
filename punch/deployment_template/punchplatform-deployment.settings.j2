@@ -78,12 +78,19 @@
       },
       "servers" : {
       {% for server in operator.servers %}
-         "{{server}}" : {}
+         "{{server}}" : {
+            {% if security is defined %}
+            "{{operator.username}}": {
+                "credentials": {
+                    "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
+                    "custom_additional_credentials_files": ["punchlines-keystore.jks", "truststore.jks"],
+                    "custom_secrets_filename": "user_secrets.json"
+                }
+            }
+            {% endif %}
+         }{% if not loop.last %},{% endif %}
+       {% endfor %}
       }
-      {% if not loop.last %}
-          ,
-        {% endif %}
-      {% endfor %}
     },
     {% endif %}
 
