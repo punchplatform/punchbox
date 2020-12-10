@@ -66,11 +66,11 @@
       "servers" : {
       {% for server in operator.servers %}
          "{{server}}" : {}
-      }
       {% if not loop.last %}
           ,
         {% endif %}
       {% endfor %}
+      }
     },
     {% endif %}
 
