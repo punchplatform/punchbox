@@ -192,6 +192,7 @@
             {% if security is defined %}
             ,
             "ssl": {
+              "custom_secrets_file": "gateway_user_secrets.json",
               "key_store_name": "{{server}}-keystore.jks",
               "key_store_type": "JKS",
               "key_alias": "{{server}}",
