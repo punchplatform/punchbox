@@ -5,7 +5,7 @@
 	 * events to the right Elasticsearch index
 	 * We need separate indices, because retention rules are not the same for different platform events types,
 	 * and to ease querying.
-	 * (e.g. 1 year for punchctl operator commands audit events,
+	 * (e.g. 1 year for channelctl operator commands audit events,
 	 * 3 days for system metrics, a few days more for platform health...)
 
 	 * This is a reference configuration item for DAVE 6.0 release - checked 21/07/2020 by CVF
@@ -100,7 +100,7 @@
 				break;
 			case "punch":
 				// We separate the operator commands from the verbose logs, to be able to keep these commands for more than a year, because they are needed for channels monitoring activation
-				if ([doc][init][process][name] == "punchctl") {
+				if ([doc][init][process][name] == "channelctl") {
 					indexPrefix = "platform-operator-logs-";
 					indexType = "monthly";
 				} else {

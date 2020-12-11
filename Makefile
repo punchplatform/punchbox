@@ -289,7 +289,7 @@ local-integration-vagrant:  ## Use this rule instead of deploy-config if you are
 	@$(call green, "Executing on server1", "/home/vagrant/pp-conf/check_platform.sh")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		cd ${DIR}/vagrant && \
-		${VAGRANT} ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh; exit"
+		${VAGRANT} ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh -f; exit"
  
 update-deployer-configuration: ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Use this rule to update validation platform configuration files
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
