@@ -1,0 +1,83 @@
+{
+  "targets": {
+    "info": {
+      "server1": {
+        "disksize": "20GB",
+        "memory": 2048,
+        "cpu": 2
+      },
+      "server2": {
+        "disksize": "20GB",
+        "memory": 4096,
+        "cpu": 2
+      },
+      "server3": {
+        "disksize": "20GB",
+        "memory": 4096,
+        "cpu": 2
+      },
+      "server4": {
+        "disksize": "20GB",
+        "memory": 4096,
+        "cpu": 2
+      }
+    },
+    "meta": {
+      "os": "ubuntu/bionic64"
+    }
+  },
+  "punch": {
+    "installation_directory": "/data/opt",
+    "data_storage_directory": "/data",
+    "operator": {
+      "servers": [
+        "server1",
+        "server2"
+      ],
+      "username": "vagrant"
+    },
+    "kibana": {
+      "servers": [
+        "server1",
+        "server2"
+      ]
+    },
+    "elasticsearch": {
+      "servers": [
+        "server2",
+        "server3",
+        "server4"
+      ],
+      "memory": "512m"
+    },
+    "zookeeper": {
+      "servers": [
+        "server2",
+        "server3",
+        "server4"
+      ],
+      "childopts": "-server -Xmx128m -Xms128m"
+    },
+    "kafka": {
+      "brokers": [
+        "server2:9092",
+        "server3:9092"
+      ],
+      "jvm_xmx": "512M"
+    },
+    "shiva": {
+      "servers": [
+        "server3",
+        "server4"
+      ],
+      "mode": "kafka"
+    },
+    "gateway": {
+      "servers": [
+        "server2",
+        "server4"
+      ],
+      "inet_address": "172.28.128.22"
+    }
+  }
+}
