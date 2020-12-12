@@ -259,7 +259,7 @@ deploy-punch-security:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy PunchPlatfor
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh -gi
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
-		punchplatform-deployer.sh --deploy -u vagrant -e @${DIR}/punch/build/pp-conf/my_secrets.json
+		punchplatform-deployer.sh --deploy -u vagrant -e @${DIR}/punch/build/pp-conf/deployment_secrets.json
 
 ##@ Step 6
 

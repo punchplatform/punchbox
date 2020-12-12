@@ -28,12 +28,12 @@ platform_templates = top_dir + '/punch/platform_template'
 # Templates path
 vagrant_template_file = 'Vagrantfile.j2'
 resolv_template_file = 'resolv.hjson.j2'
-secrets_template_file = 'my_secrets.json.j2'
+secrets_template_file = 'deployment_secrets.json.j2'
 platform_template_shell = 'check_platform.sh.j2'
 
 # Targets path
 resolv_target = build_conf_dir + '/resolv.hjson'
-secret_target = build_conf_dir + '/my_secrets.json'
+secret_target = build_conf_dir + '/deployment_secrets.json'
 platform_shell_target = build_conf_dir + "/check_platform.sh"
 vagrantfile_target = vagrant_dir + '/Vagrantfile'
 generated_model = build_dir + '/model.json'

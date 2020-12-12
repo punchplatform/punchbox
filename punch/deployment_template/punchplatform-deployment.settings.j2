@@ -12,7 +12,47 @@
         "platform_local_credentials_dir": "{{security.security_dir}}/platform_certs",
         "platform_local_common_secrets_filename": "platform_common_secrets.json",
         "platform_ca_name": "ca.pem",
-        "platform_truststore_name": "truststore.jks"
+        "platform_truststore_name": "truststore.jks",
+        "platform_truststore_password": "@{DEPLOYMENT_SECRETS.platform.platform_truststore_pass}",
+        "punch_commands": {
+          "security": {
+            "kafka_clients": {
+              "local": {
+                "ssl_enabled": true,
+                "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
+                "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+                }
+            },
+            "elasticsearch_clients": {
+                "es_search": {
+                  "ssl_enabled": true,
+                  "ssl_client_certificate_authority": "@{PUNCHPLATFORM_SECRETS_DIR}/ca.pem",
+                  "ssl_client_certificate": "@{PUNCHPLATFORM_SECRETS_DIR}/server1-cert.pem",
+                  "ssl_client_private_key": "@{PUNCHPLATFORM_SECRETS_DIR}/server1-key.pem",
+                  "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
+                  "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
+                    "credentials": {
+                      "username": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
+                      "password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+                      }
+                  }
+              },
+              "gateway_clients": {
+                  "common": {
+                    "ssl_enabled": true,
+                    "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
+                    "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+                        }
+                  },
+              "zookeeper_clients": {
+                  "common": {
+                    "ssl_enabled": true,
+                    "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
+                    "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+                        }
+                      }
+                  }
+              }
         {% endif %}
     },
 
@@ -23,6 +63,11 @@
         "topic": "platform-events",
         "reporting_interval": 30,
         "encoding": "json"
+        {% if security is defined %}
+        ,
+        "ssl.truststore.location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
+        "ssl.truststore.password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+        {% endif %}
       }
    },
 
@@ -160,7 +205,8 @@
             {% for server in zookeeper.servers %}
             "{{server}}": {
                 {% if security is defined %}
-                "keystore_name": "{{server}}-keystore.jks"
+                "keystore_name": "{{server}}-keystore.jks",
+                "keystore_password": "@{DEPLOYMENT_SECRETS.zookeeper.keystore_pass}"
                 {% endif %}
             }{% if not loop.last %},{% endif %}
             {% endfor %}
@@ -195,6 +241,7 @@
               "custom_secrets_file": "gateway_user_secrets.json",
               "key_store_name": "{{server}}-keystore.jks",
               "key_store_type": "JKS",
+              "server_key_store_password" : "@{DEPLOYMENT_SECRETS.gateway.keystore_pass}",
               "key_alias": "{{server}}",
               "client_private_key_name": "{{server}}-key.pem",
               "client_certificate_name": "{{server}}-cert.pem"
@@ -258,7 +305,8 @@
                 "broker" : "{{broker}}"
                 {% if security is defined %}
                 ,
-                "keystore_name": "{{broker | url_to_host }}-keystore.jks"
+                "keystore_name": "{{broker | url_to_host }}-keystore.jks",
+                "keystore_password": "@{DEPLOYMENT_SECRETS.kafka.keystore_pass}"
                 {% endif %}
               }
               {% if not loop.last %}
