@@ -40,7 +40,7 @@
               "format": "epoch_millis||strictDateOptionalTime"
             },
             "tuples_count": {
-              "type": "integer"
+              "type": "long"
             },
             "fields": {
               "properties": {
@@ -73,10 +73,10 @@
               "type": "keyword"
             },
             "size": {
-              "type": "integer"
+              "type": "long"
             },
             "uncompressed_size": {
-              "type": "integer"
+              "type": "long"
             },
             "encoding": {
               "type": "keyword"

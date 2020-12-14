@@ -16,13 +16,13 @@
         	        .cidrField("network")
             	    .matchFields("geo_point","cc","country_name","city")
                 	.on(ip)
-                	.into([logs][log][init][host][geoip]);
+                	.into([init][host][loc]);
 			} else if (ip.contains(":")) {
 				ipv6Range()
                 	.cidrField("network")
                 	.matchFields("geo_point","cc","country_name","city")
                 	.on(ip)
-                	.into([logs][log][init][host][geoip]);
+                	.into([init][host][loc]);
 			}
 		}
 	}

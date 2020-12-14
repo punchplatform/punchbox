@@ -36,6 +36,8 @@ verbosity of punchbox commands.
 However, if you want to go further, please read next section which offers you more possibilities in terms of configuration
 (i.e create your punchbox config, select a specific user config ..)
 
+If you want to deploy on Redhat platform, you need a Redhat licence or a free [RHEL developer subscription](https://developers.redhat.com) that are limited to 20 VMs per account. During the installation the Makefile will ask you your credentials to register VMs on account. When you delete yours VMs, they will automatically unregister from your account. 
+
 Here it is a punch deployment on a set of ubuntu virtual machines (32gb of RAM in total). Other configurations
 are available trought in the Makefile, type `make` to see all of them 
 
@@ -55,7 +57,7 @@ make start-vagrant
 make deploy-punch
 
 # Deploy punch configurations to operator nodes 
-make deploy-conf
+make deploy-config
 
 # Cleanup everything
 make clean
@@ -96,7 +98,7 @@ tool that is now available to you.
 ```sh
 source $PUNCHBOX_DIR/activate.sh
 punchplatform-deployer.sh --generate-platform-config \
-    --templates-dir $PUNCHBOX_DIR/punch/platform_template/ \
+    --templates-dir $PUNCHBOX_DIR/punch/deployment_template/ \
     --model $PUNCHBOX_DIR/punch/build/model.json
 punchplatform-deployer.sh -gi
 ```
@@ -169,15 +171,17 @@ To deploy the Punchplatform alongside security measures, use the `--security` op
 ```shell
 make install
 source activate.sh
-punchbox --config configurations/complete_punch_32G.json \
+punchbox --platform-config-file configurations/complete_punch_32G.json \
+        --punch-user-config <path_to_your_punchplatform_config_folder> \
         --security
-        --punch-conf <path_to_your_punchplatform_config_folder> \
         --deployer <path_to_your_punchplatform_deployer_zip> \
         --generate-vagrantfile \
         --start-vagrant
-source activate 
-punchplatform-deployer.sh --generate-platform-config --templates-dir punch/platform_template/ --model punch/build/model.json
+source activate.sh 
+punchplatform-deployer.sh --generate-platform-config --templates-dir punch/deployment_template/ --model punch/build/model.json
 punchplatform-deployer.sh -gi
+punchplatform-deployer.sh deploy -u vagrant
+punchplatform-deployer.sh -cp -u vagrant
 ```
 
 A secured deployment enable :

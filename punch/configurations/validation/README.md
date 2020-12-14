@@ -120,10 +120,10 @@ Global execution takes around 15 minutes.
 To execute it: 
 ```sh
 ssh vagrant@server_operator
-./pp-conf/check_platform.sh
+./pp-conf/check_platform.sh -f
 ```
 
-This automatic test checks if aggregation channel works and send result in a specific slack channel.
+This automatic test checks if all the test pass.
 
 ### Reporting to Livedemo
 

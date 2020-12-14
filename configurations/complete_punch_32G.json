@@ -13,7 +13,7 @@
       },
       "server3": {
         "disksize": "40GB",
-        "memory": 6144,
+        "memory": 8024,
         "cpu": 2
       },
       "server4": {
@@ -39,7 +39,6 @@
         "server2",
         "server3"
       ],
-      "cluster_production_transport_address": "server2",
       "memory": "512m"
     },
     "kibana": {
@@ -63,14 +62,12 @@
       "master": {
         "servers": [
           "server3"
-        ],
-        "cluster_production_address": "server3"
+        ]
       },
       "ui": {
         "servers": [
           "server3"
-        ],
-        "cluster_admin_url": "server3"
+        ]
       },
       "slaves": [
         "server3"

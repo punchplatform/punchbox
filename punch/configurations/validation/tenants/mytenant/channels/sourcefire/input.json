@@ -2,6 +2,15 @@
   "version": "6.0",
   "runtime": "storm",
   "type": "punchline",
+    "meta": {
+    /*  Meta key/values can be used by some generic punchlets. Here the input.punch
+        is using them for filling in some common fields of all parsed logs, identifying
+        the type of device and the channel which processed the log.
+    */
+    "vendor": "sourcefire",
+    "technology": "sourcefire"
+  },
+
   "dag": [
     {
       "type": "syslog_input",
