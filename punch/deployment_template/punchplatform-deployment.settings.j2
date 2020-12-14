@@ -32,20 +32,20 @@
                   "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                   "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
                     "credentials": {
-                      "username": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
-                      "password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+                      "username": "@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}",
+                      "password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}"
                       }
                   }
               },
               "gateway_clients": {
-                  "common": {
+                  "gateway_32g": {
                     "ssl_enabled": true,
                     "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                     "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
                         }
                   },
               "zookeeper_clients": {
-                  "common": {
+                  "local": {
                     "ssl_enabled": true,
                     "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                     "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
