@@ -27,8 +27,8 @@
                 "es_search": {
                   "ssl_enabled": true,
                   "ssl_client_certificate_authority": "@{PUNCHPLATFORM_SECRETS_DIR}/ca.pem",
-                  "ssl_client_certificate": "@{PUNCHPLATFORM_SECRETS_DIR}/server1-cert.pem",
-                  "ssl_client_private_key": "@{PUNCHPLATFORM_SECRETS_DIR}/server1-key.pem",
+                  "ssl_client_certificate": "@{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem",
+                  "ssl_client_private_key": "@{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem",
                   "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                   "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
                     "credentials": {
@@ -65,6 +65,7 @@
         "encoding": "json"
         {% if security is defined %}
         ,
+        "security.protocol": "SSL",
         "ssl.truststore.location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
         "ssl.truststore.password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
         {% endif %}
@@ -96,7 +97,7 @@
             "tags": [ "local" ],
             {% if security is defined %}
             "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
-            "custom_additional_credentials_files": ["punchlines-keystore.jks", "truststore.jks"],
+            "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks"],
             "custom_secrets_file": "shiva_secrets.json"
             {% endif %}
           }
@@ -130,7 +131,7 @@
             "{{operator.username}}": {
                 "credentials": {
                     "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
-                    "custom_additional_credentials_files": ["punchlines-keystore.jks", "truststore.jks"],
+                    "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks"],
                     "custom_secrets_file": "operator_user_secrets.json"
                 }
             }
@@ -171,7 +172,7 @@
           {% for server in spark.slaves %}
           "{{server}}": {
             "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
-            "custom_additional_credentials_files": ["punchlines-keystore.jks", "truststore.jks"]
+            "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks"]
           }{% if not loop.last %},{% endif %}
           {% endfor %}
         },
@@ -205,7 +206,8 @@
             {% for server in zookeeper.servers %}
             "{{server}}": {
                 {% if security is defined %}
-                "keystore_name": "{{server}}-keystore.jks",
+                "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
+                "keystore_name": "server-keystore.jks",
                 "keystore_password": "@{DEPLOYMENT_SECRETS.zookeeper.keystore_pass}"
                 {% endif %}
             }{% if not loop.last %},{% endif %}
@@ -237,14 +239,19 @@
             "port": 4242
             {% if security is defined %}
             ,
+            "credentials": {
+                "user": "@{DEPLOYMENT_SECRETS.user}",
+                "password" : "@{DEPLOYMENT_SECRETS.password}"
+              },
             "ssl": {
+              "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
               "custom_secrets_file": "gateway_user_secrets.json",
-              "key_store_name": "{{server}}-keystore.jks",
+              "key_store_name": "server-keystore.jks",
               "key_store_type": "JKS",
-              "server_key_store_password" : "@{DEPLOYMENT_SECRETS.gateway.keystore_pass}",
               "key_alias": "{{server}}",
-              "client_private_key_name": "{{server}}-key.pem",
-              "client_certificate_name": "{{server}}-cert.pem"
+              "server_key_store_password" : "@{DEPLOYMENT_SECRETS.gateway.keystore_pass}",
+              "client_private_key_name": "server-key.pem",
+              "client_certificate_name": "server-cert.pem"
             }
             {% endif %}
           }
@@ -258,12 +265,26 @@
             "cluster_id": "es_search",
             "hosts" : {{ server_ip | tojson }},
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
+            {% if security is defined %}
+            ,
+            "metrics_credentials": {
+                "user": "@{DEPLOYMENT_SECRETS.user}",
+                "password" : "@{DEPLOYMENT_SECRETS.password}"
+              }
+            {% endif %}
           },
           "metric_cluster": {
             "cluster_id": "es_search",
             "hosts": {{ server_ip | tojson }},
             "index_name": "mytenant-gateway-logs",
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
+            {% if security is defined %}
+            ,
+            "credentials": {
+                "user": "@{DEPLOYMENT_SECRETS.user}",
+                "password" : "@{DEPLOYMENT_SECRETS.password}"
+              }
+            {% endif %}
           }
         },
         "resources": {
@@ -276,6 +297,13 @@
                 "type": "elasticsearch",
                 "hosts": {{ server_ip | tojson }},
                 "index": "resources-metadata"
+                {% if security is defined %}
+                ,
+                "credentials": {
+                    "user": "@{DEPLOYMENT_SECRETS.user}",
+                    "password" : "@{DEPLOYMENT_SECRETS.password}"
+                  }
+                {% endif %}
               }
             ],
             "data": [
@@ -305,7 +333,8 @@
                 "broker" : "{{broker}}"
                 {% if security is defined %}
                 ,
-                "keystore_name": "{{broker | url_to_host }}-keystore.jks",
+                "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{broker | url_to_host}}",
+                "keystore_name": "server-keystore.jks",
                 "keystore_password": "@{DEPLOYMENT_SECRETS.kafka.keystore_pass}"
                 {% endif %}
               }
@@ -344,10 +373,11 @@
             "rack_id" : "{{ loop.index }}"
             {% if security is defined %}
             ,
-            "admin_pemkey_name": "admin-{{server}}-key.pem",
-            "admin_pemcert_name": "admin-{{server}}-cert.pem",
-            "ssl_pemkey_name": "{{server}}-key.pem",
-            "ssl_pemcert_name": "{{server}}-cert.pem"
+            "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
+            "admin_pemkey_name": "admin-server-key.pem",
+            "admin_pemcert_name": "admin-server-cert.pem",
+            "ssl_pemkey_name": "server-key.pem",
+            "ssl_pemcert_name": "server-cert.pem"
             {% endif %}
           }
           {% if not loop.last %}
@@ -461,9 +491,10 @@
         "type" : "administration"
         {% if security is defined %}
         ,
+        "local_credentials_dir": "{{security.security_dir}}/platform_certs/server1",
         "server_ssl_enabled": true,
-        "server_ssl_key_name": "server1-key.pem",
-        "server_ssl_certificate_name": "server1-cert.pem",
+        "server_ssl_key_name": "server-key.pem",
+        "server_ssl_certificate_name": "server-cert.pem",
         "elasticsearch_ssl_enabled": true,
         "elasticsearch_ssl_verificationMode": "full",
         "elasticsearch_ssl_certificateAuthorities_names": ["ca.pem"]
@@ -523,8 +554,9 @@
         {% for server in metricbeat.servers %}
         "{{server}}": {
             {% if security is defined %}
-            "private_key_name": "{{server}}-key.pem",
-            "certificate_name": "{{server}}-cert.pem"
+            "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
+            "private_key_name": "server-key.pem",
+            "certificate_name": "server-cert.pem"
             {% endif %}
         }{% if not loop.last %},{% endif %}
         {% endfor %}
