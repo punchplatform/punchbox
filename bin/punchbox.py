@@ -97,10 +97,10 @@ def my_copy_tree(src, dst, ignore: List[str] = None):
             else:
                 map(lambda x: copy2(s, d), filter(lambda y: y not in s, ignore))
 
-def get_versions (deployer):
+def get_versions(deployer):
     data = {}
     deployer_folder_name = check_archive_existence(os.path.splitext(os.path.basename(deployer))[0])
-    for component in cots:
+    for component in components:
         version_of = build_dir + "/" + deployer_folder_name + "/bin/punchplatform-versionof.sh"
         cmd = "{0} --legacy {1}".format(version_of, component)
         result = subprocess.check_output(cmd, shell=True)
@@ -112,7 +112,7 @@ def get_versions (deployer):
 def create_vagrantfile(platform_config, vagrant_os: str = None):
     if not vagrant_os:
         vagrant_os = platform_config["targets"]["meta"]["os"]
-    render_and_write(vagrant_dir, vagrantfile_template, vagrantfile_target,
+    render_and_write(vagrant_dir, vagrant_template_file, vagrantfile_target,
                      targets=platform_config["targets"], os=vagrant_os)
     logging.info(' Vagrantfile successfully generated in %s', vagrantfile_target)
 
@@ -180,7 +180,7 @@ def create_ppconf():
 
 ## CREATE RESOLV FILE ##
 def create_resolver(platform_config, deployer, security=False):
-    render_and_write(platform_templates, resolv_template, resolv_target,
+    render_and_write(platform_templates, resolv_template_file, resolv_target,
                      punch=platform_config["punch"], security=security, versions=get_versions(deployer))
     logging.info(' platform resolv.hjson successfully generated in %s', resolv_target)
 
@@ -334,12 +334,12 @@ def main():
         generate_model(platform_config, args.deployer, args.generate_vagrantfile, args.os, args.interface,
                        args.security)
 
-    if parser.parse_args().security is not None:
+    if args.security is not None:
         copyfile(platform_templates+"/"+secrets_template_file, secret_target)
     if args.punch_user_config is not None:
-        import_user_resources(args.punch_user_config, args.platform_config_file, args.validation, args.os,)
+        import_user_resources(args.punch_user_config, args.platform_config_file, args.validation, args.os)
         if "empty" not in args.platform_config_file:
-            create_resolver(platform_config, args.security)
+            create_resolver(platform_config, args.deployer, args.security)
             if args.validation is True:
                 create_check_platform(platform_config, args.punch_user_config, args.security)
                 if args.elastalert_tool is not None:
