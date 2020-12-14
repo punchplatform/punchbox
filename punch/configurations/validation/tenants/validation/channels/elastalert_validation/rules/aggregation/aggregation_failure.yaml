@@ -1,15 +1,14 @@
-# Alert if no metadata is present after 10 min 
-
-name: Archiving fail
+name: Aggregation failure
 
 type: flatline
 
-index: mytenant-archive-*
+index: mytenant-aggregations-*
 
 threshold: 1
 timeframe: 
   minutes: 10
 doc_type: _doc
+timestamp_field: timestamp
 
 realert:
   minutes: 15
@@ -24,7 +23,7 @@ alert:
 
 command: 
   - "/bin/echo"
-  - "alert: Archiving ended with failure (No metadata found)"
+  - "alert: Aggregation doesn't emit data since 15min"
 
 post:
 http_post_url: {{ livedemo_api_url }}
@@ -33,6 +32,6 @@ http_post_static_payload:
   validation:
     id: {{ validation_id }}
   rule:
-    name: Archiving
+    name: Aggregation
     type: fail
-    description: Archiving ended with failure (No metadata found)
+    description: Aggregation channel failed ! No doc found in aggregation index

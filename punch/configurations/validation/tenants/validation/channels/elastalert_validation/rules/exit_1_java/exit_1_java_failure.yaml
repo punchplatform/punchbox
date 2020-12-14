@@ -1,0 +1,41 @@
+name: Exit code 1 on java punchline failure
+
+type: frequency
+
+index: platform-logs-*
+
+filter:
+- query:
+    query_string:
+      query: "platform.application:dataset_generator_fail_java AND content.return_code: 0"
+
+num_events: 1
+timeframe: 
+  minutes: 10
+doc_type: _doc
+
+realert:
+  minutes: 15
+
+include:
+  - num_hits
+  - num_matches
+
+alert:
+- command
+- post
+
+command: 
+  - "/bin/echo"
+  - "alert: At least one exit 0 code have been received during malformed punchlines execution in spark client mode"
+
+post:
+http_post_url: {{ livedemo_api_url }}
+http_post_all_values: True
+http_post_static_payload:
+  validation:
+    id: {{ validation_id }}
+  rule:
+    name: Exit code 1
+    type: fail
+    description: At least one exit 0 code have been received during malformed punchlines execution in spark client mode

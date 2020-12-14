@@ -9,7 +9,7 @@
 
     # define channel runtime type
     "channel_type": "storm",
-    "cluster_name": "main",
+    "cluster_name": "local",
     
     # where the data comes from
     "input": {
@@ -22,10 +22,10 @@
         "workers": 1,
         "executors": 1,
         "punchlets": [
-            { "punchlet": "standard/common/input.punch"}, 
-            { "punchlet": "standard/common/parsing_syslog_header.punch"}, 
-            { "punchlet": "standard/sourcefire/parsing.punch"}, 
-            { "punchlet": "standard/common/geoip.punch"}
+            { "punchlet": "punchlets/common/input.punch"}, 
+            { "punchlet": "punchlets/common/parsing_syslog_header.punch"}, 
+            { "punchlet": "punchlets/sourcefire/parsing.punch"}, 
+            { "punchlet": "punchlets/common/geoip.punch"}
         ]
     },
 
@@ -39,7 +39,7 @@
 
     # some important runtime settings
     "runtime_settings" : {
-        "childopts": "-server -Xms128m -Xmx128m"
+        "childopts": "-server -Xms1g -Xmx4g"
     },
 
     # where the monitoring real time metrics should go

@@ -173,7 +173,7 @@ punchbox-ubuntu-32G-validation-security: deployed-configuration-32G  ## Generate
 
 .PHONY: punchbox-centos-16G punchbox-centos-32G punchbox-centos-32G-validation
 
-punchbox-centos-16G: deployed-configuration-16G  ## Generate all configurations for a punch deployment on ubuntu targets - 16GB
+punchbox-centos-16G: deployed-configuration-16G  ## Generate all configurations for a punch deployment on CentOS targets - 16GB
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
@@ -183,7 +183,7 @@ punchbox-centos-16G: deployed-configuration-16G  ## Generate all configurations 
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-centos-32G: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets - 32GB
+punchbox-centos-32G: deployed-configuration-32G  ## Generate all configurations for a punch deployment on CentOS targets - 32GB
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -193,7 +193,7 @@ punchbox-centos-32G: deployed-configuration-32G  ## Generate all configurations 
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets with RBAC + SSL security over the ELK configuration - 32GB
+punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on CentOS targets with RBAC security over the ELK configuration - 32GB
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -203,8 +203,8 @@ punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all config
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --security
-
-punchbox-centos-32G-validation: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets - 32GB
+				
+punchbox-centos-32G-validation: deployed-configuration-32G  ## Generate all configurations for a punch deployment on CentOS targets - 32GB
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -225,6 +225,52 @@ punchbox-centos-32G-validation-security: deployed-configuration-32G  ## Generate
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --security \
+				 --validation
+
+##@   Deploy for validation or production a Rhel(Red Hat Enterprise Linux) PunchBox
+
+.PHONY: punchbox-rhel-16G punchbox-rhel-32G punchbox-rhel-32G-validation
+
+punchbox-rhel-16G: deployed-configuration-16G  ## Generate all configurations for a punch deployment on rhel targets - 16GB
+	@$(call green, "Deploying 16G PunchBox")
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
+				 --generate-vagrantfile \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --os rhel/7 \
+				 --interface eth1 \
+				 --deployer $(shell cat ${DIR}/.deployer)
+
+punchbox-rhel-32G: deployed-configuration-32G  ## Generate all configurations for a punch deployment on rhel targets - 32GB
+	@$(call green, "Deploying 32G PunchBox")
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
+				 --generate-vagrantfile \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --os rhel/7 \
+				 --interface eth1 \
+				 --deployer $(shell cat ${DIR}/.deployer)
+
+punchbox-rhel-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on rhel targets with RBAC security over the ELK configuration - 32GB
+	@$(call green, "Deploying 32G PunchBox")
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
+				 --generate-vagrantfile \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --os rhel/7 \
+				 --interface eth1 \
+				 --deployer $(shell cat ${DIR}/.deployer) \
+				 --security
+
+punchbox-rhel-32G-validation: deployed-configuration-32G  ## Generate all configurations for a punch deployment on rhel targets - 32GB
+	@$(call green, "Deploying 32G PunchBox")
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
+				 --generate-vagrantfile \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --os rhel/7 \
+				 --interface eth1 \
+				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --validation
 
 ##@ Step 4
@@ -277,8 +323,8 @@ local-integration-vagrant:  ## Use this rule instead of deploy-config if you are
 	@$(call green, "Executing on server1", "/home/vagrant/pp-conf/check_platform.sh")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		cd ${DIR}/vagrant && \
-		${VAGRANT} ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh; exit"
-
+		${VAGRANT} ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh -f; exit"
+ 
 update-deployer-configuration: ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Use this rule to update validation platform configuration files
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
 								--punch-user-config ${DIR}/punch/configurations/validation
@@ -358,7 +404,6 @@ validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4 and punch_dir
 	@systemctl --user start ${VALIDATION_TIMER_NAME}
 	@$(call blue, "Next event will be on", "")
 	@systemctl --user list-timers
-
 ##@ Cleanup
 
 .PHONY: clean clean-deployer clean-punch-config clean-vagrant clean-validation-scheduler

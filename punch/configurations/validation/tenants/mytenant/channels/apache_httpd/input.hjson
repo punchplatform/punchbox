@@ -1,0 +1,186 @@
+{
+  version: "6.0"
+  runtime: storm
+  type: punchline
+  meta: {
+  /*  Meta key/values can be used by some generic punchlets. Here the input.punch
+      is using them for filling in some common fields of all parsed logs, identifying
+      the type of device and the channel which processed the log.
+  */
+  vendor: apache
+  technology: apache_httpd
+  }
+
+  dag: [
+    {
+      type: syslog_input
+      settings: {
+        listen: {
+          proto: tcp
+          host: 0.0.0.0
+          port: 9901
+        }
+        self_monitoring.activation: true
+        self_monitoring.period: 10
+      }
+      publish: [
+        {
+          stream: logs
+          fields: [
+            log
+            _ppf_local_host
+            _ppf_local_port
+            _ppf_remote_host
+            _ppf_remote_port
+            _ppf_timestamp
+            _ppf_id
+          ]
+        }
+        {
+          stream: _ppf_metrics
+          fields: [
+            _ppf_latency
+          ]
+        }
+      ]
+    }
+    {
+      type: punchlet_node
+      settings: {
+        punchlet_json_resources: [
+          punchlets/apache_httpd/http_codes.json
+          punchlets/apache_httpd/taxonomy.json
+        ]
+        punchlet: [
+          punchlets/common/input.punch
+          punchlets/common/parsing_syslog_header.punch
+          punchlets/apache_httpd/parsing.punch
+          punchlets/apache_httpd/enrichment.punch
+          punchlets/apache_httpd/normalization.punch
+          punchlets/common/geoip.punch
+        ]
+      }
+      subscribe: [
+        {
+          component: syslog_input
+          stream: logs
+        }
+        {
+          component: syslog_input
+          stream: _ppf_metrics
+        }
+      ]
+      publish: [
+        {
+          stream: logs
+          fields: [
+            log
+            _ppf_id
+            _ppf_timestamp
+          ]
+        }
+        {
+          stream: _ppf_errors
+          fields: [
+            _ppf_error_message
+            _ppf_error_document
+            _ppf_id
+          ]
+        }
+        {
+          stream: _ppf_metrics
+          fields: [
+            _ppf_latency
+          ]
+        }
+      ]
+    }
+    {
+      type: elasticsearch_output
+      settings: {
+        per_stream_settings: [
+          {
+            stream: logs
+            index: {
+              type: daily
+              prefix: mytenant-events-
+            }
+            document_json_field: log
+            document_id_field: _ppf_id
+            additional_document_value_fields: [
+              {
+                type: date
+                document_field: @timestamp
+                format: iso
+              }
+            ]
+          }
+          {
+            stream: _ppf_errors
+            document_json_field: _ppf_error_document
+            additional_document_value_fields: [
+              {
+                type: tuple_field
+                document_field: ppf_error_message
+                tuple_field: _ppf_error_message
+              }
+              {
+                type: date
+                document_field: @timestamp
+                format: iso
+              }
+            ]
+            index: {
+              type: daily
+              prefix: mytenant-events-
+            }
+          }
+        ]
+      }
+      subscribe: [
+        {
+          component: punchlet_node
+          stream: logs
+        }
+        {
+          component: punchlet_node
+          stream: _ppf_errors
+        }
+        {
+          component: punchlet_node
+          stream: _ppf_metrics
+        }
+      ]
+    }
+    {
+      type: kafka_output
+      settings: {
+        topic: mytenant_apache_httpd_archiving
+        encoding: lumberjack
+        producer.acks: all
+        producer.batch.size: 16384
+        producer.linger.ms: 5
+      }
+      subscribe: [
+        {
+          component: punchlet_node
+          stream: logs
+        }
+        {
+          component: punchlet_node
+          stream: _ppf_metrics
+        }
+      ]
+    }
+  ]
+  metrics: {
+    reporters: [
+      {
+        type: kafka
+      }
+    ]
+  }
+  settings: {
+    topology.worker.childopts: "-server -Xms1g -Xmx1g"
+  }
+}
