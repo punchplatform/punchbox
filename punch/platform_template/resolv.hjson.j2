@@ -12,7 +12,7 @@
       additional_values:{
          http_hosts:[
             {
-               host:{{ punch.elasticsearch.cluster_production_transport_address }}
+               host: {{ punch.elasticsearch.servers[0] }}
                port:9200
             }
          ]
@@ -23,8 +23,8 @@
          }
          ssl: true
          ssl_keystore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
-         ssl_keystore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punchline-keystore.jks
-         ssl_truststore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punch-truststore.jks
+         ssl_keystore_location: file://@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks
+         ssl_truststore_location: file://@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
          ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
          {% endif %}
       }
@@ -46,10 +46,10 @@
          elastic_settings:{
             es.net.http.auth.user: admin
             es.net.http.auth.pass: admin
-            es.net.ssl: false
+            es.net.ssl: true
             es.net.ssl.keystore.pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
-            es.net.ssl.keystore.location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.spark}}/conf/punchline-keystore.jks
-            es.net.ssl.truststore.location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.spark}}/conf/punch-truststore.jks
+            es.net.ssl.keystore.location: file://@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks
+            es.net.ssl.truststore.location: file://@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
             es.net.ssl.truststore.pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
          }
          {% endif %}
@@ -66,14 +66,65 @@
          channel:*
          runtime:*
       }
-      match:$.dag[?(@.type=='kafka_input' || @.type=='kafka_output')].settings
+      match:$.dag[?(@.type=='kafka_input')].settings
       additional_values:{ 
          brokers: local
          bootstrap.servers:{{ punch.kafka.brokers[0] }}
          metric_cluster_id:local
+         {% if security %}
+         security.protocol: SSL
+         ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+         ssl.truststore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         {% endif %}
       }
    }
    {% endif %}
+
+      {% if punch.kafka is defined %}
+   // All Kafka input/output nodes (Storm nodes)
+   kafka_output:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='kafka_output')].settings
+      additional_values:{ 
+         brokers: local
+         bootstrap.servers:{{ punch.kafka.brokers[0] }}
+         metric_cluster_id:local
+         {% if security %}
+         producer.security.protocol: SSL
+         producer.ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+         producer.ssl.truststore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         {% endif %}
+      }
+   }
+   {% endif %}
+
+   {% if punch.kafka is defined %}
+ // All Kafka stream input/output nodes (Spark nodes)
+   kafka_stream_input:{
+      selection:{
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='kafka_stream_input' || @.type=='kafka_stream_output')].settings
+      additional_values:{
+         brokers:[
+            {
+               port:9092
+               host:localhost
+            }
+         ]
+         {% if security %}
+         ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+         ssl_truststore_password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         {% endif %}
+      }
+   }
+      {% endif %}
 
    {% if punch.kafka is defined %}
    // All Kafka reporters
@@ -90,6 +141,11 @@
          topic: platform-events
          reporting_interval: 30
          encoding: json
+         {% if security %}
+         security.protocol: SSL
+         ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+         ssl.truststore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         {% endif %}
       }
    }
    {% endif %}
@@ -120,7 +176,9 @@
             password: admin
          }
          ssl: true
-         ssl_trusted_certificate: "{{installation_directory}}/certificates/punch-ca.pem"
+         ssl_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
+         ssl_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
+         ssl_trusted_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
          {% endif %}
       }
    }
@@ -147,10 +205,9 @@
             password: admin
          }
          ssl: true
-         ssl_keystore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
-         ssl_keystore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.spark}}/conf/punchline-keystore.jks
-         ssl_truststore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.spark}}/conf/punch-truststore.jks
-         ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         ssl_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
+         ssl_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
+         ssl_trusted_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
          {% endif %}
       }
    }
@@ -170,10 +227,9 @@
             password: admin
          }
          ssl: true
-         ssl_keystore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
-         ssl_keystore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punchline-keystore.jks
-         ssl_truststore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punch-truststore.jks
-         ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         ssl_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
+         ssl_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
+         ssl_trusted_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
          {% endif %}
       }
    }
@@ -193,10 +249,9 @@
             password: admin
          }
          ssl: true
-         ssl_keystore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
-         ssl_keystore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punchline-keystore.jks
-         ssl_truststore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punch-truststore.jks
-         ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         ssl_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
+         ssl_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
+         ssl_trusted_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
          {% endif %}
       }
    }
@@ -215,6 +270,11 @@
        topic: platform-events
        reporting_interval: 30
        encoding: json
+       {% if security %}
+         security.protocol: SSL
+         ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+         ssl.truststore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         {% endif %}
       }
    }
 
@@ -241,11 +301,60 @@
             password: admin
          }
          ssl: true
-         ssl_keystore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
-         ssl_keystore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punchline-keystore.jks
-         ssl_truststore_location: file://{{punch.installation_directory}}/{{versions.binaries}}/{{versions.storm}}/conf/punch-truststore.jks
-         ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         ssl_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
+         ssl_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
+         ssl_trusted_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
          {% endif %}
+      }
+   }
+      // Platform monitoring credentials
+   platform_monitoring:{
+      selection:{
+         tenant:*
+         channel: monitoring
+         runtime:*
+         file: platform_health*
+      }
+      match: $
+      additional_values:{
+
+            security:{
+               kafka_clients: {
+                  local: {
+                     ssl_enabled: true
+                     ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+                     ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+                  }
+               }
+               elasticsearch_clients: {
+                  es_search: {
+                     ssl_enabled: true
+                     ssl_client_certificate_authority: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
+                     ssl_client_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
+                     ssl_client_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
+                     ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+                     ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+                     credentials: {
+                        username: @{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}
+                        password: @{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}
+                     }
+                  }
+               }
+               gateway_clients: {
+                  gateway_32g: {
+                     ssl_enabled: true
+                     ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+                     ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+                  }
+               }
+                   "zookeeper_clients": {
+                  "local": {
+                    "ssl_enabled": true,
+                    "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
+                    "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+                        }
+                      }
+            }
       }
    }
   
