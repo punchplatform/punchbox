@@ -94,8 +94,9 @@
           "{{ server }}": {
             "runner": true,
             "can_be_master": true,
-            "tags": [ "local" ],
+            "tags": [ "local" ]
             {% if security is defined %}
+            ,
             "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
             "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks"],
             "custom_secrets_file": "shiva_secrets.json"
