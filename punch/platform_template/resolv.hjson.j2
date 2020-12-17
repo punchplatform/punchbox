@@ -307,7 +307,8 @@
          {% endif %}
       }
    }
-      // Platform monitoring credentials
+   {% if security %}
+   // Platform monitoring credentials
    platform_monitoring:{
       selection:{
          tenant:*
@@ -357,6 +358,6 @@
             }
       }
    }
-  
+   {% endif %}
    {% endif %}
 }
