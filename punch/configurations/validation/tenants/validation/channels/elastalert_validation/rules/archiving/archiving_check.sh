@@ -8,16 +8,16 @@ RESET="\033[0m"
 
 echo -e "${BLUE}INFO:${RESET} Run archiving check"
 
-echo -e "${BLUE}INFO:${RESET} Start apache channels"
-channelctl -t mytenant start --channel apache_httpd
+echo -e "${BLUE}INFO:${RESET} Start archiving channels"
+channelctl -t mytenant start --channel archiving
 
-echo -e "${BLUE}INFO:${RESET} Injecting apache logs"
+echo -e "${BLUE}INFO:${RESET} Injecting archiving logs"
 {% if storm in punch %}
 {% for server in punch.storm.slaves %}
-nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/mytenant/apache_httpd_injector.json -H {{ server }} &
+nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/mytenant/archiving_injector.json -H {{ server }} &
 {% endfor %}
 {% else %}
 {% for server in punch.shiva.servers %}
-nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/mytenant/apache_httpd_injector.json -H {{ server }} &
+nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/mytenant/archiving_injector.json -H {{ server }} &
 {% endfor %}
 {% endif %}

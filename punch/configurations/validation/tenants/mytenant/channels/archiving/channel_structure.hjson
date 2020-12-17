@@ -1,0 +1,23 @@
+{
+  version: "6.0"
+  start_by_tenant: true
+  stop_by_tenant: true
+  resources: [
+    {
+      type: kafka_topic
+      name: mytenant_archiving
+      cluster: local
+      partitions: 1
+      replication_factor: 1
+    }
+  ]
+  applications: [
+    {
+      name: archiving
+      runtime: storm
+      execution_mode: cluster
+      cluster: local
+      reload_action: kill_then_start
+    }
+  ]
+}
