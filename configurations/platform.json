@@ -1,0 +1,48 @@
+{
+    "os": "ubuntu/bionic64",
+    "servers": {
+      "kafka1": {
+        "disksize": "40GB",
+        "memory": 2000,
+        "cpu": 1,
+        "services" : [ "kafka", "shiva_leader", "zookeeper", "metricbeat" ]
+      },
+      "kafka2": {
+        "disksize": "40GB",
+        "memory": 2000,
+        "cpu": 1,
+        "services" : [ "kafka", "metricbeat" ]
+      },
+      "kafka3": {
+        "disksize": "40GB",
+        "memory": 2000,
+        "cpu": 1,
+        "services" : [ "kafka", "metricbeat" ]
+      },
+      "shiva1": {
+        "disksize": "40GB",
+        "memory": 6000,
+        "cpu": 1,
+        "services" : [  "shiva_worker", "metricbeat" ]
+      },
+      "shiva2": {
+        "disksize": "40GB",
+        "memory": 6000,
+        "cpu": 1,
+        "services" : [  "shiva_worker", "metricbeat" ]
+      },
+      "spark1": {
+        "disksize": "40GB",
+        "memory": 2000,
+        "cpu": 1,
+        "services" : [  "spark_master", "metricbeat" ]
+      },
+      "spark2": {
+        "disksize": "40GB",
+        "memory": 2000,
+        "cpu": 1,
+        "services" : [  "spark_worker", "metricbeat" ]
+      }
+    }
+  }
+}
