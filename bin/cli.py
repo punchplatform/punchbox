@@ -125,26 +125,6 @@ def extract(archive, output):
         zip_file.extract(output)
 
 
-def generate_zookeeper_conf(servers: List[str], conf):
-    return {"zookeeper_childopts": conf["zookeeper_childopts"],
-            "clusters": {
-                conf["cluster_name"]: {
-                    "hosts": servers,
-                    "cluster_port": conf["cluster_port"],
-                    "punchplatform_root_node": conf["punchplatform_root_node"],
-                }
-            }}
-
-
-def generate_kafka_conf(brokers: List[str], conf):
-    brokers_list = [{"id": i, "broker": broker} for i, broker in enumerate(brokers)]
-    return {"clusters": {
-        conf["cluster_name"]: {
-            "brokers_with_ids": brokers_list
-        }
-    }}
-
-
 def generate_shiva_servers(servers: List[str], conf, is_leader=False):
     servers_dict = {}
     for server in servers:
@@ -156,103 +136,67 @@ def generate_shiva_servers(servers: List[str], conf, is_leader=False):
     return servers_dict
 
 
-def generate_shiva_conf(servers: Dict, conf):
-    return {"clusters": {
-        conf["cluster_name"]: {
-            "reporters": conf["reporters"],
-            "storage": conf["storage"],
-            "servers": servers
-        }
-    }}
-
-
-def generate_metricbeat_conf(servers: List[str], conf):
+def generate_metricbeat_servers(servers: List[str]):
     servers_dict = {}
     for server in servers:
         servers_dict[server] = {}
-    return {"servers": servers_dict, "modules": conf["modules"],
-            "elasticsearch": {"cluster_id": conf["es_cluster_id"]}}
+    return servers_dict
 
 
-def generate_spark_servers(servers: List[str], conf, is_leader=False):
-    """
-    Generate Spark "servers" part of the deployment settings
-    """
-    if is_leader:
-        return {
-            "master": {
-                "servers": servers,
-                "listen_interface": "#TODO",
-                "master_port": conf["master_port"],
-                "rest_port": conf["rest_port"],
-                "ui_port": conf["ui_port"]
-            }
+def generate_spark_workers(servers: List[str], conf, interface):
+    slaves = {}
+    for server in servers:
+        slaves[server] = {
+            "listen_interface": interface,
+            "slave_port": conf["slave_port"],
+            "webui_port": conf["webui_port"]
         }
-    else:
-        slaves = {}
-        for server in servers:
-            slaves[server] = {
-                "listen_interface": "#TODO",
-                "slave_port": conf["slave_port"],
-                "webui_port": conf["webui_port"]
-            }
-        return {
-            "slaves": slaves
-        }
-
-
-def generate_spark_conf(servers_conf, conf):
-    return {"clusters": {
-        conf["cluster_name"]: {**servers_conf,
-                               "zk_cluster": conf["zk_cluster"],
-                               "zk_root": conf["zk_root"],
-                               "slaves_cpu": conf["slaves_cpu"],
-                               "slaves_memory": conf['slaves_memory']}
-    }}
+    return slaves
 
 
 @generate.command(name="deployment")
 @click.option("--model", required=True, type=click.File("rb"), help="Model.json needed to generate deployment")
 @click.option("--configuration", required=True, type=click.File("rb"),
               help="File containing all variables needed for deployment")
-@click.option("--output", type=click.File("wb"), help="Output file")
-def generate_deployment(model, configuration, output):
+@click.option("--template", required=True, type=click.Path(exists=True))
+@click.option("--output", type=click.File("w"), help="Output file")
+def generate_deployment(model, configuration, template, output):
     """
     Generate deployment settings
     """
     model_dict = json.loads(model.read())
     configuration_dict = yaml.load(configuration.read(), Loader=yaml.SafeLoader)
-    deployment_settings = {"platform": configuration_dict["platform"], "reporters": configuration_dict["reporters"]}
 
+    deployment_template = load_template(template)
     shiva_servers = {}
-    spark_servers = {}
-    for service, servers in model_dict["services"].items():
-        if service == "zookeeper":
-            deployment_settings = {**deployment_settings, **{
-                "zookeeper": generate_zookeeper_conf(servers, configuration_dict['zookeeper'])}}
-        elif service == "kafka":
-            deployment_settings = {**deployment_settings,
-                                   **{"kafka": generate_kafka_conf(servers, configuration_dict["kafka"])}}
-        elif service == "shiva_leader":
+    for name, servers in model_dict["services"].items():
+        if name == "shiva_leader":
             shiva_servers = {**shiva_servers, **generate_shiva_servers(servers, configuration_dict["shiva"], True)}
-        elif service == "shiva_worker":
+        elif name == "shiva_worker":
             shiva_servers = {**shiva_servers, **generate_shiva_servers(servers, configuration_dict["shiva"])}
-        elif service == "spark_master":
-            spark_servers = {**spark_servers, **generate_spark_servers(servers, configuration_dict["spark"], True)}
-        elif service == "spark_worker":
-            spark_servers = {**spark_servers, **generate_spark_servers(servers, configuration_dict["spark"])}
-        elif service == "metricbeat":
-            deployment_settings = {**deployment_settings, **{
-                "metricbeat": generate_metricbeat_conf(servers, configuration_dict["metricbeat"])}}
+        elif name == "zookeeper":
+            configuration_dict["zookeeper"]["servers"] = model_dict["services"][name]
+        elif name == "kafka":
+            configuration_dict["kafka"]["brokers"] = [{"id": i, "broker": broker} for i, broker in enumerate(servers)]
+        elif name == "metricbeat":
+            configuration_dict["metricbeat"]["servers"] = generate_metricbeat_servers(servers)
+        elif name == "storm_leader":
+            configuration_dict["storm"]["masters"] = model_dict["services"][name]
+        elif name == "storm_worker":
+            configuration_dict["storm"]["slaves"] = model_dict["services"][name]
+        elif name == "storm_ui":
+            configuration_dict["storm"]["ui_servers"] = model_dict["services"][name]
+        elif name == "spark_master":
+            configuration_dict["spark"]["masters"] = model_dict["services"][name]
+        elif name == "spark_worker":
+            configuration_dict["spark"]["slaves"] = generate_spark_workers(servers, configuration_dict["spark"],
+                                                                           model_dict["interface"])
         else:
-            raise NotImplementedError(service)
+            raise NotImplementedError(f"{name} is not supported yet")
 
-    deployment_settings = {**deployment_settings,
-                           **{"shiva": generate_shiva_conf(shiva_servers, configuration_dict["shiva"])}}
-    deployment_settings = {**deployment_settings,
-                           **{"spark": generate_spark_conf(spark_servers, configuration_dict["spark"])}}
-
-    output_json = json.dumps(deployment_settings, indent=4)
+    configuration_dict["shiva"]["servers"] = shiva_servers
+    output_txt = deployment_template.render(**configuration_dict, **model_dict)
+    output_json = json.dumps(json.loads(output_txt), indent=4)
     if output is not None:
         output.write(output_json)
     else:

@@ -1,5 +1,6 @@
 {
   "os": "ubuntu/bionic64",
+  "interface": "eth1",
   "servers": {
     "kafka1": {
       "disksize": "40GB",

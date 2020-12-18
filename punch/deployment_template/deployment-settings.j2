@@ -1,0 +1,203 @@
+{
+  "platform": {{ platform | tojson }},
+  "reporters": {{ reporters | tojson }},
+  "punchplatform_operator": {{ punchplatform_operator | tojson }},
+  {% if shiva is defined %}
+  "shiva": {
+    "shiva_version": "{{ versions.shiva }}",
+    "clusters": {
+      "{{ shiva.cluster_name }}": {
+        "reporters": {{ shiva.reporters | tojson }},
+        "storage": {{ shiva.storage | tojson }},
+        "servers": {{ shiva.servers | tojson }}
+      }
+    }
+  },
+  {% endif %}
+  "spark": {
+    "spark_version": "{{ versions.spark }}",
+    "punchplatform_analytics_deployment_version": "{{ versions["analytics-deployment"] }}",
+    "clusters": {
+      "{{ spark.cluster_name }}": {
+        "master": {
+          "servers": {{ spark.masters | tojson }},
+          "listen_interface": "{{ interface }}",
+          "master_port": {{ spark.master_port }},
+          "rest_port": {{ spark.rest_port }},
+          "ui_port": {{ spark.ui_port }}
+        },
+        "slaves": {{ spark.slaves | tojson }},
+        "spark_workers_by_punchplatform_spark": {{ spark.spark_workers_by_punchplatform_spark }},
+        "zk_cluster": "{{ spark.zk_cluster }}",
+        "zk_root": "{{ spark.zk_root }}",
+        "slaves_cpu": {{ spark.slaves_cpu }},
+        "slaves_memory": "{{ spark.slaves_memory }}"
+      }
+    }
+  },
+  "zookeeper": {
+    "zookeeper_version": "{{ versions.zookeeper }}",
+    "zookeeper_nodes_production_interface": "{{ interface }}",
+    "zookeeper_childopts": "{{ zookeeper.zookeeper_childopts }}",
+    "clusters": {
+      "{{ zookeeper.cluster_name }}": {
+        "hosts": {{ zookeeper.servers | tojson }},
+        "cluster_port": {{ zookeeper.cluster_port }},
+        "punchplatform_root_node": "{{ zookeeper.punchplatform_root_node }}"
+      }
+    }
+  },
+  {% if gateway is defined %}
+  "gateway": {
+    "gateway_version": "{{ versions.gateway }}",
+    "clusters": {
+      "{{ gateway.cluster_name }}": {
+        "tenant": "{{ gateway.tenant }}",
+        "modsecurity_enabled": {{ gateway.modsecurity_enabled }},
+        "servers": {[ gateway.servers }},
+        "elasticsearch": {{ gateway.elasticsearch | tojson }},
+        "resources": {{ gateway.resources | tojson }},
+        "reporters": {{ gateway.reporters | tojson }}
+      }
+    }
+  },
+  {% endif %}
+  {% if kafka is defined %}
+  "kafka": {
+    "kafka_version": "{{ versions.kafka }}",
+    "kafka_brokers_production_interface": "{{ interface }}",
+    "clusters": {
+      "{{ kafka.cluster_name }}": {
+        "brokers_with_ids": {{ kafka.brokers | tojson }},
+        "zk_cluster": "{{ kafka.zk_cluster }}",
+        "zk_root": "{{ kafka.zk_root }}",
+        "brokers_config": "{{ kafka.brokers_config }}",
+        "default_replication_factor": {{ kafka.default_replication_factor }},
+        "default_partitions": {{ kafka.default_partitions }},
+        "partition_retention_bytes": {{ kafka.partition_retention_bytes }},
+        "partition_retention_hours": {{ kafka.partition_retention_hours }},
+        "kafka_brokers_jvm_xmx": "{{ kafka.kafka_brokers_jvm_xmx }}"
+      }
+    }
+  },
+  {% endif %}
+  {% if elasticsearch is defined %}
+  "elasticsearch": {
+    "elasticsearch_version": "{{ versions.elasticsearch }}",
+    "clusters": {
+      "{{ elasticsearch.cluster_name }}": {
+        "nodes": {
+          "server2": {
+            "http_api_address": "server2",
+            "transport_address": "server2",
+            "bind_address": "_{{ interface }}_",
+            "rack_id": "1"
+          },
+          "server3": {
+            "http_api_address": "server3",
+            "transport_address": "server3",
+            "bind_address": "_{{ interface }}_",
+            "rack_id": "2"
+          }
+        },
+        "http_api_port": {{ elasticsearch.http_api_port }},
+        "transport_port": {{ elasticsearch.transport_port }},
+        "minimum_master_nodes": {{ elasticsearch.minimum_master_nodes }},
+        "settings_by_type": {{ elasticsearch.settings_by_type | tojson }}
+      }
+    }
+  },
+  {% endif %}
+  {% if storm is defined %}
+  "storm": {
+    "storm_version": "{{ versions.storm }}",
+    "storm_nimbus_nodes_production_interface": "{{ interface }}",
+    "clusters": {
+      "{{ storm.cluster_name }}": {
+        "master": {
+          "servers": {{ storm.masters | tojson }}
+        },
+        "ui": {
+          "servers": {{ storm.ui_servers | tojson }}
+        },
+        "slaves": {{ storm.slaves | tojson }},
+        "zk_cluster": "{{ storm.zk_cluster }}",
+        "zk_root": "{{ storm.zk_root }}",
+        "storm_workers_by_punchplatform_supervisor": {{ storm.storm_workers_by_punchplatform_supervisor }},
+        "workers_childopts": "{{ storm.workers_childopts }}",
+        "supervisor_memory_mb": {{ storm.supervisor_memory_mb }},
+        "supervisor_cpu": {{ storm.supervisor_cpu }}
+      }
+    }
+  },
+  {% endif %}
+  {% if minio is defined %}
+  "minio": {
+    "minio_version": "{{ versions.minio }}",
+    "minio_access_key": "{{ minio.minio_access_key }}",
+    "minio_secret_key": "{{ minio.minio_secret_key }}",
+    "clusters": {
+      "{{ minio.cluster_name }}": {
+        "hosts": {{ minio.servers | tojson }},
+        "port": "{{ minio.port }}"
+      }
+    }
+  },
+  {% endif %}
+  {% if clickhouse is defined %}
+  "clickhouse": {
+    "clickhouse_version": "{{ versions.clickhouse }}",
+    "clusters": {
+      "common": {
+        "shards": [
+          {
+            "servers": {{ clickhouse.servers | tojson }}
+          }
+        ],
+        "zk_cluster": "{{ clickhouse.zk_cluster }}",
+        "zk_root": "{{ clickhouse.zk_root }}",
+        "http_port": {{ clickhouse.http_port }},
+        "tcp_port": {{ clickhouse.tcp_port }}
+      }
+    }
+  },
+  {% endif %}
+  {% if kibana is defined %}
+  "kibana": {
+    "kibana_version": "{{ versions.kibana }}",
+    "domains": {
+      "{{ kibana.domain_name }}": {
+        "gateway_cluster_target": "{{ kibana.gateway }}",
+        "kibana_port": {{ kibana.port }},
+        "type": "{{ kibana.type }}",
+        "plugins": {
+          "punchplatform": {
+            "rest_api": {
+              "hosts": [
+                "http://server2:4242"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "servers": {{ kibana.servers | tojson }},
+    "plugins": {
+      "punchplatform": {
+        "punchplatform_version": "{{ kibana.plugins.punchplatform_version }}"
+      },
+      "punchplatform_feedback": {
+        "punchplatform_feedback_version": "{{ kibana.plugins.punchplatform_version }}"
+      }
+    }
+  },
+  {% endif %}
+  "metricbeat": {
+    "metricbeat_version": "{{ versions.metricbeat }}",
+    "servers": {{ metricbeat.servers | tojson }},
+    "modules": {{ metricbeat.modules | tojson }},
+    "elasticsearch": {
+      "cluster_id": "{{ metricbeat.es_cluster_id }}"
+    }
+  }
+}
