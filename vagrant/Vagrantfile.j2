@@ -10,7 +10,7 @@ Vagrant.configure("2") do |config|
 
   # Auto install required Vagrant plugins
   config.vagrant.plugins = ["vagrant-disksize"]
-  
+
   # Get your local SSH public key
   PUBLIC_KEY = File.read("#{Dir.home}/.ssh/id_rsa.pub")
 
@@ -31,10 +31,10 @@ Vagrant.configure("2") do |config|
     password=STDIN.noecho(&:gets).chomp
   end
   {%- endif %}
-  
 
 
-  {%- for server in targets.info %}
+
+  {%- for server, config in servers.items() %}
 
    config.vm.define "{{ server }}" do |server|
 
@@ -51,7 +51,7 @@ Vagrant.configure("2") do |config|
       server.vm.box = "{{ os }}"
       {%- endif %}
       server.vm.box_check_update = false
-      config.disksize.size = '{{ targets.info[server].disksize }}'
+      config.disksize.size = '{{ config.disksize }}'
 
       # Share only sample_confs
       server.vm.synced_folder '.', '/vagrant', disabled: true
@@ -94,14 +94,14 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "sudo subscription-manager attach"
       {%- endif %}
 
-      {%- for server in targets.info %}
+      {%- for server in servers %}
       server.vm.provision "shell", inline: "echo '172.28.128.2{{ loop.index }} {{ server }}' >> /etc/hosts"
       {%- endfor %}
 
       server.vm.provider :virtualbox do |v|
         v.gui = false
-        v.memory = {{ targets.info[server].memory }}
-        v.cpus = {{ targets.info[server].cpu }}
+        v.memory = {{ server.memory }}
+        v.cpus = {{ server.cpu }}
       end
 
       #To unregister the VM from the redhat developer account
