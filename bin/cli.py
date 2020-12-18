@@ -51,18 +51,25 @@ def cli():
 @cli.group()
 def generate():
     """
-    Generate a file (model, deployment settings, ...)
+    The generate command lets you generate some of the configuration files you
+    will need to deploy a punch. 
+
+    Checkout the command described below for each specific target file.
     """
     pass
 
-
-@generate.command()
-@click.option("--deployer", required=True, type=click.Path(exists=True))
+@generate.command(name="model")
+@click.option("--deployer", 
+    required=True, 
+    type=click.Path(exists=True),
+    help="path to the punch deployer folder")
 @click.option("--config", required=True, type=click.File("rb"), help="Configuration file")
 @click.option("--output", default=None, type=click.File("w"), help="File where to save model. Default : none")
-def model(deployer, config, output):
+def generate_model(deployer, config, output):
     """
-    Generate model.json
+    This command generates a model.json file that lists all the precise versions
+    of all punch components (including the third-party cots). This file is handy
+    for you to avoid filling manually that information in your deployment descriptors.
     """
     model_dict = {"versions": get_components_version(deployer)}
 
@@ -81,11 +88,24 @@ def model(deployer, config, output):
 
 
 @cli.command()
-@click.option("--archive", required=True, type=click.Path(exists=True))
-@click.option("--output", required=True, type=click.Path(exists=True))
+@click.option("--archive", 
+    required=True, 
+    type=click.Path(exists=True),
+    help="path to the punch deployer zip archive"
+    )
+@click.option("--output", 
+    required=True, 
+    type=click.Path(exists=True),
+    help="path to the destination folder")
 def extract(archive, output):
     """
-    Extract archive
+    Extract the punch deployer archive. The punch deployer archive is a self contained
+    zip archive that provides everything you need to deploy a punch. 
+
+    It contains
+    the various cots (elasticsearch, kafka, etc..) at play, the punch software packages,
+    and the punch deployer tool itself in charge of deployoing a complete punch
+    on a target servers. 
     """
     with zipfile.ZipFile(archive, 'r') as zip_file:
         zip_file.extract(output)
@@ -118,8 +138,10 @@ def generate_deployment(model, template_dir, output):
 
 
 @generate.command(name="vagrantfile")
-@click.option("--configuration", required=True, type=click.File("rb"),
-              help="Configuration file containing all vagrant machines configuration")
+@click.option("--configuration", 
+    required=True, 
+    type=click.File("rb"),
+    help="configuration file containing all vagrant machines configuration")
 @click.option("--template", required=True, type=click.Path(exists=True))
 @click.option("--output", type=click.File("w"))
 def generate_vagrantfile(configuration, template: str, output):
