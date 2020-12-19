@@ -1,74 +1,71 @@
-# User config 
+# User Configuration Files 
 
-From a user point of view only files under this folder can be modified (the file provide with --config option)
+To deploy a punch you must define two yaml files:
 
-You could update existing ones or create a new one with your specific configuration
+* a topology file that lists the nodes and services you want.
+  - a zookeeper cluser on three servers
+  - a shiva cluster
+  - a complete punch with elastc, spark, shiva etc..
+* a settings files with the parameter of each property
+  - the zookeeper kafka etc.. listening port
+  - the /data /var/log /opt and installation folders
+  - etc.. 
 
-This file is composed as follow : 
+Here is an example to deploy a three-nodes kafka cluster. Because kafka requires zookeeper, we also deploy a zookeeper cluster.
 
-  - `targets`: details about targets machines
-      - `info`: list of targets 
-          - `server_name`: string to identify a box
-              - `disksize`: size of disk box
-              - `memory`: memory size of box
-              - `cpu`: number of cpu for box
-      - `meta`: common details for all boxes
-          - `os`: os for all boxes
+```yml
+---
+os: ubuntu/bionic64
+servers:
+  kafka1:
+    disksize: 40GB
+    memory: 2000
+    cpu: 1
+    services:
+    - kafka
+    - zookeeper
+  kafka2:
+    disksize: 40GB
+    memory: 2000
+    cpu: 1
+    services:
+    - kafka
+    - zookeeper
+  kafka3:
+    disksize: 40GB
+    memory: 2000
+    cpu: 1
+    services:
+    - kafka
+    - zookeeper
+```
 
-  - `punch`: list of punch component
-      - `installation_directory` : path where the punch components binaries will be installed
-      - `data_storage_directory` : path where the punch components data will be stored
-      - `elasticsearch`:
-          - `servers`: list of elasticsearch hosts
-          - `cluster_production_transport_address`: elasticsearch transport address
-          - `memory`: maximum size of each elasticsearch nodes Jvm memory
-          - `security` : if true, enable Opendistro Security plugin and Opendistro alerting plugin. It will generate 
-          configuration for SSL, authentication and security management. The security resource folder will be used to
-          deploy default certificates
-      - `kibana`: 
-          - `servers`: list of kibana hosts
-          - `security` : if true, enable Opendistro Security plugin and Opendistro alerting plugin. It will generate 
-          configuration for SSL, authentication and security management. The security resource folder will be used to
-          deploy default certificates
-      - `zookeeper`: 
-          - `servers`: list of zookeeper hosts
-          - `childopts`: JVM options for zookeeper
-      - `gateway`: 
-          - `servers`: list of gateway hosts 
-          - `inet_address`: inet address for gateway (will be remove soon)
-          - `security` : if true, enable ssl connections to, and from, gateway's rest api. It will generate 
-          configuration for SSL. The security resource will be used to deploy a  default keystore.
-      - `storm`: 
-          - `master`: 
-              - `servers`: list of storm master hosts
-              - `cluster_production_address`: cluster address for storm master
-          - `ui`:
-              - `servers`: list of storm ui hosts
-              - `cluster_admin_url`: cluster address for storm ui
-          - `slaves` : list of storm slave hosts
-          - `workers_childopts`: storm worker jvm options
-          - `supervisor_memory_mb`: size of RAM for supervisor
-      - `kafka`:
-          - `brokers`: list of kafka brokers
-          - `jvm_xmx`: max JVM size for each kafka broker 
-      - `shiva`: 
-          - `servers`: list of shiva hosts
-      -  `spark`:
-          - `masters`: list of spark master hosts
-          - `slaves`: list of spark slave hosts
-          - `slaves_memory`: allocation of memory for each slaves
-      - `pyspark`:
-          - `servers`: list of pyspark hosts
-      - `minio`:
-          - `servers`: list of minio hosts
-      - `clickhouse`:
-          - `servers`: list of clickhouse hosts
-      - `operator`: 
-          - `servers`: list of operator hosts
-          - `username`: operator username
+Here is an example of a settings file:
 
-      
+```yml
+platform:
+  platform_id: punchbox-platform-id
+  punchplatform_daemons_user: vagrant
+  punchplatform_group: vagrant
+  remote_data_root_directory: /data
+  remote_logs_root_directory: /var/log/punch
+  setups_root: /opt
 
-**Note** : All parameters under `targets` key are mandatory. For those under `punch`, they are optional
+zookeeper:
+  cluster_name: punchbox-zookeeper-cluster
+  cluster_port: 2181
+  punchplatform_root_node: /punchbox
+  zookeeper_childopts: -server -Xmx128m -Xms128m
 
-**Note** : do **never** add or change things in the platform_template or vagrant without a first review with the core punch team leaders
+kafka:
+  cluster_name: punchbox-kafka-cluster
+  brokers_config: punchplatform-local-server.properties
+  default_partitions: 2
+  default_replication_factor: 1
+  kafka_brokers_jvm_xmx: 512M
+  partition_retention_bytes: 1073741824
+  partition_retention_hours: 24
+  zk_cluster: punchbox-zookeeper-cluster
+  zk_root: kafka
+``` 
+

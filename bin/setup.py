@@ -1,14 +1,14 @@
 from setuptools import setup
 
 setup(
-    name='cli',
+    name='punchbox',
     version='0.1',
-    py_modules=['cli'],
+    py_modules=['punchbox'],
     install_requires=[
         'Click',
     ],
     entry_points='''
         [console_scripts]
-        cli=cli:cli
+        punchbox=punchbox:punchbox
     ''',
 )

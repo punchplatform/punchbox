@@ -1,352 +1,344 @@
-import argparse
 import json
-import logging
 import os
 import subprocess
-from datetime import datetime
-from shutil import copy2, copytree, ignore_patterns
-from sys import exit
-from typing import List, Dict
-from shutil import copyfile
+import zipfile
+from pathlib import Path
+from typing import Dict, List
 
+import click
 import jinja2
-from jinja2.exceptions import UndefinedError
+import yaml
+import logging
 
-import vagrant
+COMPONENTS = [
+    "punch", "minio", "zookeeper", "spark",
+    "elastic", "opendistro_security", "operator",
+    "binaries", "analytics-deployment", "analytics-client",
+    "shiva", "gateway", "storm", "kafka", "logstash",
+    "metricbeat", "filebeat", "packetbeat", "auditbeat"]
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
+SERVICES = ["zookeeper", "kafka", "shiva_leader", "shiva_worker", "metricbeat"]
 
-# Repository layout
-punchbox_dir = os.environ.get('PUNCHBOX_DIR')
-vagrant_dir = punchbox_dir + '/vagrant'
-
-# Templates path
-vagrant_template_file = 'Vagrantfile.j2'
-resolv_template_file = 'resolv.hjson.j2'
-secrets_template_file = 'deployment_secrets.json.j2'
-platform_templates = punchbox_dir + '/punch/platform_template'
-check_platform_template = 'check_platform.sh.j2'
-
-# Targets path
-build_dir = punchbox_dir + '/punch/build'
-build_conf_dir = build_dir + '/pp-conf'
-resolv_target = build_conf_dir + '/resolv.hjson'
-secret_target = build_conf_dir + '/deployment_secrets.json'
-platform_shell_target = build_conf_dir + "/check_platform.sh"
-vagrantfile_target = vagrant_dir + '/Vagrantfile'
-check_platform_target = build_conf_dir + "/check_platform.sh"
-elastalert_tool_target = build_conf_dir + "/punchplatform-elastalert.sh"
-generated_model = build_dir + '/model.json'
-
-
-components = ["punch", "minio", "zookeeper", "spark", "elastic", "opendistro_security", "operator", "binaries",
-              "analytics-deployment", "analytics-client", "shiva", "gateway", "storm", "kafka", "logstash",
-              "metricbeat", "filebeat", "packetbeat", "auditbeat"]
-
-
-def check_archive_existence(deployer_folder_name):
-    deployers = [f.name for f in list(os.scandir(build_dir))
-                 if (f.is_dir() and
-                     (f.name.startswith('punch-deployer') or f.name.startswith('punchplatform-deployer')))
-                 ]
-    if len(deployers) == 1:
-        deployer_folder_name = deployers[0]
-    elif len(deployers) > 1:
-        logging.error(
-            'cannot guess deployer path from directories in \"{}\" because multiple possibilities exist :{}'.format(
-                build_dir, deployers))
-    return deployer_folder_name
-
-
-def unzip_punch_archive(deployer):
-    deployer_folder_name = check_archive_existence(os.path.splitext(os.path.basename(deployer))[0])
-    if not os.path.exists(build_dir + "/" + deployer_folder_name + "/.unzipped"):
-        cmd = 'unzip -o -d {1} {0}'.format(deployer, build_dir)
-        rc = os.system(cmd)
-        if rc == 0:
-            deployer_folder_name = check_archive_existence(deployer_folder_name)
-            with open(build_dir + "/" + deployer_folder_name + "/.unzipped", "w") as activate:
-                activate.write(str(datetime.now()))
-            logging.info(' punchplatform deployer archive successfully unzipped')
-        else:
-            logging.error("unable to unzip deployer in folder with command '%s'" % cmd)
-            exit(42)
-
-
-def copy_elastalert_tool(elastalert_tool):
-    if not os.path.exists(elastalert_tool_target):
-        copy2(elastalert_tool, elastalert_tool_target)
-
-
-def load_platform_config(platform_config_file):
-    with open(platform_config_file) as f:
-        logging.info(' loading platform configuration from file %s', platform_config_file)
-        return json.load(f)
-
-
-def my_copy_tree(src, dst, ignore: List[str] = None):
-    for item in os.listdir(src):
-        if item not in ignore:
-            s = os.path.join(src, item)
-            d = os.path.join(dst, item)
-            if os.path.isdir(s):
-                try:
-                    copytree(s, d, ignore=ignore_patterns(*ignore))
-                except FileExistsError:
-                    pass
-            else:
-                map(lambda x: copy2(s, d), filter(lambda y: y not in s, ignore))
-
-def get_versions(deployer):
+def get_components_version(deployer_path: str) -> Dict[str, str]:
+    """
+    Return a map containing all component version
+    """
     data = {}
-    deployer_folder_name = check_archive_existence(os.path.splitext(os.path.basename(deployer))[0])
-    for component in components:
-        version_of = build_dir + "/" + deployer_folder_name + "/bin/punchplatform-versionof.sh"
-        cmd = "{0} --legacy {1}".format(version_of, component)
+    versionof_shell = os.path.join(deployer_path, "bin/punchplatform-versionof.sh")
+    for component in COMPONENTS:
+        cmd = "{0} --legacy {1}".format(versionof_shell, component)
         result = subprocess.check_output(cmd, shell=True)
         data[component] = result.decode("utf-8").rstrip()
-
     return data
 
-## VAGRANT MANAGEMENT ##
-def create_vagrantfile(platform_config, vagrant_os: str = None):
-    if not vagrant_os:
-        vagrant_os = platform_config["targets"]["meta"]["os"]
-    render_and_write(vagrant_dir, vagrant_template_file, vagrantfile_target,
-                     targets=platform_config["targets"], os=vagrant_os)
-    logging.info(' Vagrantfile successfully generated in %s', vagrantfile_target)
+
+def load_template(template):
+    """
+    Load Jinja template from file path
+    :param template: Template file path
+    :return: Jinja2 Template
+    """
+    template_path = Path(template)
+    template_dir = template_path.parent
+    loader = jinja2.FileSystemLoader(template_dir)
+    env = jinja2.Environment(loader=loader)
+    return env.get_template(template_path.name)
 
 
-def launch_vagrant_boxes():
-    v = vagrant.Vagrant(vagrant_dir, quiet_stdout=False, quiet_stderr=False)
-    v.up()
-    logging.info(' vagrant boxes successfully started')
+def format(dictionary: dict, file_format: str) -> str:
+    """
+    Format a dictionary
+    :param dictionary: Dictionary to format
+    :param file_format: Output format (json, yaml)
+    """
+    if file_format.lower() == "json":
+        return json.dumps(dictionary, indent=4)
+    elif file_format.lower() == "yaml":
+        return yaml.safe_dump(dictionary)
+    else:
+        raise NotImplementedError(f"Unknown file format {file_format}")
 
 
-def destroy_vagrant_boxes():
-    if os.path.exists(vagrantfile_target):
-        v = vagrant.Vagrant(vagrant_dir, quiet_stdout=False, quiet_stderr=False)
-        v.destroy()
-        logging.info(' vagrant boxes successfully stopped')
+@click.group()
+def cli():
+    """
+    Welcome to punchbox. This punch tool is your easy way to punch deployment and testing.
+    \f
+    """
+    pass
 
-def patch_security_model(model: Dict):
-    security_dir="{}/../punch/resources/security".format(ROOT_DIR)
-    model['security'] = {}
-    model['security']['security_dir'] = security_dir
+@cli.group()
+def deploy():
+    """
+    Deploy your punch.
 
-    return model
+    The deploy commands lets you quickly setup and deploy a punch environment
+    for development or testing purposes.
+
+    Start with 'setup', then review the generate configuration file. Once happy,
+    proceed with 'deploy'.
+
+    The play commands assumes you have an empty workspace folder where all the
+    VMs, configuration files will be stored.
+    \f
+    """
+    pass
+
+@deploy.command(name="setup")
+@click.option("--deployer",
+              required=True,
+              type=click.Path(exists=True),
+              help="path to the punch deployer folder")
+@click.option("--workspace", required=True, default=None, type=click.Path("w"), help="the destination folder")
+def setup(deployer, workspace):
+    punchBoxDir = os.environ.get('PUNCHBOX_DIR')
+    confDir = workspace+"/conf"
+    confFile = confDir + "/punchbox.yml"
+    dictionary = {
+        'env' : {
+            "punchbox_dir": os.environ.get('PUNCHBOX_DIR'),
+            "workspace" : os.path.abspath(workspace),
+            "deployer" : os.path.abspath(deployer)
+        },
+        'vagrant' : {
+            "template" : os.path.abspath(punchBoxDir + '/vagrant/Vagrantfile.j2'),
+            "vagrantfile" : os.path.abspath(workspace + '/vagrant/Vagrantfile')
+        },
+        'punch' : {
+            "platform_topology" : os.path.abspath(punchBoxDir + '/configurations/complete_topology.json'),
+            "platform_settings" : os.path.abspath(punchBoxDir + '/configurations/punch_vagrant_setting.yml'),
+            "deployment_settings_template" : os.path.abspath(punchBoxDir + '/templates/deployment-settings.j2'),
+            "platform_descriptor" : os.path.abspath(workspace + '/conf/platform_descriptor.yml'),
+            "deployment_settings" : os.path.abspath(workspace + '/conf/deployment-settings.json')
+        }
+    }
+    if not os.path.exists(confDir):
+        os.makedirs(confDir)
+    if  not os.path.exists(confFile) or click.confirm('Overwrite '+confFile+' ?'):
+        with open(confFile, 'w+') as outfile:
+            yaml.dump(dictionary, outfile)
+        print('All done. Checkout and review '+confFile )
+        print('You are then ready to deploy')
+
+@deploy.command(name="deploy")
+@click.option("--workspace", required=True, default=None, type=click.Path("w"), help="the destination folder")
+@click.option('--interactive', '-i', is_flag=True, default=False, help="interactive mode")
+@click.pass_context
+def deploy(ctx, workspace, interactive):
+    conf = {}
+    with open(workspace+"/conf/punchbox.yml") as infile:
+        conf = yaml.load(infile.read(), Loader=yaml.SafeLoader)
+
+    punchBoxDir = conf['env']['punchbox_dir']
+    if not interactive or click.confirm('generate vagrantfile '+conf['vagrant']['vagrantfile'] + ' ?'):
+        if not os.path.exists(conf['env']['workspace']+'/vagrant'):
+            os.makedirs(conf['env']['workspace']+'/vagrant')
+        with open(conf['punch']['platform_topology']) as topology, \
+                open(conf['vagrant']['vagrantfile'], 'w+') as vagrantfile:
+            ctx.invoke(generate_vagrantfile, topology=topology, template=conf['vagrant']['template'], output=vagrantfile)
+
+    if not interactive or click.confirm('generate platform descriptor '+conf['punch']['platform_descriptor'] + ' ?'):
+        if not os.path.exists(conf['env']['workspace']+'/vagrant'):
+            os.makedirs(conf['env']['workspace']+'/vagrant')
+        with open(conf['punch']['platform_topology']) as topology, \
+                open(conf['punch']['platform_descriptor'],"w+") as descriptor :
+            ctx.invoke(generate_descriptor,  deployer=conf['env']['deployer'], topology=topology, output=descriptor)
+
+    if not interactive or click.confirm('generate deployment settings '+conf['punch']['deployment_settings'] + ' ?'):
+        with  open(conf['punch']['deployment_settings_template'],"r") as template, \
+                open(conf['punch']['platform_descriptor'],"r") as descriptor, \
+                open(conf['punch']['deployment_settings'],"w+") as output, \
+            open(conf['punch']['platform_settings'],"r") as settings:
+            ctx.invoke(generate_deployment,
+                       descriptor=descriptor,
+                       settings=settings,
+                       template=conf['punch']['deployment_settings_template'],
+                       output=output)
+
+@cli.group()
+def generate():
+    """
+    Generate deployment files.
+
+    The generate command lets you generate some of the configuration files you
+    will need to deploy a punch. Prefer using the play commands that
+    do all that for you.
+
+    The generate commands are used to finley control each intermediate
+    configuration file generation.
+    \f
+    """
+    pass
+
+@generate.command(name="descriptor")
+@click.option("--deployer",
+              required=True,
+              type=click.Path(exists=True),
+              help="path to the punch deployer folder")
+@click.option("--topology", required=True, type=click.File("rb"), help="a punch topology description file")
+@click.option("--output", default=None, type=click.File("w"), help="the generated platform inventory descriptor. Default : none")
+def generate_descriptor(deployer, topology, output):
+    """
+    Generate the bootstrap descriptor file.
+
+    This command generates a platform descriptor file required by the punch deployer.
+    That file is built from a so called platform topology file that describes your target
+    platform in a simple and human readable format.
+
+    It generates a files that contains useful informations such as version numbers for each
+    punch components (including the third-party cots). This file is handy
+    for you to avoid filling manually that information in your inventories.
+    """
+    model_dict = {"versions": get_components_version(deployer)}
+    servers = yaml.load(topology.read(), Loader=yaml.SafeLoader)["servers"]
+    services_dict = {}
+    for s, params in servers.items():
+        for service in params["services"]:
+            services_dict[service] = services_dict.get(service, []) + [s]
+    model_dict = {**model_dict, **{"services": services_dict}}
+    formated_model = yaml.dump(model_dict)
+    if output is None:
+        print(formated_model)
+    else:
+        output.write(formated_model)
+
+def generate_shiva_servers(servers: List[str], conf, is_leader=False):
+    servers_dict = {}
+    for server in servers:
+        servers_dict[server] = {
+            "runner": True,
+            "can_be_master": is_leader,
+            "tags": conf["tags"]
+        }
+    return servers_dict
+
+def generate_metricbeat_servers(servers: List[str]):
+    servers_dict = {}
+    for server in servers:
+        servers_dict[server] = {}
+    return servers_dict
+
+def generate_spark_workers(servers: List[str], conf, interface):
+    slaves = {}
+    for server in servers:
+        slaves[server] = {
+            "listen_interface": interface,
+            "slave_port": conf["slave_port"],
+            "webui_port": conf["webui_port"]
+        }
+    return slaves
 
 
-## GENERATE FILE MODEL ##
-def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = None, vagrant_interface: str = None,
-                   security: bool = False):
+@generate.command(name="deployment-settings")
+@click.option("--descriptor", required=True, type=click.File("rb"),
+              help="the platform descriptor file generated using the 'generate descriptor' command")
+@click.option("--settings", required=True, type=click.File("rb"),
+              help="the punch settings file. It provides all the required settings "
+                   "for each component you selected. If you are in doubt use the punchbox "
+                   "configurations/punch_defaults.yml file.")
+@click.option("--template", required=False, type=click.Path(exists=True),
+              help="the deployment template. The default is  "
+                   "templates/deployment_settings.j2 in your punchbox. It provides all the required settings ")
+@click.option("--output", type=click.File("w"), help="Output file")
+def generate_deployment(descriptor, settings, template, output):
+    """
+        Generate the punch deployment settings file. That file is your input to use the punch
+        deployer. It contains the complete and precise settings of all your components.
 
-    model = {}
-    data = get_versions(deployer)
+        That file is, of course, a rich file. Each section of it is fully described in the punch
+        online documentation. It is generated from a ready to use template file and the descriptor
+        file generated using the 'generate descriptor' command.
 
-    # vagrant model
-    model['version'] = data
-    # os
-    if vagrant_os is not None:
-        model['os'] = vagrant_os
-    # interface
-    if vagrant_interface is not None:
-        model['iface'] = vagrant_interface
-    elif vagrant_mode is True:
-        if 'centos' in platform_config['targets']['meta']['os']:
-            model['iface'] = "eth1"
+        Once you have that file you are good to go to dploy your punch.
+    """
+    descriptor_dict = yaml.load(descriptor.read(), Loader=yaml.SafeLoader)
+
+    if settings is None:
+        punchbox_dir = os.environ.get('PUNCHBOX_DIR')
+        if punchbox_dir is None:
+            logging.fatal('if you do not provide settings you must set the PUNCHBOX_DIR environment variable')
+            exit(1)
+        settings = punchbox_dir + '/configurations/punch_vagrant_setting.yml'
+        logging.info('using settings '+template)
+    settings_dict = yaml.load(settings.read(), Loader=yaml.SafeLoader)
+
+    if template is None:
+        punchbox_dir = os.environ.get('PUNCHBOX_DIR')
+        if punchbox_dir is None:
+            logging.fatal('if you do not provide a deployment-settings.j2 you must set the PUNCHBOX_DIR environment variable')
+            exit(1)
+        template = punchbox_dir + '/templates/deployment-settings.j2'
+        logging.info('using default punch template '+template)
+    deployment_template = load_template(template)
+    shiva_servers = {}
+    for name, servers in descriptor_dict["services"].items():
+        if name == "shiva_leader":
+            shiva_servers = {**shiva_servers, **generate_shiva_servers(servers, settings_dict["shiva"], True)}
+        elif name == "shiva_worker":
+            shiva_servers = {**shiva_servers, **generate_shiva_servers(servers, settings_dict["shiva"])}
+        elif name == "zookeeper":
+            settings_dict["zookeeper"]["servers"] = descriptor_dict["services"][name]
+        elif name == "kafka":
+            settings_dict["kafka"]["brokers"] = [{"id": i, "broker": broker} for i, broker in enumerate(servers)]
+        elif name == "metricbeat":
+            settings_dict["metricbeat"]["servers"] = generate_metricbeat_servers(servers)
+        elif name == "storm_leader":
+            settings_dict["storm"]["masters"] = descriptor_dict["services"][name]
+        elif name == "storm_worker":
+            settings_dict["storm"]["slaves"] = descriptor_dict["services"][name]
+        elif name == "storm_ui":
+            settings_dict["storm"]["ui_servers"] = descriptor_dict["services"][name]
+        elif name == "spark_master":
+            settings_dict["spark"]["masters"] = descriptor_dict["services"][name]
+        elif name == "spark_worker":
+            settings_dict["spark"]["slaves"] = generate_spark_workers(servers, settings_dict["spark"],
+                                                                           descriptor_dict["interface"])
         else:
-            model['iface'] = "enp0s8"
-    else:
-        model['iface'] = "ens4"
-    # security model
-    if security:
-        model = patch_security_model(model)
+            raise NotImplementedError(f"{name} is not supported yet")
 
-    model = json.dumps({**model, **platform_config['punch']}, indent=4, sort_keys=True)
-    model_file = open(generated_model, "w+")
-    model_file.write(model)
-    model_file.close()
-    logging.info(' platform model file successfully generated in %s', generated_model)
-    return model
+    if "shiva" in settings_dict:
+        settings_dict["shiva"]["servers"] = shiva_servers
 
-
-# CREATE PP-CONF #
-def create_ppconf():
-    if not os.path.exists(build_conf_dir):
-        logging.info(' creating build configuration directory %s', build_conf_dir)
-        os.makedirs(build_conf_dir)
-
-
-## CREATE RESOLV FILE ##
-def create_resolver(platform_config, deployer, security=False):
-    render_and_write(platform_templates, resolv_template_file, resolv_target,
-                     punch=platform_config["punch"], security=security, versions=get_versions(deployer))
-    logging.info(' platform resolv.hjson successfully generated in %s', resolv_target)
-
-
-# IMPORT CHANNELS AND RESOURCES IN PP-CONF #
-def import_user_resources(punch_user_config, platform_config_file, validation, target_os):
-    if validation is False:
-        # No need to import validation tenant
-        ignore = ["*.properties", "resolv.*", "validation"]
-        my_copy_tree(punch_user_config, build_conf_dir, ignore=ignore)
-        logging.info(' punch user configuration successfully imported in %s', build_conf_dir)
-    else:
-        # Need to render and import validation tenant files
-        ignore = ["*.properties", "resolv.*", "*.j2"]
-        my_copy_tree(punch_user_config, build_conf_dir, ignore=ignore)
-
-        # Get constants for template
-        rules_dir = os.path.join(punch_user_config, 'tenants/validation/channels/elastalert_validation/rules')
-        nb_to_validate = len([f for f in next(os.walk(rules_dir))[1]])
-
-        # Time constants
-        validation_now = datetime.now()
-        validation_id = int(validation_now.timestamp())
-        validation_time = validation_now.isoformat(timespec="seconds")
-
-        # Config constants
-        validation_tenant = '/tenants/validation'
-        platform_config = load_platform_config(platform_config_file)
-        target_os = target_os if target_os is not None else platform_config["targets"]["meta"]["os"]
-        spark_master = platform_config["punch"]["spark"]["masters"][0] if "spark" in platform_config["punch"] else ""
-
-        # Git constants
-        pp_punch_dir = os.getenv('PUNCH_DIR', default=punchbox_dir)
-        branch = subprocess.check_output(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=pp_punch_dir
-        ).strip().decode()
-        commit = subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"], cwd=pp_punch_dir
-        ).strip().decode()
-        commit_date = subprocess.check_output(
-            ["git", "log", "-1", "--date=format:%Y-%m-%dT%H:%M", "--format=%ad"], cwd=pp_punch_dir
-        ).strip().decode()
-
-        loader = jinja2.FileSystemLoader(punch_user_config + validation_tenant)
-        env = jinja2.Environment(loader=loader)
-        templates = env.list_templates()
-        for template in templates:
-            try:
-                if "check.sh" in template:
-                    render_and_write(env, template, build_conf_dir + validation_tenant + '/' + template,
-                                     punch=platform_config["punch"], os=platform_config['targets']['meta']['os'])
-                else:
-                    render_and_write(
-                        env, template, build_conf_dir + validation_tenant + '/' + template,
-                        spark_master=spark_master,
-                        elasticsearch_host=platform_config["punch"]["elasticsearch"]["servers"][0],
-                        shiva_host=platform_config["punch"]["shiva"]["servers"][0],
-                        validation_id=validation_id,
-                        validation_time=validation_time,
-                        nb_to_validate=nb_to_validate,
-                        livedemo_api_url=os.getenv('LIVEDEMO_API_URL', default="http://test"),
-                        user=os.getenv('USER', default='anonymous'),
-                        sysname=os.uname().sysname,
-                        release=os.uname().release,
-                        hostname=os.uname().nodename,
-                        target_config=os.path.basename(platform_config_file),
-                        target_os=target_os,
-                        gateway_host=platform_config["punch"]["gateway"]["servers"][0],
-                        branch=branch,
-                        commit=commit,
-                        commit_date=commit_date
-                    )
-            except Exception as e:
-                logging.error('Failure while working on template "%s".', template)
-                raise
-        logging.info(' punch validation configuration successfully imported in %s', build_conf_dir)
-
-
-## CREATE A VALIDATION SHELL ##
-def create_check_platform(platform_config, punch_user_config, security=False):
     try:
-        rules_dir = os.path.join(punch_user_config, 'tenants/validation/channels/elastalert_validation/rules')
-        rules = [f for f in next(os.walk(rules_dir))[1]]
-        render_and_write(platform_templates, check_platform_template, check_platform_target,
-                         punch=platform_config['punch'], rules=rules, security=security)
-        os.chmod(check_platform_target, 0o775)
-        logging.info(' punchplatform validation shell successfully generated in %s', check_platform_target)
-    except UndefinedError as err:
-        logging.error('cannot create \"check_platform\" properly: {}'.format(err))
-
-
-def render_and_write(template_dir, template_file, target_file, *args, **kwargs):
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir)) \
-        if isinstance(template_dir, str) else template_dir
-    template = env.get_template(template_file)
-    rendered_content = template.render(*args, **kwargs)
-    target = open(target_file, "w+")
-    target.write(rendered_content)
-    target.close()
-
-
-def main():
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-
-    if "PUNCHBOX_DIR" not in os.environ:
-        logging.fatal(' PUNCHBOX_DIR environment variable is not set')
+        output_txt = deployment_template.render(**settings_dict, **descriptor_dict)
+    except TypeError:
+        logging.exception("your deployment-settings.j2 must be wrong")
+        print('Your descriptor:')
+        print(descriptor_dict)
+        print('Your settings:')
+        print(settings_dict)
         exit(1)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--deployer",
-        help="Path to the punch deployer zip archive. Something like punchplatform-deployer-6.1.0.zip.")
-    parser.add_argument(
-        "--punch-user-config",
-        help="Path to a punch configuration folder with your channels and resources."
-             " If you have no idea, check and use the punchbox/punch/configurations/sample/conf folder.")
-    parser.add_argument(
-        "--validation",
-        help="Activate punch validation. Default to false", action="store_true")
-    parser.add_argument(
-        "--elastalert-tool",
-        help="Path to the punchplatform-elastalert.sh tool. Required to launch single validation rules.")
-    parser.add_argument(
-        "--platform-config-file",
-        help="Path to your platform json configuration. "
-             "Check the punchbox/configurations folder for ready to use configurations."
-             " For example complete_punch_16G.json for a complete punch assuming 16Gb ram on your laptop.")
-    parser.add_argument("--destroy-vagrant", help="Vagrant destroy", action="store_true")
-    parser.add_argument("--generate-vagrantfile", help="Generate vagrantfile", action="store_true")
-    parser.add_argument("--start-vagrant", help="Vagrant up", action="store_true")
-    parser.add_argument("--os", help="Operating system to deploy with Vagrant. If set, it overwrites configuration")
-    parser.add_argument("--interface", help="Interface to apply to deployed services")
-    parser.add_argument("--security", help="Enable security deployment", action="store_true")
-    args = parser.parse_args()
-
-    if args.destroy_vagrant is True:
-        destroy_vagrant_boxes()
-
-    if args.platform_config_file is not None:
-        platform_config = load_platform_config(args.platform_config_file)
-        create_ppconf()
-
-    if args.generate_vagrantfile is True:
-        create_vagrantfile(platform_config, args.os)
-
-    if args.start_vagrant is True:
-        launch_vagrant_boxes()
-
-    if args.deployer is not None:
-        unzip_punch_archive(args.deployer)
-        generate_model(platform_config, args.deployer, args.generate_vagrantfile, args.os, args.interface,
-                       args.security)
-
-    if args.security is not None:
-        copyfile(platform_templates+"/"+secrets_template_file, secret_target)
-    if args.punch_user_config is not None:
-        import_user_resources(args.punch_user_config, args.platform_config_file, args.validation, args.os)
-        if "empty" not in args.platform_config_file:
-            create_resolver(platform_config, args.deployer, args.security)
-            if args.validation is True:
-                create_check_platform(platform_config, args.punch_user_config, args.security)
-                if args.elastalert_tool is not None:
-                    copy_elastalert_tool(args.elastalert_tool)
-        else:
-            logging.info(" empty configuration detected: skipping \'resolv.hjson\' and \'check_platform\' generation")
+    output_json = json.dumps(json.loads(output_txt), indent=4)
+    if output is not None:
+        output.write(output_json)
+    else:
+        print(output_json)
 
 
-if __name__ == "__main__":
-    main()
+@generate.command(name="vagrantfile")
+@click.option("--topology", required=True, type=click.File("rb"), help="a punch topology description file")
+@click.option("--template", required=False, type=click.Path(exists=True))
+@click.option("--output", type=click.File("w"))
+def generate_vagrantfile(topology, template: str, output):
+    """
+    Generate Vagrantfile
+    """
+    if template is None:
+        punchbox_dir = os.environ.get('PUNCHBOX_DIR')
+        if punchbox_dir is None:
+            logging.fatal('if you do not provide a vagrant template file you must set the PUNCHBOX_DIR environment variable')
+            exit(1)
+        template = punchbox_dir + '/vagrant/Vagrantfile.j2'
+        logging.info('using default vagrant template '+template)
+
+    template_jinja = load_template(template)
+    config_dict = yaml.load(topology.read(), Loader=yaml.SafeLoader)
+    rendered_template = template_jinja.render(**config_dict)
+    if output is not None:
+        output.write(rendered_template)
+    else:
+        print(rendered_template)
+
+if __name__ == '__main__':
+    cli()

@@ -1,0 +1,42 @@
+{
+  {% if reporter is defined %}
+  "reporters": {{ reporters | tojson }},
+  {% endif %}
+  {% if operator is defined %}
+  "punchplatform_operator": {{ punchplatform_operator | tojson }},
+  {% endif %}
+  {% if zookeeper is defined %}
+  "zookeeper": {
+    "zookeeper_version": "{{ versions.zookeeper }}",
+    "zookeeper_nodes_production_interface": "{{ interface }}",
+    "zookeeper_childopts": "{{ zookeeper.zookeeper_childopts }}",
+    "clusters": {
+      "{{ zookeeper.cluster_name }}": {
+        "hosts": {{ zookeeper.servers | tojson }},
+        "cluster_port": {{ zookeeper.cluster_port }},
+        "punchplatform_root_node": "{{ zookeeper.punchplatform_root_node }}"
+      }
+    }
+  },
+  {% endif %}
+  {% if kafka is defined %}
+  "kafka": {
+    "kafka_version": "{{ versions.kafka }}",
+    "kafka_brokers_production_interface": "{{ interface }}",
+    "clusters": {
+      "{{ kafka.cluster_name }}": {
+        "brokers_with_ids": {{ kafka.brokers | tojson }},
+        "zk_cluster": "{{ kafka.zk_cluster }}",
+        "zk_root": "{{ kafka.zk_root }}",
+        "brokers_config": "{{ kafka.brokers_config }}",
+        "default_replication_factor": {{ kafka.default_replication_factor }},
+        "default_partitions": {{ kafka.default_partitions }},
+        "partition_retention_bytes": {{ kafka.partition_retention_bytes }},
+        "partition_retention_hours": {{ kafka.partition_retention_hours }},
+        "kafka_brokers_jvm_xmx": "{{ kafka.kafka_brokers_jvm_xmx }}"
+      }
+    }
+  },
+  {% endif %}
+  "platform": {{ platform | tojson }}
+}

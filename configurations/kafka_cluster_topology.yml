@@ -1,0 +1,24 @@
+---
+os: ubuntu/bionic64
+servers:
+  kafka1:
+    disksize: 40GB
+    memory: 2000
+    cpu: 1
+    services:
+    - kafka
+    - zookeeper
+  kafka2:
+    disksize: 40GB
+    memory: 2000
+    cpu: 1
+    services:
+    - kafka
+    - zookeeper
+  kafka3:
+    disksize: 40GB
+    memory: 2000
+    cpu: 1
+    services:
+    - kafka
+    - zookeeper

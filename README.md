@@ -90,6 +90,18 @@ Here is the punchbox folder layout.
     └── vagrant resource to create the server infrastructure
 ```
 
+## Deploy a Punch
+
+To deploy a punch do the following. First pick your punch deployer and topology (checkout the ones available) and generate a descriptor yml file required by the deployer.
+Save that file somewhere.
+```sh
+punchbox generate descriptor \
+  --deployer ~/punch-deployer-6.3.0-SNAPSHOT \
+  --topology punchbox/configurations/kafka_cluster_topology.yml \
+  > ~/workspace/descriptor.yml
+```
+
+
 ## Generate Bare Linux Vagrant Boxes
 
 A first basic requirement is to generate one or several linux boxes. You will find some
