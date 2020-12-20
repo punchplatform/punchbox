@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import zipfile
 from pathlib import Path
@@ -41,7 +42,7 @@ def load_template(template):
     template_path = Path(template)
     template_dir = template_path.parent
     loader = jinja2.FileSystemLoader(template_dir)
-    env = jinja2.Environment(loader=loader)
+    env = jinja2.Environment(loader=loader, trim_blocks=True, lstrip_blocks=True)
     return env.get_template(template_path.name)
 
 
@@ -62,38 +63,80 @@ def format(dictionary: dict, file_format: str) -> str:
 @click.group()
 def cli():
     """
-    Welcome to punchbox. This punch tool is your easy way to punch deployment and testing.
+    Welcome to punchbox. This punch tool is your easy way todeploy, test or develop on
+    top of the punch.
+
+    Two set of commands are available. The one under 'workspace' are the ones you are most likely
+    to use. They let you build a workspace folder to configure what you need and deploy your punch.
+
+    The ones under 'generate' are finer grain commands to selectively generate some of
+    the configuration files.
+
+    A good starting point is to type 'punchbox workspace create'
     \f
     """
     pass
 
 @cli.group()
-def deploy():
+def workspace():
     """
-    Deploy your punch.
+    Setup your workspace.
 
-    The deploy commands lets you quickly setup and deploy a punch environment
-    for development or testing purposes.
+    This method will create a so-called worskpace folder. The workspace
+    is a separate folder that will contain all your configuration files,
+    and from where you will be able to start your VMs, deploy your punch,
+    define your punch tenants and channels.
 
-    Start with 'setup', then review the generate configuration file. Once happy,
-    proceed with 'deploy'.
+    The workspace is kept separated from your punchbox and punch deployer
+    folders for both simplicity and maintainability.
 
-    The play commands assumes you have an empty workspace folder where all the
-    VMs, configuration files will be stored.
+    The default worskpace is ~/punchbox-workspace.
+
     \f
     """
     pass
 
-@deploy.command(name="setup")
+@workspace.command(name="create")
 @click.option("--deployer",
               required=True,
               type=click.Path(exists=True),
               help="path to the punch deployer folder")
-@click.option("--workspace", required=True, default=None, type=click.Path("w"), help="the destination folder")
-def setup(deployer, workspace):
+@click.option("--workspace",
+              required=False,
+              default=str(Path.home())+'/punchbox-workspace',
+              type=click.Path(),
+              help="the punchbox workspace")
+@click.option("--topology",
+              required=False,
+              default=None,
+              type=click.Path(),
+              help="the target platform topology. A sample one will be picked for you if you do not provide one.")
+def create_workspace(deployer, workspace, topology):
+    """
+    Create a punchbox working space.
+
+    This method will create the punchbox worskpace folder. That
+    folder will contain all your configuration files.
+    From there you will be able to start your VMs, deploy your punch,
+    define your punch tenants and channels etc..
+
+    The workspace is kept separated from your punchbox and punch deployer
+    folders because it is both simpler and easier for you to maintain
+    your configurations safe.
+
+    Should your work with a long-lived workspace we strongly suggest you use git to keep
+    track of the changes.
+    """
     punchBoxDir = os.environ.get('PUNCHBOX_DIR')
-    confDir = workspace+"/conf"
-    confFile = confDir + "/punchbox.yml"
+    workspaceConfDir = workspace+"/ws-conf"
+    workspacePpConfDir = workspace+"/pp-conf"
+    workspaceVagrantDir = workspace+"/vagrant"
+    workspaceTemplateDir = workspaceConfDir + '/templates'
+    workspacePunchboxFile = workspaceConfDir + "/punchbox.yml"
+    workspaceBlueprint = workspaceConfDir + "/blueprint.yml"
+    if topology is None:
+        topology = punchBoxDir+'/samples/sample_punch_topology.yml'
+
     dictionary = {
         'env' : {
             "punchbox_dir": os.environ.get('PUNCHBOX_DIR'),
@@ -101,50 +144,103 @@ def setup(deployer, workspace):
             "deployer" : os.path.abspath(deployer)
         },
         'vagrant' : {
-            "template" : os.path.abspath(punchBoxDir + '/vagrant/Vagrantfile.j2'),
-            "vagrantfile" : os.path.abspath(workspace + '/vagrant/Vagrantfile')
+            "template" : os.path.abspath(workspaceVagrantDir + '/Vagrantfile.j2'),
+            "vagrantfile" : os.path.abspath(workspaceVagrantDir + '/Vagrantfile')
         },
         'punch' : {
-            "platform_topology" : os.path.abspath(punchBoxDir + '/configurations/complete_topology.json'),
-            "platform_settings" : os.path.abspath(punchBoxDir + '/configurations/punch_vagrant_setting.yml'),
-            "deployment_settings_template" : os.path.abspath(punchBoxDir + '/templates/deployment-settings.j2'),
-            "platform_descriptor" : os.path.abspath(workspace + '/conf/platform_descriptor.yml'),
-            "deployment_settings" : os.path.abspath(workspace + '/conf/deployment-settings.json')
+            "platform_blueprint" : os.path.abspath(workspaceConfDir + '/platform_blueprint.yml'),
+            "platform_topology" : os.path.abspath(workspaceConfDir + '/platform_topology.yml'),
+            "platform_settings" : os.path.abspath(workspaceConfDir + '/platform_settings.yml'),
+            "deployment_settings_template" : os.path.abspath(workspaceTemplateDir + '/punchplatform-deployment.settings.j2'),
+            "platform_descriptor" : os.path.abspath(workspaceConfDir + '/platform_descriptor.yml'),
+            "deployment_settings" : os.path.abspath(workspacePpConfDir + '/punchplatform-deployment-settings.yml')
         }
     }
-    if not os.path.exists(confDir):
-        os.makedirs(confDir)
-    if  not os.path.exists(confFile) or click.confirm('Overwrite '+confFile+' ?'):
-        with open(confFile, 'w+') as outfile:
-            yaml.dump(dictionary, outfile)
-        print('All done. Checkout and review '+confFile )
-        print('You are then ready to deploy')
+    if not os.path.exists(workspaceTemplateDir):
+        os.makedirs(workspaceTemplateDir)
+    if not os.path.exists(workspaceConfDir):
+        os.makedirs(workspaceConfDir)
+    if not os.path.exists(workspacePpConfDir):
+        os.makedirs(workspacePpConfDir)
+    if not os.path.exists(workspaceVagrantDir):
+         os.makedirs(workspaceVagrantDir)
+    workspaceVagrantJ2File = os.path.abspath(workspaceVagrantDir + '/Vagrantfile.j2')
+    workspaceVagrantFile = os.path.abspath(workspaceVagrantDir + '/Vagrantfile')
+    workspaceBlueprintFile = os.path.abspath(workspaceConfDir + '/blueprint.yml')
+    workspaceDescriptorFile = os.path.abspath(workspaceConfDir + '/platform_descriptor.yml')
+    workspacePlatformSettingsFile = os.path.abspath(workspaceConfDir + '/platform_settings.yml')
+    workspaceDeploymentSettingsFile = os.path.abspath(workspaceConfDir + '/deployment-settings.json')
+    workspaceActivateFile = os.path.abspath(workspace + '/activate.sh')
+    workspaceTopologyFile = os.path.abspath(workspaceConfDir+ '/platform_topology.yml')
+    workspaceDeploymenSettingsJ2File = os.path.abspath(workspaceTemplateDir + '/punchplatform-deployment.settings.j2')
+    if  not os.path.exists(workspacePunchboxFile) or click.confirm('Overwrite your configurations ?'):
+        # for the sake of clarity, we remove all the files that are generated.
+        # It makes it clearer to the user what must be generated next.
+        if os.path.exists(workspaceVagrantFile):
+            os.remove(workspaceVagrantFile)
+        if os.path.exists(workspaceBlueprintFile):
+            os.remove(workspaceBlueprintFile)
+        if os.path.exists(workspaceDescriptorFile):
+            os.remove(workspaceDescriptorFile)
+        if os.path.exists(workspaceDeploymentSettingsFile):
+            os.remove(workspaceDeploymentSettingsFile)
+        if os.path.exists(workspaceActivateFile):
+            os.remove(workspaceActivateFile)
 
-@deploy.command(name="deploy")
-@click.option("--workspace", required=True, default=None, type=click.Path("w"), help="the destination folder")
-@click.option('--interactive', '-i', is_flag=True, default=False, help="interactive mode")
+        # populate the user workspace with the required starting configuration files.
+        shutil.copy(os.path.abspath(topology), workspaceTopologyFile)
+        shutil.copy(os.path.abspath(punchBoxDir + '/samples/complete_vagrant_settings.yml'),
+                    workspacePlatformSettingsFile)
+        shutil.copy(os.path.abspath(punchBoxDir + '/vagrant/Vagrantfile.j2'), workspaceVagrantJ2File)
+        shutil.copy(os.path.abspath(punchBoxDir + '/templates/punchplatform-deployment.settings.j2'),
+                    workspaceDeploymenSettingsJ2File)
+        with open(workspaceActivateFile, "w+") as activateFile:
+            activateFile.write("export PATH=$PATH:"+os.path.abspath(deployer)+"/bin\n")
+            activateFile.write("export PUNCHPLATFORM_CONF_DIR="+workspacePpConfDir+"\n")
+        # generate the main descriptor file
+        with open(workspacePunchboxFile, 'w+') as outfile:
+            yaml.dump(dictionary, outfile)
+
+
+@workspace.command(name="build")
+@click.option("--workspace",
+              required=False,
+              default=str(Path.home())+'/punchbox-workspace',
+              type=click.Path(),
+              help="the punchbox workspace")
+@click.option('--yes', '-y', is_flag=True, default=True, help="confirmed mode")
 @click.pass_context
-def deploy(ctx, workspace, interactive):
+def build_workspace(ctx, workspace, yes):
+    """
+    Build you workspace.
+
+    Once created, a few configuration files must be generated from
+    various temlplates. This command make your workspace ready to move
+    on to deploying a punch.
+
+    By default this command is interactive and prompt before generating a file.
+    If you want it to be silent use the confirmed mode.
+    """
     conf = {}
-    with open(workspace+"/conf/punchbox.yml") as infile:
+    with open(workspace+"/ws-conf/punchbox.yml") as infile:
         conf = yaml.load(infile.read(), Loader=yaml.SafeLoader)
 
     punchBoxDir = conf['env']['punchbox_dir']
-    if not interactive or click.confirm('generate vagrantfile '+conf['vagrant']['vagrantfile'] + ' ?'):
+    if not yes or click.confirm('generate vagrantfile '+conf['vagrant']['vagrantfile'] + ' ?'):
         if not os.path.exists(conf['env']['workspace']+'/vagrant'):
             os.makedirs(conf['env']['workspace']+'/vagrant')
         with open(conf['punch']['platform_topology']) as topology, \
                 open(conf['vagrant']['vagrantfile'], 'w+') as vagrantfile:
             ctx.invoke(generate_vagrantfile, topology=topology, template=conf['vagrant']['template'], output=vagrantfile)
 
-    if not interactive or click.confirm('generate platform descriptor '+conf['punch']['platform_descriptor'] + ' ?'):
+    if not yes or click.confirm('generate platform descriptor '+conf['punch']['platform_descriptor'] + ' ?'):
         if not os.path.exists(conf['env']['workspace']+'/vagrant'):
             os.makedirs(conf['env']['workspace']+'/vagrant')
         with open(conf['punch']['platform_topology']) as topology, \
                 open(conf['punch']['platform_descriptor'],"w+") as descriptor :
             ctx.invoke(generate_descriptor,  deployer=conf['env']['deployer'], topology=topology, output=descriptor)
 
-    if not interactive or click.confirm('generate deployment settings '+conf['punch']['deployment_settings'] + ' ?'):
+    if not yes or click.confirm('generate deployment settings '+conf['punch']['deployment_settings'] + ' ?'):
         with  open(conf['punch']['deployment_settings_template'],"r") as template, \
                 open(conf['punch']['platform_descriptor'],"r") as descriptor, \
                 open(conf['punch']['deployment_settings'],"w+") as output, \
@@ -154,13 +250,12 @@ def deploy(ctx, workspace, interactive):
                        settings=settings,
                        template=conf['punch']['deployment_settings_template'],
                        output=output)
-
 @cli.group()
 def generate():
     """
     Generate deployment files.
 
-    The generate command lets you generate some of the configuration files you
+    The generate commands lets you generate some of the configuration files you
     will need to deploy a punch. Prefer using the play commands that
     do all that for you.
 
@@ -175,8 +270,11 @@ def generate():
               required=True,
               type=click.Path(exists=True),
               help="path to the punch deployer folder")
-@click.option("--topology", required=True, type=click.File("rb"), help="a punch topology description file")
-@click.option("--output", default=None, type=click.File("w"), help="the generated platform inventory descriptor. Default : none")
+@click.option("--topology", required=True, type=click.File("rb"),
+              help="a punch topology description file")
+@click.option("--output", default=None, type=click.File("w"),
+              help="the generated platform inventory descriptor. "
+                "If not provided the file is written to stdout")
 def generate_descriptor(deployer, topology, output):
     """
     Generate the bootstrap descriptor file.
@@ -228,7 +326,6 @@ def generate_spark_workers(servers: List[str], conf, interface):
         }
     return slaves
 
-
 @generate.command(name="deployment-settings")
 @click.option("--descriptor", required=True, type=click.File("rb"),
               help="the platform descriptor file generated using the 'generate descriptor' command")
@@ -251,6 +348,7 @@ def generate_deployment(descriptor, settings, template, output):
 
         Once you have that file you are good to go to dploy your punch.
     """
+    blueprintDict = {}
     descriptor_dict = yaml.load(descriptor.read(), Loader=yaml.SafeLoader)
 
     if settings is None:
@@ -267,7 +365,7 @@ def generate_deployment(descriptor, settings, template, output):
         if punchbox_dir is None:
             logging.fatal('if you do not provide a deployment-settings.j2 you must set the PUNCHBOX_DIR environment variable')
             exit(1)
-        template = punchbox_dir + '/templates/deployment-settings.j2'
+        template = punchbox_dir + '/templates/punchplatform-deployment-settings.j2'
         logging.info('using default punch template '+template)
     deployment_template = load_template(template)
     shiva_servers = {}
@@ -300,7 +398,13 @@ def generate_deployment(descriptor, settings, template, output):
         settings_dict["shiva"]["servers"] = shiva_servers
 
     try:
-        output_txt = deployment_template.render(**settings_dict, **descriptor_dict)
+        blueprintDict['settings'] = settings_dict
+        blueprintDict['descriptor'] = descriptor_dict
+        outputYml = deployment_template.render(**blueprintDict)
+        if output is not None:
+            output.write(outputYml)
+        else:
+            print(outputYml)
     except TypeError:
         logging.exception("your deployment-settings.j2 must be wrong")
         print('Your descriptor:')
@@ -309,20 +413,22 @@ def generate_deployment(descriptor, settings, template, output):
         print(settings_dict)
         exit(1)
 
-    output_json = json.dumps(json.loads(output_txt), indent=4)
-    if output is not None:
-        output.write(output_json)
-    else:
-        print(output_json)
-
-
 @generate.command(name="vagrantfile")
-@click.option("--topology", required=True, type=click.File("rb"), help="a punch topology description file")
-@click.option("--template", required=False, type=click.Path(exists=True))
-@click.option("--output", type=click.File("w"))
+@click.option("--topology", required=True, type=click.File("rb"),
+              help="a punch topology description file")
+@click.option("--template", required=False, type=click.Path(exists=True),
+              help="a vagrant template vile")
+@click.option("--output", type=click.File("w"),
+              help="the output file where to write the Vagrant file. If not provided the generated file"
+                   " is written to stdout")
 def generate_vagrantfile(topology, template: str, output):
     """
-    Generate Vagrantfile
+    Generate Vagrantfile.
+
+    This command lets you easily generate a Vagrantfile from the punchbox provided
+    template. You can use you own template in case you have one.
+
+    The default template is located in the punchbox vagrant/Vagrantfile.j2 file.
     """
     if template is None:
         punchbox_dir = os.environ.get('PUNCHBOX_DIR')

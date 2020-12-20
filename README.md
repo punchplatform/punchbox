@@ -28,8 +28,8 @@ Some python module, such as ansible, are generated as PEX by our `Makefile` inst
 
 ### RSA Key for ssh
 
-The use of ssh to deploy software inside VMs relies on having generated a RSA key in the user environment (~/.ssh/id_rsa.pub).
-If it does not exist, you can create one :
+The use of ssh to deploy software inside VMs relies on having generated a RSA key in the user environment (\~/.ssh/id_rsa.pub). If it does not exist, you can create one :
+
 ```sh
 ssh-keygen  ### When prompted, use the provided default values (just press Return key)
 ```
@@ -99,6 +99,16 @@ your workspace.
 
 ```sh
 punchbox workspace build
+```
+
+## HOWTOS
+
+### HowTo regenerate the Vagrantfile
+
+From your workspace:
+
+```sh
+ punchbox generate vagrantfile --topology conf/platform_topology.yml --template vagrant/Vagrantfile.j2 >> vagrant/Vagrantfile
 ```
 
 

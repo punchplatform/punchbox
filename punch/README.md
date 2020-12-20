@@ -28,6 +28,43 @@ In the rest of this chapter we go through a complete deployment, assuming you ha
 
 ## Deployment
 
+
+To keep this guide simple we will assume you have the following folders at hand located in your home directory: 
+
+```sh
+.
+├── punchplatform-deployer-6.3.0
+│   └── your unzipped punch deployer
+├── punchbox
+│   └── the content of this punchbox repository
+└── workspace
+    └── an empty working folder to keep track of your configuration.
+```
+
+The very first step is simply to choose or create your target platform topology
+and to generate a bootstrap inventory file to be used for deployment. Type in
+
+```shell
+punchbox generate descriptor \
+  --deployer punch-deployer-6.3.0-SNAPSHOT \
+  --topology punchbox/configurations/kafka_shiva.json \
+  --output workspace/platform_descriptor.json
+```
+
+You can checkout the generate workspace/platform_descriptor.json file. It is straightforward.
+
+From there we will deploy the settings dile required by the punch deployer tool. That single file
+contains the precise settings of all your platform. It is, of course, a much richer file.
+
+```shell
+punchbox generate descriptor \
+  --deployer punch-deployer-6.3.0-SNAPSHOT \
+  --topology punchbox/configurations/kafka_shiva.json \
+  --output workspace/platform_descriptor.json
+```
+
+
+
 ### Quick start 
 
 This example shows how to deploy a complete punch quickly. We provided a Makefile to reduce 

@@ -2,15 +2,15 @@ platform:
   # the unique identifier must be worldwide. Metrics and data
   # generated from one punch can be forwarded to another. That id
   # is required to differentiate who sends what.
-  platform_id: punchbox-platform-id
+  id: punchbox-platform-id
 
   # all services (kafka elastic clickhouse shiva etc..) runs under
   # a single dameon unix user and group.
-  punchplatform_daemons_user: vagrant
-  punchplatform_group: vagrant
+  punch_daemons_user: vagrant
+  punch_daemons_group: vagrant
 
-  remote_data_root_directory: /data
-  remote_logs_root_directory: /var/log/punch
+  data_root: /data
+  logs_root: /var/log/punch
   setups_root: /opt
 
 zookeeper:
