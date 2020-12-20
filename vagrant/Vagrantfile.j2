@@ -100,8 +100,8 @@ Vagrant.configure("2") do |config|
 
       server.vm.provider :virtualbox do |v|
         v.gui = false
-        v.memory = {{ server.memory }}
-        v.cpus = {{ server.cpu }}
+        v.memory = {{ config.memory }}
+        v.cpus = {{ config.cpu }}
       end
 
       #To unregister the VM from the redhat developer account

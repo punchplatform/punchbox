@@ -1,22 +1,30 @@
-# Punch Integration Tools
+# Punchbox 
 
-This repository provides tools to deploy plain servers, kubernetes clusters and/or
-punch based platform in a production-ready setup. Most of these tools should be able to run on machine having at least 16GB of ram memory. 
-But is very useful should you have VMs or physical servers as well.
+This repository provides the official punchbox tool used to deploy punch platforms.
 
-This repository follows the punch branch naming convention. 
+This tool is designed for integrators, developers, testers or anyone
+curious about the punch. 
 
-For instance, this repository 5.7 branch should be used to deploy the same version of punch (5.7), the 6.0 to deploy a 6.0 etc. If you do not plan to install punch but only kube or vagrant boxes, stick to the latest stable branch !
+There are two ways to use the punchbox.
 
-**Behind the scene**
+1. local laptop deployments : you can deploy various punch instances on your laptop. Vagrant is used to create the required servers. 
+2. remote target deployments : the punchbox can be used only to generate the deployments files,
+then to deploy the punch onto your target servers. 
 
-We use `pyenv` to install the exact python version we depend on ~ **3.6.8**.
+You need a unix 8Gb laptop. For local deployments 16Gb is great for small punch instances, 32Gb 
+lets you deploy all the punch services and run integration tests.
+
+This repository follows the punch branch naming convention. For instance, this repository 6.3 branch should be used to deploy the same version of punch (6.3).
+
+## Requirements
+
+## Python 
+
+The punchbox tool is written in python. We use `pyenv` to install the exact python version we depend on ~ **3.6.8**.
 
 A virualenv directory is created at the root of this repository on your local filesystem, containing required python modules for the punchbox to be functional.
 
 Some python module, such as ansible, are generated as PEX by our `Makefile` install rule. They are then added to your $PATH upon sourcing a generated `activate.sh` script.
-
-## Requirements
 
 ### RSA Key for ssh
 
@@ -27,6 +35,8 @@ ssh-keygen  ### When prompted, use the provided default values (just press Retur
 ```
 
 ### Python and PEX
+
+
 This repository leverages python pex. We recommand the use of [pyenv](https://github.com/pyenv/pyenv). 
 If not familiar with python installation and best practices refer to 
 [Setup Python](https://doc.punchplatform.com/Contribution_Guide/Setup_Python.html). 
@@ -67,6 +77,31 @@ Check everything is correctly setup by executing the punchbox command:
 punchbox -h
 ```
 
+## Getting Started
+
+The first command to type in setup a workspace folder with all the required configuration files. 
+
+```sh
+punchbox workspace create --deployer ~/punch-deployer-6.3.0
+```
+You can alternatively provide your own platform topology file. Checkout the
+samples located in the sample directory. For example you may want to deploy only
+a working elasticsearch cluster, nothing else.
+
+```sh
+punchbox workspace create \
+      --deployer ~/punch-deployer-6.3.0 \
+      --topology samples/elasticsearch_cluster_topology.yml 
+```
+
+The next required command will generate the few additional configuration files in
+your workspace. 
+
+```sh
+punchbox workspace build
+```
+
+
 ## File Organisation
 
 Here is the punchbox folder layout. 
@@ -90,16 +125,6 @@ Here is the punchbox folder layout.
     └── vagrant resource to create the server infrastructure
 ```
 
-## Deploy a Punch
-
-To deploy a punch do the following. First pick your punch deployer and topology (checkout the ones available) and generate a descriptor yml file required by the deployer.
-Save that file somewhere.
-```sh
-punchbox generate descriptor \
-  --deployer ~/punch-deployer-6.3.0-SNAPSHOT \
-  --topology punchbox/configurations/kafka_cluster_topology.yml \
-  > ~/workspace/descriptor.yml
-```
 
 
 ## Generate Bare Linux Vagrant Boxes

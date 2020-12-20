@@ -3,8 +3,8 @@
 # (say) a kafka cluster, well you just have to define the settings
 # for what you need. 
 #
-# In order not to maintain lots of example, all punchbox topologies
-# leverafe the punch_vagrant_setting.yml files that is equivalent
+# In order not to maintain lots of sample files, all punchbox topologies
+# leverage the punch_vagrant_setting.yml files that is equivalent
 # but defines the settings for all the components. 
 
 platform:
