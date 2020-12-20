@@ -22,6 +22,7 @@ zookeeper:
 
 kafka:
   cluster_name: punchbox-kafka-cluster
+  cluster_port: 9200
   brokers_config: punchplatform-local-server.properties
   default_partitions: 2
   default_replication_factor: 1

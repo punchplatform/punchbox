@@ -1,0 +1,46 @@
+---
+platform:
+  platform_id: {{ settings.platform.id }}
+  setups_root: {{ settings.platform.setups_root }}
+  remote_data_root_directory: {{ settings.platform.data_root }}
+  remote_logs_root_directory: {{ settings.platform.logs_root }}
+  punchplatform_daemons_user: {{ settings.platform.punch_daemons_user }}
+  punchplatform_group: {{ settings.platform.punch_daemons_group }}
+  binaries_version: {{ topology.versions.binaries }}
+
+zookeeper:
+  zookeeper_version: {{ topology.versions.zookeeper }}
+  zookeeper_nodes_production_interface: {{ topology.network.production_interface }}
+  zookeeper_childopts: {{ settings.zookeeper.zookeeper_childopts }}
+  clusters:
+    local:
+      hosts:
+        {% for server in topology.services.zookeeper %}
+        - {{ server }}
+        {% endfor %}
+      cluster_port: {{ settings.zookeeper.cluster_port }}
+      punchplatform_root_node: {{ settings.zookeeper.punchplatform_root_node }}
+      servers:
+      {% for server in topology.services.zookeeper %}
+        {{ server }}: {}
+      {% endfor %}
+
+kafka:
+  kafka_version: {{ topology.versions.kafka }}
+  kafka_brokers_production_interface: {{ topology.network.production_interface }}
+  clusters:
+    local:
+      brokers_with_ids:
+      {% for server in topology.services.kafka %}
+      - id: {{ loop.index }}
+        broker: {{ server }}:{{ settings.kafka.cluster_port }}
+      {% endfor %}
+      zk_cluster: {{ settings.kafka.zk_cluster }}
+      zk_root: {{ settings.kafka.zk_root }}
+      brokers_config: {{ settings.kafka.brokers_config }}
+      default_replication_factor: {{ settings.kafka.default_replication_factor }}
+      default_partitions: {{ settings.kafka.default_partitions }}
+      partition_retention_bytes: {{ settings.kafka.partition_retention_bytes }}
+      partition_retention_hours: {{ settings.kafka.partition_retention_hours }}
+      kafka_brokers_jvm_xmx: {{ settings.kafka.kafka_brokers_jvm_xmx }}
+
