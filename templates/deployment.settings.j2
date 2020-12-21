@@ -8,39 +8,68 @@ platform:
   punchplatform_group: {{ settings.platform.punch_daemons_group }}
   binaries_version: {{ topology.versions.binaries }}
 
+{% if settings.reporters %}
+reporters:
+  {{ settings.reporters }}
+{% endif %}
+
+{% if topology.services.zookeeper %}
 zookeeper:
   zookeeper_version: {{ topology.versions.zookeeper }}
   zookeeper_nodes_production_interface: {{ topology.network.production_interface }}
   zookeeper_childopts: {{ settings.zookeeper.zookeeper_childopts }}
   clusters:
-    local:
+    {% for cluster, servers in topology.services.zookeeper.items() %}
+    {{ cluster }}:
       hosts:
-        {% for server in topology.services.zookeeper %}
-        - {{ server }}
+        {% for host, params in servers.items() %}
+        - {{host }}
         {% endfor %}
-      cluster_port: {{ settings.zookeeper.cluster_port }}
-      punchplatform_root_node: {{ settings.zookeeper.punchplatform_root_node }}
+      cluster_port: {{ settings.zookeeper.get(cluster).cluster_port }}
+      punchplatform_root_node: {{ settings.zookeeper.get(cluster).punchplatform_root_node }}
       servers:
-      {% for server in topology.services.zookeeper %}
+      {% for server in servers %}
         {{ server }}: {}
       {% endfor %}
+    {% endfor %}
+ {% endif %}
 
+{% if topology.services.kafka %}
 kafka:
   kafka_version: {{ topology.versions.kafka }}
   kafka_brokers_production_interface: {{ topology.network.production_interface }}
   clusters:
-    local:
+    {% for cluster, servers in topology.services.kafka.items() %}
+    {{ cluster }}:
       brokers_with_ids:
-      {% for server in topology.services.kafka %}
+      {% for host, params in servers.items() %}
       - id: {{ loop.index }}
-        broker: {{ server }}:{{ settings.kafka.cluster_port }}
+        broker: {{ host }}:{{ settings.kafka.get(cluster).cluster_port }}
       {% endfor %}
-      zk_cluster: {{ settings.kafka.zk_cluster }}
-      zk_root: {{ settings.kafka.zk_root }}
-      brokers_config: {{ settings.kafka.brokers_config }}
-      default_replication_factor: {{ settings.kafka.default_replication_factor }}
-      default_partitions: {{ settings.kafka.default_partitions }}
-      partition_retention_bytes: {{ settings.kafka.partition_retention_bytes }}
-      partition_retention_hours: {{ settings.kafka.partition_retention_hours }}
-      kafka_brokers_jvm_xmx: {{ settings.kafka.kafka_brokers_jvm_xmx }}
+      zk_cluster: {{ cluster }}
+      zk_root: {{ settings.kafka.get(cluster).zk_root }}
+      brokers_config: {{ settings.kafka.get(cluster).brokers_config }}
+      default_replication_factor: {{ settings.kafka.get(cluster).default_replication_factor }}
+      default_partitions: {{ settings.kafka.get(cluster).default_partitions }}
+      partition_retention_bytes: {{ settings.kafka.get(cluster).partition_retention_bytes }}
+      partition_retention_hours: {{ settings.kafka.get(cluster).partition_retention_hours }}
+      kafka_brokers_jvm_xmx: {{ settings.kafka.get(cluster).kafka_brokers_jvm_xmx }}
+    {% endfor %}
+{% endif %}
+
+{% if topology.services.shiva is defined %}
+shiva:
+  shiva_version: {{ topology.versions.shiva }}
+  clusters:
+  {% for cluster, servers in topology.services.shiva.items() %}
+    {{ cluster }}:
+      storage: {{ settings.shiva.get(cluster).storage }}
+      reporters: {{ settings.shiva.get(cluster).reporters }}
+      servers:
+      {% for host, params in servers.items() %}
+        {{ host }}:
+          {{ params }}
+      {% endfor %}
+  {% endfor %}
+{% endif %}
 

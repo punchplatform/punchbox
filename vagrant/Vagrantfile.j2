@@ -33,85 +33,88 @@ Vagrant.configure("2") do |config|
   {%- endif %}
 
 
-
   {%- for server, config in servers.items() %}
 
-   config.vm.define "{{ server }}" do |server|
+  config.vm.define "{{ server }}" do |server|
 
-      {#- temporary fix : Linux kernel version in centos vagrant official boxes are not supported by redhat anymore #}
-      {#- forcing eurolinux boxes for centos. Replace them later by vagrant official boxes #}
-      {%- if os == 'centos/8' %}
-      server.vm.box = "eurolinux-vagrant/centos-8"
-      {% elif os == 'centos/7' %}
-      server.vm.box = "eurolinux-vagrant/centos-7"
-      {#- rhel boxes need a redhat dev accout to download packages #}
-      {% elif os == 'rhel/7' %}
-      server.vm.box = "generic/rhel7"
-      {% else %}
-      server.vm.box = "{{ os }}"
-      {%- endif %}
-      server.vm.box_check_update = false
-      config.disksize.size = '{{ config.disksize }}'
+    {# temporary fix : Linux kernel version in centos vagrant official boxes are not supported by redhat anymore #}
+    {# forcing eurolinux boxes for centos. Replace them later by vagrant official boxes #}
+    {% if os == 'centos/8' %}
+    server.vm.box = "eurolinux-vagrant/centos-8"
+    {% elif os == 'centos/7' %}
+    server.vm.box = "eurolinux-vagrant/centos-7"
+    {# rhel boxes need a redhat dev accout to download packages #}
+    {% elif os == 'rhel/7' %}
+    server.vm.box = "generic/rhel7"
+    {% else %}
+    server.vm.box = "{{ os }}"
+    {% endif %}
 
-      # Share only sample_confs
-      server.vm.synced_folder '.', '/vagrant', disabled: true
-      server.vm.synced_folder '/tmp/archive-log/storage', '/tmp/archive-logs/storage', create: true
-      ## Configuration
-      server.vm.hostname = "{{ server }}"
-      server.vm.network "private_network", ip: "172.28.128.2{{ loop.index }}"
+    server.vm.box_check_update = false
+    config.disksize.size = '{{ config.disksize }}'
 
-      ## Provisionning
-      {%- set support_redhat = ["centos/7", "centos/8", "rhel/7"] %}
-      server.vm.provision "shell", inline: <<-EOF
+    # Share only sample_confs
+    server.vm.synced_folder '.', '/vagrant', disabled: true
+    server.vm.synced_folder '/tmp/archive-log/storage', '/tmp/archive-logs/storage', create: true
+      
+    ## Configuration
+    server.vm.hostname = "{{ server }}"
+    server.vm.network "private_network", ip: "172.28.128.2{{ loop.index }}"
+
+    ## Provisionning
+    {% set support_redhat = ["centos/7", "centos/8", "rhel/7"] %}
+
+    server.vm.provision "shell", inline: <<-EOF
         echo 'export LC_ALL=C' >> ~/.bashrc
         echo '#{PUBLIC_KEY}' >> /home/vagrant/.ssh/authorized_keys
-      EOF
+    EOF
 
+    {% if os in support_redhat %}
+    
+    server.vm.provision "shell", inline: "echo 'tmpfs /tmp tmpfs size=4g 0 0' >> /etc/fstab"
 
-      {%- if os in support_redhat %}
-      server.vm.provision "shell", inline: "echo 'tmpfs /tmp tmpfs size=4g 0 0' >> /etc/fstab"
+    # Disabling SElinux
+    server.vm.provision "shell", inline: "sudo sed -i 's/SELINUX=.*/SELINUX=disabled/' /etc/selinux/config"
+    server.vm.provision "shell", inline: "sudo setenforce 0"
 
-      # Disabling SElinux
-      server.vm.provision "shell", inline: "sudo sed -i 's/SELINUX=.*/SELINUX=disabled/' /etc/selinux/config"
-      server.vm.provision "shell", inline: "sudo setenforce 0"
+    # Disabling firewalld
+    
+    server.vm.provision "shell", inline: "sudo systemctl stop firewalld"
+    server.vm.provision "shell", inline: "sudo systemctl disable firewalld"
+    server.vm.provision "shell", inline: "sudo systemctl mask --now firewalld"
+    {% endif %}
 
-      # Disabling firewalld
-      server.vm.provision "shell", inline: "sudo systemctl stop firewalld"
-      server.vm.provision "shell", inline: "sudo systemctl disable firewalld"
-      server.vm.provision "shell", inline: "sudo systemctl mask --now firewalld"
-      {%- endif %}
+    {% if os not in support_redhat %}
+    server.vm.provision "shell", inline: "sed -i '5,10d' /home/vagrant/.bashrc"
+    {% endif %}
 
-      {%- if os not in support_redhat %}
-      server.vm.provision "shell", inline: "sed -i '5,10d' /home/vagrant/.bashrc"
-      {%- endif %}
+    server.vm.provision "shell", inline: "sed -i '/{{ server }}/d' /etc/hosts"
+    server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
+    server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
 
-      server.vm.provision "shell", inline: "sed -i '/{{ server }}/d' /etc/hosts"
-      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
-      server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
+    {% if os == 'rhel/7' %}
+    server.vm.provision "shell", :inline => "sudo subscription-manager register --username $1 --password $2", :args => [username, password]
+    server.vm.provision "shell", inline: "sudo subscription-manager attach"
+    {% endif %}
 
-      {%- if os == 'rhel/7' %}
-      server.vm.provision "shell", :inline => "sudo subscription-manager register --username $1 --password $2", :args => [username, password]
-      server.vm.provision "shell", inline: "sudo subscription-manager attach"
-      {%- endif %}
+    {% for server in servers %}
+    server.vm.provision "shell", inline: "echo '172.28.128.2{{ loop.index }} {{ server }}' >> /etc/hosts"
+    {% endfor %}
 
-      {%- for server in servers %}
-      server.vm.provision "shell", inline: "echo '172.28.128.2{{ loop.index }} {{ server }}' >> /etc/hosts"
-      {%- endfor %}
-
-      server.vm.provider :virtualbox do |v|
-        v.gui = false
-        v.memory = {{ config.memory }}
-        v.cpus = {{ config.cpu }}
-      end
-
-      #To unregister the VM from the redhat developer account
-      {%- if os == 'rhel/7' %}
-      server.trigger.before :destroy do |trigger|
-        trigger.warn = "Unregister the VM from redhat developer account"
-        trigger.run_remote = {inline: "sudo subscription-manager unregister"}
-      end
-     {%- endif %}
-
+    server.vm.provider :virtualbox do |v|
+      v.gui = false
+      v.memory = {{ config.memory }}
+      v.cpus = {{ config.cpu }}
     end
-  {%- endfor %}
+
+    # To unregister the VM from the redhat developer account
+    {% if os == 'rhel/7' %}
+    server.trigger.before :destroy do |trigger|
+      trigger.warn = "Unregister the VM from redhat developer account"
+      trigger.run_remote = {inline: "sudo subscription-manager unregister"}
+    end
+    {% endif %}
+
+  end
+  {% endfor %}
 end

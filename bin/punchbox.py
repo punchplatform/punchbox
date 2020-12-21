@@ -10,6 +10,7 @@ import click
 import jinja2
 import yaml
 import logging
+from copy import deepcopy
 
 COMPONENTS = [
     "punch", "minio", "zookeeper", "spark",
@@ -136,7 +137,7 @@ def create_workspace(deployer, workspace, topology):
     workspace_punchbox_file = workspace_conf_dir + "/punchbox.yml"
     workspace_topology_file = workspace_generated_conf_dir + '/topology.yml'
     workspace_deployment_settings_file = workspace_pp_conf_dir + '/deployment-settings.yml'
-    workspace_punchplatform_deployment_settings_file = workspace_pp_conf_dir + '/punchplatform-deployment-settings.json'
+    workspace_punchplatform_deployment_settings_file = workspace_pp_conf_dir + '/punchplatform-deployment.settings'
     workspace_deployment_settings_j2_file = workspace_template_dir + '/deployment.settings.j2'
     workspace_vagrant_j2_file = workspace_vagrant_dir + '/Vagrantfile.j2'
     workspace_vagrant_file = workspace_vagrant_dir + '/Vagrantfile'
@@ -262,12 +263,20 @@ def build_workspace(ctx, workspace, yes):
             os.makedirs(conf['env']['workspace']+'/vagrant')
         with open(conf['punch']['user_topology']) as topology, \
                 open(conf['vagrant']['vagrantfile'], 'w+') as vagrantfile:
+            print("  punchbox generate vagrantfile \\\n"+
+                  "    --topology "+conf['punch']['user_topology']+"  \\\n"+
+                  "    --template "+conf['vagrant']['template']+"  \\\n"+
+                  "    --output "+conf['vagrant']['vagrantfile']+"\n"
+                  )
             ctx.invoke(generate_vagrantfile, topology=topology,
                        template=conf['vagrant']['template'], output=vagrantfile)
 
     if not yes or click.confirm('generate platform topology '+conf['punch']['topology'] + ' ?'):
         with open(conf['punch']['user_topology']) as topology, \
                 open(conf['punch']['topology'],"w+") as output :
+            print("  punchbox generate topology \\\n"+
+                  "    --topology "+conf['punch']['user_topology']+"  \\\n"+
+                  "    --output "+conf['punch']['topology']+"\n")
             ctx.invoke(generate_topology,  deployer=conf['env']['deployer'],
                        topology=topology, output=output)
 
@@ -275,20 +284,29 @@ def build_workspace(ctx, workspace, yes):
         with  open(conf['punch']['topology'],"r") as topology, \
                 open(conf['punch']['blueprint'],"w+") as output, \
                 open(conf['punch']['user_settings'],"r") as settings:
+            print("  punchbox generate blueprint \\\n"+
+                  "    --topology "+conf['punch']['user_topology']+"  \\\n"+
+                  "    --settings "+conf['punch']['user_settings']+"  \\\n"+
+                  "    --output "+conf['punch']['blueprint']+"\n")
             ctx.invoke(generate_blueprint,
                        topology=topology,
                        settings=settings,
                        output=output)
 
     if not yes or click.confirm('generate deployment settings '+conf['punch']['deployment_settings'] + ' ?'):
-        with  open(conf['punch']['blueprint'],"r") as blueprint, \
-            open(conf['punch']['deployment_settings'],"w+") as output:
-            ctx.invoke(generate_deployment,
-                       blueprint=blueprint,
-                       template=conf['punch']['deployment_settings_template'],
-                       output=output)
+        with  open(conf['punch']['blueprint'],"r") as blueprint, open(conf['punch']['deployment_settings'],"w+") as output:
+             print("  punchbox generate deployment-settings \\\n" +
+                  "    --blueprint " + conf['punch']['blueprint'] +"  \\\n" +
+                   "    --template " + conf['punch']['deployment_settings_template'] +"  \\\n" +
+                   '    --output ' + conf['punch']['deployment_settings'] + "\n")
+             ctx.invoke(generate_deployment, blueprint=blueprint, template=conf['punch']['deployment_settings_template'], output=output)
+
         with open(conf['punch']['deployment_settings'], 'r') as yaml_in, \
             open(conf['punch']['punchplatform_deployment_settings'], "w+") as json_out:
+            print("  backward compatibility generation : convert\n" +
+                  "    " + conf['punch']['deployment_settings'] +" into \n" +
+                  "            into \n" +
+                  "    " + conf['punch']['punchplatform_deployment_settings'] + "\n")
             yaml_object = yaml.load(yaml_in, Loader=yaml.SafeLoader)
             # yaml_object = yaml.safe_load(yaml_in)
             json.dump(yaml_object, json_out)
@@ -340,17 +358,38 @@ def generate_topology(deployer, topology, output):
     punch components (including the third-party cots). This file is handy
     for you to avoid filling manually that information in your inventories.
     """
-    model_dict = {"versions": get_components_version(deployer)}
+    topology_dict = {"versions": get_components_version(deployer)}
     topologyDict = yaml.load(topology.read(), Loader=yaml.SafeLoader)
     servers = topologyDict["servers"]
-    services_dict = {}
+    #services_dict = {}
+    cluster_dict = {}
 
-    for s, params in servers.items():
-        for service in params["services"]:
-            services_dict[service] = services_dict.get(service, []) + [s]
-    model_dict = {**model_dict, **{"services": services_dict}}
-    model_dict['network'] = topologyDict['network']
-    formated_model = yaml.dump(model_dict)
+    for host, dict in servers.items():
+        for s in dict["services"]:
+            params = {}
+            service = None
+            cluster = None
+            for key, value in s.items():
+              if key == "service" :
+                  service = s[key]
+              elif key == "cluster" :
+                  cluster = s[key]
+              elif key == "params" :
+                  params = s[key]
+              else :
+                  raise Exception("only service , cluster and params key are allowed for services")
+            if cluster is None:
+                cluster = "common"
+            if service is None:
+                raise Exception("a service key is mandatory for declaring services")
+            if service not in cluster_dict:
+                cluster_dict[service] = {}
+            if cluster not in cluster_dict[service]:
+                cluster_dict[service][cluster] = {}
+            cluster_dict[service][cluster][host] = params
+    topology_dict['network'] = deepcopy(topologyDict['network'])
+    topology_dict['services'] = deepcopy(cluster_dict)
+    formated_model = yaml.dump(topology_dict)
     if output is None:
         print(formated_model)
     else:
@@ -413,6 +452,8 @@ def generate_blueprint(topology, settings, output):
             shiva_servers = {**shiva_servers, **generate_shiva_servers(value, settings_dict["shiva"], True)}
         elif name == "shiva_worker":
             shiva_servers = {**shiva_servers, **generate_shiva_servers(value, settings_dict["shiva"])}
+        elif name == "shiva":
+            settings_dict["zookeeper"]["servers"] = topology_dict["services"][name]
         elif name == "zookeeper":
             settings_dict["zookeeper"]["servers"] = topology_dict["services"][name]
         elif name == "kafka":
@@ -436,8 +477,8 @@ def generate_blueprint(topology, settings, output):
     if "shiva" in settings_dict:
         settings_dict["shiva"]["servers"] = shiva_servers
 
-    blueprint_dict['settings'] = settings_dict
-    blueprint_dict['topology'] = topology_dict
+    blueprint_dict['settings'] = deepcopy(settings_dict)
+    blueprint_dict['topology'] = deepcopy(topology_dict)
     if output is not None:
         yaml.dump(blueprint_dict, output)
     else:

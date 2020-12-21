@@ -1,0 +1,362 @@
+{ 
+
+   {% if topology.services.elasticsearch is defined %}
+   // All ES input/output nodes (Storm nodes)
+   elasticsearch_nodes:{
+      selection:{
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='elasticsearch_input' || @.type=='elasticsearch_output')].settings
+      additional_values:{
+         http_hosts:[
+            {
+               host: {{ punch.elasticsearch[0] }}
+               port:9200
+            }
+         ]
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         ssl: true
+         ssl_keystore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         ssl_keystore_location: file://@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks
+         ssl_truststore_location: file://@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+         ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         {% endif %}
+      }
+   }
+
+   // All ES spark nodes 
+   elastic_nodes:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='elastic_batch_input' || @.type=='elastic_batch_output' || @.type=='elastic_stream_output' || @.type=='elastic_input' || @.type=='elastic_query_stats' || @.type=='python_elastic_input' || @.type=='python_elastic_output')].settings
+      additional_values:{ 
+         nodes:[ 
+            {{ punch.elasticsearch.servers[0] }}
+         ]
+         {% if security %}
+         elastic_settings:{
+            es.net.http.auth.user: admin
+            es.net.http.auth.pass: admin
+            es.net.ssl: true
+            es.net.ssl.keystore.pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+            es.net.ssl.keystore.location: file://@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks
+            es.net.ssl.truststore.location: file://@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+            es.net.ssl.truststore.pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         }
+         {% endif %}
+      }
+   }
+   {% endif %}
+
+
+   {% if topology.services.kafka is defined %}
+   // All Kafka input/output nodes (Storm nodes)
+   kafka_input:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='kafka_input')].settings
+      additional_values:{ 
+         brokers: local
+         bootstrap.servers:{{ topology.services.kafka[0] }}
+         metric_cluster_id:local
+         {% if security %}
+         security.protocol: SSL
+         ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+         ssl.truststore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         {% endif %}
+      }
+   }
+   {% endif %}
+
+      {% if topology.services.kafka is defined %}
+   // All Kafka input/output nodes (Storm nodes)
+   kafka_output:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='kafka_output')].settings
+      additional_values:{ 
+         brokers: local
+         bootstrap.servers:{{ topology.services.kafka[0] }}
+         metric_cluster_id:local
+         {% if security %}
+         producer.security.protocol: SSL
+         producer.ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+         producer.ssl.truststore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         {% endif %}
+      }
+   }
+   {% endif %}
+
+   {% if topology.services.kafka is defined %}
+ // All Kafka stream input/output nodes (Spark nodes)
+   kafka_stream_input:{
+      selection:{
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='kafka_stream_input' || @.type=='kafka_stream_output')].settings
+      additional_values:{
+         brokers:[
+            {
+               port:9092
+               host:localhost
+            }
+         ]
+         {% if security %}
+         ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+         ssl_truststore_password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         {% endif %}
+      }
+   }
+      {% endif %}
+
+   {% if topology.services.kafka is defined %}
+   // All Kafka reporters
+   kafka_reporter:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.metrics.reporters[?(@.type=='kafka')]
+      additional_values:{ 
+         brokers: local
+         bootstrap.servers:{{ topology.services.kafka[0] }}
+         topic: platform-events
+         reporting_interval: 30
+         encoding: json
+         {% if security %}
+         security.protocol: SSL
+         ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+         ssl.truststore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         {% endif %}
+      }
+   }
+   {% endif %}
+
+   {% if topology.services.elasticsearch is defined %}
+
+   // All Elasticsearch metrics reporters
+   es_metrics_reporter:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.metrics.reporters[?(@.type=='elasticsearch')]
+      additional_values:{ 
+         cluster_name: es_search
+         metric_document_field_name: log
+         reporting_interval: 30
+         http_hosts:[ 
+            { 
+               host:{{ topology.services.elasticsearch.servers[0] }}
+               port:9200
+            }
+         ]
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         ssl: true
+         ssl_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
+         ssl_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
+         ssl_trusted_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
+         {% endif %}
+      }
+   }
+
+
+   // All plan persistence
+   persistence_plan_resolver:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.settings.persistence[?(@.type=='elasticsearch')]
+      additional_values:{ 
+         nodes:[ 
+           	{
+               host:{{ topology.services.elasticsearch.servers[0] }}
+               port:9200
+        	   } 
+         ]
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         ssl: true
+         ssl_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
+         ssl_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
+         ssl_trusted_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
+         {% endif %}
+      }
+   }
+   // Archive houeskeeping
+   archive_housekeeping:{ 
+      selection:{ 
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.archiving_pools[*]
+      additional_values:{ 
+         es_cluster_id: es_search
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         ssl: true
+         ssl_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
+         ssl_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
+         ssl_trusted_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
+         {% endif %}
+      }
+   }
+   // Channel monitoring 
+   channel_monitoring:{ 
+      selection:{ 
+         tenant:*
+         channel: monitoring
+         runtime:*
+      }
+      match: .elasticsearch
+      additional_values:{ 
+         es_cluster_id: es_search
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         ssl: true
+         ssl_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
+         ssl_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
+         ssl_trusted_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
+         {% endif %}
+      }
+   }
+   // Channel monitoring reporters 
+   channel_monitoring_kafka_reporters:{ 
+      selection:{ 
+         tenant:*
+         channel: monitoring
+         runtime:*
+      }
+      match:$.reporters[?(@.type=='kafka')]
+      additional_values:{ 
+       brokers: local
+       bootstrap.servers:{{ topology.services.kafka[0] }}
+
+       topic: platform-events
+       reporting_interval: 30
+       encoding: json
+       {% if security %}
+         security.protocol: SSL
+         ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+         ssl.truststore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         {% endif %}
+      }
+   }
+
+    channel_monitoring_es_reporters:{ 
+      selection:{ 
+         tenant:*
+         channel: monitoring
+         runtime:*
+      }
+      match:$.reporters[?(@.type=='elasticsearch')]
+      additional_values:{ 
+         cluster_name: es_search
+
+        reporting_interval: 30
+         http_hosts:[ 
+            { 
+               host:{{ topology.services.elasticsearch.servers[0] }}
+               port:9200
+            }
+         ]
+         {% if security %}
+         credentials: {
+            user: admin
+            password: admin
+         }
+         ssl: true
+         ssl_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
+         ssl_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
+         ssl_trusted_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
+         {% endif %}
+      }
+   }
+      // Platform monitoring credentials
+   platform_monitoring:{
+      selection:{
+         tenant:*
+         channel: monitoring
+         runtime:*
+         file: platform_health*
+      }
+      match: $
+      additional_values:{
+
+            security:{
+               kafka_clients: {
+                  local: {
+                     ssl_enabled: true
+                     ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+                     ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+                  }
+               }
+               elasticsearch_clients: {
+                  es_search: {
+                     ssl_enabled: true
+                     ssl_client_certificate_authority: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
+                     ssl_client_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
+                     ssl_client_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
+                     ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+                     ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+                     credentials: {
+                        username: @{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}
+                        password: @{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}
+                     }
+                  }
+               }
+               gateway_clients: {
+                  gateway_32g: {
+                     ssl_enabled: true
+                     ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+                     ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+                  }
+               }
+                   "zookeeper_clients": {
+                  "local": {
+                    "ssl_enabled": true,
+                    "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
+                    "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+                        }
+                      }
+            }
+      }
+   }
+  
+   {% endif %}
+}
