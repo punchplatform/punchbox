@@ -13,11 +13,25 @@ reporters:
   {{ settings.reporters }}
 {% endif %}
 
+{% if topology.users %}
+punchplatform_operator:
+  punchplatform_operator_environment_version: {{ topology.versions.operator }}
+  configuration_name_dir_from_home: "pp-conf"
+  reporters: {{ settings.punchplatform_operator.reporters }}
+  operators_username: {{ settings.punchplatform_operator.operators_username }}
+  storage:  {{ settings.punchplatform_operator.storage }}
+  servers:
+    {% for host, user in topology.users.items() %}
+    {{ host }}
+    {% endfor %}
+{% endif %}
+
+
 {% if topology.services.zookeeper %}
 zookeeper:
   zookeeper_version: {{ topology.versions.zookeeper }}
   zookeeper_nodes_production_interface: {{ topology.network.production_interface }}
-  zookeeper_childopts: {{ settings.zookeeper.zookeeper_childopts }}
+  zookeeper_childopts: {{ settings.zookeeper.get(cluster).zookeeper_childopts }}
   clusters:
     {% for cluster, servers in topology.services.zookeeper.items() %}
     {{ cluster }}:
@@ -32,7 +46,7 @@ zookeeper:
         {{ server }}: {}
       {% endfor %}
     {% endfor %}
- {% endif %}
+{% endif %}
 
 {% if topology.services.kafka %}
 kafka:
