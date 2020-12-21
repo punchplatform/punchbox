@@ -79,6 +79,40 @@ def cli():
     pass
 
 @cli.group()
+def deploy():
+    """
+    Commands required to deploy your punch.
+    """
+    pass
+
+@deploy.command(name="audit")
+@click.option("--workspace",
+              required=False,
+              default=str(Path.home())+'/punchbox-workspace',
+              type=click.Path(),
+              help="the punchbox workspace")
+@click.option('--verbose', '-v', is_flag=True, default=False, help="verbose mode")
+@click.pass_context
+def deploy_audit(ctx, workspace, verbose):
+    """
+    Audit your configuration before going any further.
+    """
+    conf = {}
+    with open(workspace+"/ws-conf/punchbox.yml") as infile:
+        conf = yaml.load(infile.read(), Loader=yaml.SafeLoader)
+    audit_cmd = conf['env']['deployer']+'/bin/configuration_audit/audit3.py'
+    audit_yml = conf['env']['deployer']+'/bin/configuration_audit/punchplatform_dependencies.yml'
+    conf_file = conf['punch']['deployment_settings']
+    if verbose :
+        print('audit command:')
+        print(' '+audit_cmd+' '+audit_yml+ ' '+conf_file)
+    if 0 == os.system(audit_cmd+' '+audit_yml+ ' '+conf_file):
+        print("INFO: your generated settings "+conf_file+ " are correct")
+        return 0
+    print("ERROR: your generated settings "+conf_file+ " are incorrect")
+    return 1
+
+@cli.group()
 def workspace():
     """
     Setup your workspace.
@@ -225,7 +259,7 @@ def create_workspace(deployer, workspace, topology):
 
         # and finally create the activate.sh file
         with open(workspaceActivateFile, "w+") as activateFile:
-            activateFile.write("export PATH=$PATH:"+os.path.abspath(deployer)+"/bin\n")
+            activateFile.write("export PATH="+os.path.abspath(deployer)+"/bin:$PATH\n")
             activateFile.write("export PUNCHPLATFORM_CONF_DIR="+workspace_pp_conf_dir+"\n")
 
         # All done, generate the main punchbox yaml file. That file will be used
@@ -365,28 +399,30 @@ def generate_topology(deployer, topology, output):
     cluster_dict = {}
 
     for host, dict in servers.items():
-        for s in dict["services"]:
-            params = {}
-            service = None
-            cluster = None
-            for key, value in s.items():
-              if key == "service" :
-                  service = s[key]
-              elif key == "cluster" :
-                  cluster = s[key]
-              elif key == "params" :
-                  params = s[key]
-              else :
-                  raise Exception("only service , cluster and params key are allowed for services")
-            if cluster is None:
-                cluster = "common"
-            if service is None:
-                raise Exception("a service key is mandatory for declaring services")
-            if service not in cluster_dict:
-                cluster_dict[service] = {}
-            if cluster not in cluster_dict[service]:
-                cluster_dict[service][cluster] = {}
-            cluster_dict[service][cluster][host] = params
+        if 'services' in dict:
+            for s in dict["services"]:
+                params = {}
+                service = None
+                cluster = None
+                for key, value in s.items():
+                    if key == "service" :
+                        service = s[key]
+                    elif key == "cluster" :
+                        cluster = s[key]
+                    elif key == "params" :
+                        params = s[key]
+                    else :
+                        raise Exception("only service , cluster and params key are allowed for services")
+                if cluster is None:
+                    cluster = "common"
+                if service is None:
+                    raise Exception("a service key is mandatory for declaring services")
+                if service not in cluster_dict:
+                    cluster_dict[service] = {}
+                if cluster not in cluster_dict[service]:
+                    cluster_dict[service][cluster] = {}
+                cluster_dict[service][cluster][host] = params
+
     topology_dict['network'] = deepcopy(topologyDict['network'])
     topology_dict['services'] = deepcopy(cluster_dict)
     formated_model = yaml.dump(topology_dict)
@@ -394,16 +430,6 @@ def generate_topology(deployer, topology, output):
         print(formated_model)
     else:
         output.write(formated_model)
-
-def generate_shiva_servers(servers: List[str], conf, is_leader=False):
-    servers_dict = {}
-    for server in servers:
-        servers_dict[server] = {
-            "runner": True,
-            "can_be_master": is_leader,
-            "tags": conf["tags"]
-        }
-    return servers_dict
 
 def generate_metricbeat_servers(servers: List[str]):
     servers_dict = {}
@@ -448,14 +474,13 @@ def generate_blueprint(topology, settings, output):
     # this pass is a typical inventory generation improvment. We transform
     # shiva_leader and shiva_worker in finer grain shiva dictionary.
     for name, value in topology_dict["services"].items():
-        if name == "shiva_leader":
-            shiva_servers = {**shiva_servers, **generate_shiva_servers(value, settings_dict["shiva"], True)}
-        elif name == "shiva_worker":
-            shiva_servers = {**shiva_servers, **generate_shiva_servers(value, settings_dict["shiva"])}
-        elif name == "shiva":
-            settings_dict["zookeeper"]["servers"] = topology_dict["services"][name]
+        if name == "shiva":
+            settings_dict["shiva"]["servers"] = topology_dict["services"][name]
         elif name == "zookeeper":
             settings_dict["zookeeper"]["servers"] = topology_dict["services"][name]
+        elif name == "operator":
+            print('todo')
+            #settings_dict["operator"]["servers"] = topology_dict["services"][name]
         elif name == "kafka":
             settings_dict["kafka"]["brokers"] = [{"id": i, "broker": broker} for i, broker in enumerate(value)]
         elif name == "metricbeat":
