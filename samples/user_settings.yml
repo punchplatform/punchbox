@@ -14,11 +14,12 @@ platform:
   setups_root: /opt
 
 zookeeper:
+  zookeeper_childopts: -server -Xmx128m -Xms128m
   # the name of this cluster to be referenced by other services
   common:
     cluster_port: 2181
     punchplatform_root_node: /punchbox
-    zookeeper_childopts: -server -Xmx128m -Xms128m
+    
 
 kafka:
   # the name of this cluster to be referenced by other services

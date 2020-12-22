@@ -31,7 +31,7 @@ punchplatform_operator:
 zookeeper:
   zookeeper_version: {{ topology.versions.zookeeper }}
   zookeeper_nodes_production_interface: {{ topology.network.production_interface }}
-  zookeeper_childopts: {{ settings.zookeeper.get(cluster).zookeeper_childopts }}
+  zookeeper_childopts: {{ settings.zookeeper.zookeeper_childopts }}
   clusters:
     {% for cluster, servers in topology.services.zookeeper.items() %}
     {{ cluster }}:

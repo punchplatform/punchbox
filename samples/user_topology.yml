@@ -1,0 +1,38 @@
+---
+os: ubuntu/bionic64
+network:
+    production_interface: enp0s8
+    admin_interface: enp0s8
+servers:
+    server1:
+        disksize: 40GB
+        memory: 3000
+        cpu: 1
+        services:
+        - service: kafka
+        users:
+        - user: operator
+    server2:
+        disksize: 40GB
+        memory: 3000
+        cpu: 1
+        services:
+        - service: kafka
+    server3:
+        disksize: 40GB
+        memory: 3000
+        cpu: 1
+        services:
+        - service: zookeeper
+        - service: kafka
+    server4:
+        disksize: 40GB
+        memory: 2000
+        cpu: 1
+        services:
+        - service: shiva
+          params:
+            runner: true
+            can_be_master: false
+            tags:
+                - common
