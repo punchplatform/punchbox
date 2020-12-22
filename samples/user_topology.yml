@@ -4,14 +4,30 @@ network:
     production_interface: enp0s8
     admin_interface: enp0s8
 servers:
+    # Each value here must be a reachable server. You typically expect your
+    # /etc/hosts to contain :
+    # 172.28.128.21 server1
+    # 172.28.128.22 server2
+    # 172.28.128.23 server3
+    # 172.28.128.24 server4
     server1:
         disksize: 40GB
         memory: 3000
         cpu: 1
+        # 'services' is a reserved punch keyword. It is used to indicate
+        # you want a 
         services:
+        # Possible values are zookeeper kafka elasticsearch spark minio
+        # clickhouse kibana gateway. In short all the runtime services
+        # you can select to run on top of a punch.
         - service: kafka
+        # 'users' is also a reserved keyword. It is used to indicate you
+        # want a unix punch operator account on this server.
         users:
+        # here you will get an 'operator' user on server1. You can list
+        # several such accounts 'bob' 'ted' if you prefer.
         - user: operator
+    # the rest of this file is straightforward
     server2:
         disksize: 40GB
         memory: 3000
@@ -31,6 +47,7 @@ servers:
         cpu: 1
         services:
         - service: shiva
+          # the 'params' keyword is reserved. It allows you to 
           params:
             runner: true
             can_be_master: false

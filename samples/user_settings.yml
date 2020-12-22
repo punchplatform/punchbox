@@ -18,12 +18,13 @@ zookeeper:
   # the name of this cluster to be referenced by other services
   common:
     cluster_port: 2181
-    punchplatform_root_node: /punchbox
+    punchplatform_root_node: /punch
     
 
 kafka:
   # the name of this cluster to be referenced by other services
   common:
+    # Each properties here i scoped to this 'common' cluster
     cluster_port: 9200
     brokers_config: punchplatform-local-server.properties
     default_partitions: 2
@@ -42,7 +43,10 @@ reporters:
   # services or punch apps. 
   common:
     type: kafka
+    # Watchout here the deployment will faill if you do not
+    # have a corresponding Kafka cluster. 
     brokers: common
+    # the format encoding for publishing data to kafka topics
     encoding: json
     reporting_interval: 30
     topic: platform-events
@@ -50,7 +54,11 @@ reporters:
 shiva:
   common:
     reporters:
+      # we want our shiva to report its information to the 'common'
+      # platform reporter
       - common
+    # Shiva supports several backend implemetations for storing and exchanging data
+    # choose the 'kafka' one for a distributed punch. 
     storage:
       kafka_cluster: common
       type: kafka
