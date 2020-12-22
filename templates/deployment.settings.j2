@@ -16,13 +16,13 @@ reporters:
 {% if topology.users %}
 punchplatform_operator:
   punchplatform_operator_environment_version: {{ topology.versions.operator }}
-  configuration_name_dir_from_home: "pp-conf"
+  configuration_name_dir_from_home: {{ settings.punchplatform_operator.configuration_name_dir_from_home }}
   reporters: {{ settings.punchplatform_operator.reporters }}
   operators_username: {{ settings.punchplatform_operator.operators_username }}
   storage:  {{ settings.punchplatform_operator.storage }}
   servers:
-    {% for host, user in topology.users.items() %}
-    {{ host }}
+    {% for host, item in topology.users.items() %}
+    {{ host }}: {{ item }}
     {% endfor %}
 {% endif %}
 

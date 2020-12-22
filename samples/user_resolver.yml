@@ -1,0 +1,128 @@
+---
+elasticsearch_nodes:
+  match: "$.dag[?(@.type=='elasticsearch_input' || @.type=='elasticsearch_output')].settings"
+  additional_values:
+    cluster_id: es_search
+    http_hosts:
+    - host: server1
+      port: 9200
+elastic_nodes:
+  match: "$.dag[?(@.type=='elastic_batch_input' || @.type=='elastic_batch_output'
+    || @.type=='elastic_stream_output' || @.type=='elastic_input' || @.type=='elastic_query_stats'
+    || @.type=='python_elastic_input' || @.type=='python_elastic_output')].settings"
+  additional_values:
+    nodes:
+    - server1
+kafka_input:
+  match: "$.dag[?(@.type=='kafka_input' || @.type=='kafka_output')].settings"
+  additional_values:
+    brokers: common
+    bootstrap.servers: server1:9092
+kafka_unreplicated:
+  match: "$.resources[?(@.type=='kafka_topic')]"
+  additional_values:
+    cluster: common
+    replication_factor: 1
+shiva_local_notags:
+  match: "$.applications[?(@.runtime=='shiva')]"
+  additional_values:
+    shiva_runner_tags: []
+    cluster: common
+storm_local_cluster:
+  match: "$.applications[?(@.runtime=='storm')]"
+  additional_values:
+    cluster: common
+kafka_metrics_reporters:
+  match: "$.metrics.reporters[?(@.type=='kafka')]"
+  additional_values:
+    brokers: common
+    topic: platform-events
+    reporting_interval: 10
+    encoding: json
+elastic_metrics_reporters:
+  match: "$.metrics.reporters[?(@.type=='elasticsearch')]"
+  additional_values:
+    cluster_name: es_search
+    http_hosts:
+    - host: server1
+      port: 9200
+    reporting_interval: 30
+persistence_plan_resolver:
+  match: "$.settings.persistence[?(@.type=='elasticsearch')]"
+  additional_values:
+    nodes:
+    - host: server1
+      port: 9200
+archive_housekeeping:
+  match: "$.archiving_pools[*]"
+  additional_values:
+    es_cluster_id: es_search
+channel_monitoring:
+  match: ".elasticsearch"
+  additional_values:
+    es_cluster_id: es_search
+channel_monitoring_es_reporters:
+  match: "$.reporters[?(@.type=='elasticsearch')]"
+  additional_values:
+    cluster_name: es_search
+    http_hosts:
+    - host: server1
+      port: 9200
+channel_monitoring_kafka_reporters:
+  match: "$.reporters[?(@.type=='kafka')]"
+  additional_values:
+    brokers: common
+    bootstrap.servers: server1:9092
+    topic: platform-events
+    reporting_interval: 30
+    encoding: json
+spark_network_settings_exists:
+  selection:
+    tenant: "*"
+    channel: "*"
+    runtime: spark
+    name: "*"
+  match: "$.[?(@.settings && (!(@.settings.cron)))]"
+  additional_values:
+    spark.driver.port: 20000
+    spark.driver.blockManager.port: 21000
+    spark.blockManager.port: 22000
+    spark.port.maxRetries: 16
+spark_network_settings_not_exists:
+  selection:
+    tenant: "*"
+    channel: "*"
+    runtime: spark
+    name: "*"
+  match: "$.[?(!(@.settings) && (!(@.settings.cron)))]"
+  additional_values:
+    settings:
+      spark.driver.port: 20000
+      spark.driver.blockManager.port: 21000
+      spark.blockManager.port: 22000
+      spark.port.maxRetries: 16
+pyspark_network_settings_exists:
+  selection:
+    tenant: "*"
+    channel: "*"
+    runtime: pyspark
+    name: "*"
+  match: "$.[?(@.settings && (!(@.settings.cron)))]"
+  additional_values:
+    spark.driver.port: 20000
+    spark.driver.blockManager.port: 21000
+    spark.blockManager.port: 22000
+    spark.port.maxRetries: 16
+pyspark_network_settings_not_exists:
+  selection:
+    tenant: "*"
+    channel: "*"
+    runtime: pyspark
+    name: "*"
+  match: "$.[?(!(@.settings) && (!(@.settings.cron)))]"
+  additional_values:
+    settings:
+      spark.driver.port: 20000
+      spark.driver.blockManager.port: 21000
+      spark.blockManager.port: 22000
+      spark.port.maxRetries: 16
