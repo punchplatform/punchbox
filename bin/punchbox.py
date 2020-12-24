@@ -22,6 +22,18 @@ COMPONENTS = [
 
 SERVICES = ["zookeeper", "kafka", "shiva_leader", "shiva_worker", "metricbeat"]
 
+#Keys used inside the user_settings.yml and user_topology.yml
+KEYS = {
+    "SERVERS": "servers",
+    "NETWORK": "networks",
+    "SETTINGS" : "settings",
+    "IFACE_NAME":"iface_name",
+    "SERVICES": "services",
+    "SERVICE": "service",
+    "CLUSTERS": "clusters",
+    "CLUSTER": "cluster"
+}
+
 
 # This main module is used to render a jinja2 template
 # the rendering environement is loaded with provided customisation data that
@@ -559,7 +571,7 @@ def generate_topology(deployer, topology, output):
     for you to avoid filling manually that information in your inventories.
     """
     topology_dict = yaml.load(topology.read(), Loader=yaml.SafeLoader)
-    servers = topology_dict["servers"]
+    servers = topology_dict[KEYS["SERVERS"]]
     services_dict = {}
     users_dict = {}
 
@@ -653,6 +665,36 @@ def generate_blueprint(topology, settings, output):
     blueprint_dict = {}
     topology_dict = yaml.load(topology.read(), Loader=yaml.SafeLoader)
     settings_dict = yaml.load(settings.read(), Loader=yaml.SafeLoader)
+
+    #These loops merge all settings from user_settings.yml
+    #less specific rubric (
+    platform_wide_settings = settings_dict.get(KEYS["SETTINGS"], {}).copy()
+    for service, serviceInfo in settings_dict.items():
+        if not service == KEYS["SETTINGS"] and isinstance(serviceInfo, dict):
+            buff_merged_settings = platform_wide_settings.copy()
+            buff_merged_settings.update(serviceInfo.get(KEYS["SETTINGS"], {}))
+            settings_dict[service][KEYS["SETTINGS"]] = buff_merged_settings
+            for cluster, clusterInfo in serviceInfo.items():
+                if not cluster == KEYS["SETTINGS"] and isinstance(clusterInfo, dict):
+                    buff_merged_settings = settings_dict[service][KEYS["SETTINGS"]].copy()
+                    buff_merged_settings.update(clusterInfo.get(KEYS["SETTINGS"], {}))
+                    serviceInfo[cluster][KEYS["SETTINGS"]] = buff_merged_settings
+
+
+    platform_wide_topo_settings = topology_dict.get(KEYS["SETTINGS"], {}).copy()
+    for server, serverInfo in topology_dict[KEYS["SERVERS"]].items():
+        if isinstance(serverInfo, dict):
+            buff_merged_settings = platform_wide_topo_settings.copy()
+            buff_merged_settings.update(serverInfo.get(KEYS["SETTINGS"], {}))
+            topology_dict[KEYS["SERVERS"]][server][KEYS["SETTINGS"]] = buff_merged_settings
+            for serviceInfo in serverInfo[KEYS["SERVICES"]]:
+                if isinstance(serviceInfo, dict):
+                    cluster = serviceInfo.get(KEYS["CLUSTER"], "common")
+                    service = serviceInfo.get(KEYS["SERVICE"])
+                    buff_merged_settings = topology_dict[KEYS["SERVERS"]][server][KEYS["SETTINGS"]].copy()
+                    buff_merged_settings.update(serviceInfo.get(KEYS["SETTINGS"], {}))
+                    serviceInfo[KEYS["SETTINGS"]] = buff_merged_settings
+
     shiva_servers = {}
 
     # this pass is a typical inventory generation improvement. We transform

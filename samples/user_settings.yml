@@ -1,4 +1,4 @@
-platform:
+settings:
   # the unique identifier must be worldwide. Metrics and data
   # generated from one punch can be forwarded to another. That id
   # is required to differentiate who sends what.
@@ -14,26 +14,29 @@ platform:
   setups_root: /opt
 
 zookeeper:
-  zookeeper_childopts: -server -Xmx128m -Xms128m
+  settings:
+    zookeeper_childopts: -server -Xmx128m -Xms128m
   # the name of this cluster to be referenced by other services
   common:
-    cluster_port: 2181
-    punchplatform_root_node: /punch
+    settings:
+      cluster_port: 2181
+      punchplatform_root_node: /punch
     
 
 kafka:
   # the name of this cluster to be referenced by other services
   common:
-    # Each properties here i scoped to this 'common' cluster
-    cluster_port: 9200
-    brokers_config: punchplatform-local-server.properties
-    default_partitions: 2
-    default_replication_factor: 1
-    kafka_brokers_jvm_xmx: 512M
-    partition_retention_bytes: 1073741824
-    partition_retention_hours: 24
-    zk_cluster: common
-    zk_root: kafka
+    settings:
+      # Each properties here i scoped to this 'common' cluster
+      cluster_port: 9092
+      brokers_config: punchplatform-local-server.properties
+      default_partitions: 2
+      default_replication_factor: 1
+      kafka_brokers_jvm_xmx: 512M
+      partition_retention_bytes: 1073741824
+      partition_retention_hours: 24
+      zk_cluster: common
+      zk_root: kafka
 
 # You can define a platform wide reporter to make it easier
 # to direct all the monitoring metrics and traces towards a
@@ -53,35 +56,41 @@ reporters:
 
 shiva:
   common:
-    reporters:
-      # we want our shiva to report its information to the 'common'
-      # platform reporter
-      - common
-    # Shiva supports several backend implemetations for storing and exchanging data
-    # choose the 'kafka' one for a distributed punch. 
-    storage:
-      kafka_cluster: common
-      type: kafka
+    settings:
+      reporters:
+        # we want our shiva to report its information to the 'common'
+        # platform reporter
+        - common
+      # Shiva supports several backend implemetations for storing and exchanging data
+      # choose the 'kafka' one for a distributed punch.
+      storage:
+        kafka_cluster: common
+        type: kafka
 
 clickhouse:
-  http_port: 8123
-  tcp_port: 9100
-  zk_cluster: common
-  zk_root: clickhouse
+  common:
+    http_port: 8123
+    tcp_port: 9100
+    zk_cluster: common
+    zk_root: clickhouse
 
 elasticsearch:
-  cluster_name: es_search
-  http_api_port: 9200
-  minimum_master_nodes: 2
-  settings_by_type:
-    data_node:
-      http_cors_enabled: true
-      max_memory: 512m
-      modsecurity_blocking_requests: false
-      modsecurity_enabled: false
-      readonly: true
-      script_execution_authorized: true
-  transport_port: 9300
+  settings:
+    http_api_port: 9200
+    http_api_interface: production
+    transport_port: 9300
+    transport_interface: production
+  es_search:
+    minimum_master_nodes: 2
+    settings_by_type:
+      data_node:
+        http_cors_enabled: true
+        max_memory: 512m
+        modsecurity_blocking_requests: false
+        modsecurity_enabled: false
+        readonly: true
+        script_execution_authorized: true
+
 
 gateway:
   cluster_name: punchbox

@@ -1,8 +1,19 @@
 ---
 os: ubuntu/bionic64
 network:
+    production:
+        iface_name: enp0s8
+        domain_name: .prod.punch
+    admin:
+        iface_name: enp0s8
+
+
+    #TODO identify where this setting is used and remove it
     production_interface: enp0s8
+    #TODO identify where this setting is used and remove it
     admin_interface: enp0s8
+
+
 servers:
     # Each value here must be a reachable server. You typically expect your
     # /etc/hosts to contain :
