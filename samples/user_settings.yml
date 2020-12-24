@@ -13,180 +13,192 @@ settings:
   logs_root: /var/log/punch
   setups_root: /opt
 
-zookeeper:
-  settings:
-    zookeeper_childopts: -server -Xmx128m -Xms128m
-  # the name of this cluster to be referenced by other services
-  common:
+services:
+  zookeeper:
     settings:
-      cluster_port: 2181
-      punchplatform_root_node: /punch
-    
+      zookeeper_childopts: -server -Xmx128m -Xms128m
+    clusters:
+      # the name of this cluster to be referenced by other services
+      common:
+        settings:
+          cluster_port: 2181
+          punchplatform_root_node: /punch
 
-kafka:
-  # the name of this cluster to be referenced by other services
-  common:
-    settings:
-      # Each properties here i scoped to this 'common' cluster
-      cluster_port: 9092
-      brokers_config: punchplatform-local-server.properties
-      default_partitions: 2
-      default_replication_factor: 1
-      kafka_brokers_jvm_xmx: 512M
-      partition_retention_bytes: 1073741824
-      partition_retention_hours: 24
-      zk_cluster: common
-      zk_root: kafka
 
-# You can define a platform wide reporter to make it easier
-# to direct all the monitoring metrics and traces towards a
-# single kafka topic. It is both simple and production-ready.
-reporters:
-  # the name of this reporter, to be referenced from various
-  # services or punch apps. 
-  common:
-    type: kafka
-    # Watchout here the deployment will faill if you do not
-    # have a corresponding Kafka cluster. 
-    brokers: common
-    # the format encoding for publishing data to kafka topics
-    encoding: json
-    reporting_interval: 30
-    topic: platform-events
+  kafka:
+    # the name of this cluster to be referenced by other services
+    clusters:
+      common:
+        settings:
+          # Each properties here i scoped to this 'common' cluster
+          cluster_port: 9092
+          brokers_config: punchplatform-local-server.properties
+          default_partitions: 2
+          default_replication_factor: 1
+          kafka_brokers_jvm_xmx: 512M
+          partition_retention_bytes: 1073741824
+          partition_retention_hours: 24
+          zk_cluster: common
+          zk_root: kafka
 
-shiva:
-  common:
-    settings:
-      reporters:
-        # we want our shiva to report its information to the 'common'
-        # platform reporter
-        - common
-      # Shiva supports several backend implemetations for storing and exchanging data
-      # choose the 'kafka' one for a distributed punch.
-      storage:
-        kafka_cluster: common
+  # You can define a platform wide reporter to make it easier
+  # to direct all the monitoring metrics and traces towards a
+  # single kafka topic. It is both simple and production-ready.
+  reporters:
+    clusters:
+      # the name of this reporter, to be referenced from various
+      # services or punch apps.
+      common:
         type: kafka
+        # Watchout here the deployment will faill if you do not
+        # have a corresponding Kafka cluster.
+        brokers: common
+        # the format encoding for publishing data to kafka topics
+        encoding: json
+        reporting_interval: 30
+        topic: platform-events
 
-clickhouse:
-  common:
-    http_port: 8123
-    tcp_port: 9100
-    zk_cluster: common
-    zk_root: clickhouse
+  shiva:
+    clusters:
+      common:
+        settings:
+          reporters:
+            # we want our shiva to report its information to the 'common'
+            # platform reporter
+            - common
+          # Shiva supports several backend implemetations for storing and exchanging data
+          # choose the 'kafka' one for a distributed punch.
+          storage:
+            kafka_cluster: common
+            type: kafka
 
-elasticsearch:
-  settings:
-    http_api_port: 9200
-    http_api_interface: production
-    transport_port: 9300
-    transport_interface: production
-  es_search:
-    minimum_master_nodes: 2
-    settings_by_type:
-      data_node:
-        http_cors_enabled: true
-        max_memory: 512m
-        modsecurity_blocking_requests: false
-        modsecurity_enabled: false
-        readonly: true
-        script_execution_authorized: true
+  clickhouse:
+    clusters:
+      common:
+        http_port: 8123
+        tcp_port: 9100
+        zk_cluster: common
+        zk_root: clickhouse
 
-
-gateway:
-  cluster_name: punchbox
   elasticsearch:
-    data_cluster:
-      cluster_id: es_search
-      settings:
-        - "es.index.read.missing.as.empty: yes"
-        - "es.nodes.discovery: true"
-    metric_cluster:
-      cluster_id: es_search
-      index_name: mytenant-gateway-logs
-      settings:
-        - "es.index.read.missing.as.empty: yes"
-        - "es.nodes.discovery: true"
-  modsecurity_enabled: false
-  reporters:
-    - punchbox
-  resources:
-    archives_dir: /data/gateway/archives
-    doc_dir: /opt/punchplatform-documentation-6.3.0-SNAPSHOT/doc/html
-    manager:
-      data:
-        - root_path: /data/gateway/resources
-          type: file
-      metadata:
-        - hosts:
-            - server2:9200
-            - server3:9200
-          index: resources-metadata
-          type: elasticsearch
-    punchlines_dir: punchlines/mytenant
-  tenant: mytenant
+    clusters:
+      es_search:
+        settings:
+          http_api_port: 9200
+          http_api_interface: production
+          transport_port: 9300
+          transport_interface: production
+          minimum_master_nodes: 2
+          settings_by_type:
+            data_node:
+              http_cors_enabled: true
+              max_memory: 512m
+              modsecurity_blocking_requests: false
+              modsecurity_enabled: false
+              readonly: true
+              script_execution_authorized: true
 
-kibana:
-  domain_name: admin
-  gateway: punchbox
-  port: 5601
-  type: administration
-  plugins:
-    punchplatform_version: 6.3.0-SNAPSHOT
-    feedback_version: 6.3.0-SNAPSHOT
 
-metricbeat:
-  es_cluster_id: es_search
-  modules:
-    system:
-      high_frequency_system_metrics:
-        metricsets:
-          - cpu
-          - load
-          - memory
-        reporting_interval: 30s
-      normal_frequency_system_metrics:
-        metricsets:
-          - fsstat
-        reporting_interval: 5m
-      slow_frequency_system_metrics:
-        metricsets:
-          - uptime
-        reporting_interval: 1h
+  gateway:
+    clusters:
+      punchbox:
+        settings:
+          elasticsearch:
+            data_cluster:
+              cluster_id: es_search
+              settings:
+                - "es.index.read.missing.as.empty: yes"
+                - "es.nodes.discovery: true"
+            metric_cluster:
+              cluster_id: es_search
+              index_name: mytenant-gateway-logs
+              settings:
+                - "es.index.read.missing.as.empty: yes"
+                - "es.nodes.discovery: true"
+          modsecurity_enabled: false
+          reporters:
+            - punchbox
+          resources:
+            archives_dir: /data/gateway/archives
+            doc_dir: /opt/punchplatform-documentation-6.3.0-SNAPSHOT/doc/html
+            manager:
+              data:
+                - root_path: /data/gateway/resources
+                  type: file
+              metadata:
+                - hosts:
+                    - server2:9200
+                    - server3:9200
+                  index: resources-metadata
+                  type: elasticsearch
+            punchlines_dir: punchlines/mytenant
+          tenant: mytenant
 
-minio:
-  cluster_name: punchbox
-  port: "9000"
-  minio_access_key: admin
-  minio_secret_key: punchplatform
+  kibana:
+    clusters:
+      admin:
+        domain_name: admin
+        gateway: punchbox
+        port: 5601
+        type: administration
+        plugins:
+          punchplatform_version: 6.3.0-SNAPSHOT
+          feedback_version: 6.3.0-SNAPSHOT
 
-punchplatform_operator:
-  configuration_name_dir_from_home: pp-conf
-  operators_username:
-    - vagrant
-  reporters:
-    - punchbox
-  storage:
-    kafka_cluster: common
-    type: kafka
+  metricbeat:
+    es_cluster_id: es_search
+    modules:
+      system:
+        high_frequency_system_metrics:
+          metricsets:
+            - cpu
+            - load
+            - memory
+          reporting_interval: 30s
+        normal_frequency_system_metrics:
+          metricsets:
+            - fsstat
+          reporting_interval: 5m
+        slow_frequency_system_metrics:
+          metricsets:
+            - uptime
+          reporting_interval: 1h
 
-spark:
-  cluster_name: punchbox
-  master_port: 7077
-  rest_port: 6066
-  ui_port: 8081
-  slave_port: 7078
-  webui_port: 8084
-  slaves_cpu: 2
-  slaves_memory: 1200M
-  spark_workers_by_punchplatform_spark: 1
-  zk_cluster: common
-  zk_root: spark-main
+  minio:
+    cluster_name: punchbox
+    port: "9000"
+    minio_access_key: admin
+    minio_secret_key: punchplatform
 
-storm:
-  cluster_name: local
-  storm_workers_by_punchplatform_supervisor: 10
-  supervisor_cpu: 2
-  supervisor_memory_mb: 256
-  workers_childopts: -Xmx128m
-  zk_cluster: common
-  zk_root: storm-1.2.2-main
+  punchplatform_operator:
+    configuration_name_dir_from_home: pp-conf
+    operators_username:
+      - vagrant
+    reporters:
+      - punchbox
+    storage:
+      kafka_cluster: common
+      type: kafka
+
+  spark:
+    cluster_name: punchbox
+    master_port: 7077
+    rest_port: 6066
+    ui_port: 8081
+    slave_port: 7078
+    webui_port: 8084
+    slaves_cpu: 2
+    slaves_memory: 1200M
+    spark_workers_by_punchplatform_spark: 1
+    zk_cluster: common
+    zk_root: spark-main
+
+  storm:
+    clusters:
+      cluster_name: local
+      storm_workers_by_punchplatform_supervisor: 10
+      supervisor_cpu: 2
+      supervisor_memory_mb: 256
+      workers_childopts: -Xmx128m
+      zk_cluster: common
+      zk_root: storm-1.2.2-main

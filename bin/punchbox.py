@@ -30,10 +30,14 @@ KEYS = {
     "IFACE_NAME":"iface_name",
     "SERVICES": "services",
     "SERVICE": "service",
+    "USERS": "users",
+    "USER": "user",
     "CLUSTERS": "clusters",
     "CLUSTER": "cluster"
 }
 
+
+DEFAULT_CLUSTER_NAME = "common"
 
 # This main module is used to render a jinja2 template
 # the rendering environement is loaded with provided customisation data that
@@ -468,18 +472,6 @@ def build_workspace(ctx, workspace, yes):
     with open(workspace + "/ws-conf/punchbox.yml") as infile:
         conf = yaml.load(infile.read(), Loader=yaml.SafeLoader)
 
-    if not yes or click.confirm('generate vagrantfile ' + conf['vagrant']['vagrantfile'] + ' ?'):
-        if not os.path.exists(conf['env']['workspace'] + '/vagrant'):
-            os.makedirs(conf['env']['workspace'] + '/vagrant')
-        with open(conf['punch']['user_topology']) as topology, \
-                open(conf['vagrant']['vagrantfile'], 'w+') as vagrantfile:
-            print("  punchbox generate vagrantfile \\\n" +
-                  "    --topology " + conf['punch']['user_topology'] + "  \\\n" +
-                  "    --template " + conf['vagrant']['template'] + "  \\\n" +
-                  "    --output " + conf['vagrant']['vagrantfile'] + "\n"
-                  )
-            ctx.invoke(generate_vagrantfile, topology=topology,
-                       template=conf['vagrant']['template'], output=vagrantfile)
 
     if not yes or click.confirm('generate platform topology ' + conf['punch']['topology'] + ' ?'):
         with open(conf['punch']['user_topology']) as topology, \
@@ -502,6 +494,19 @@ def build_workspace(ctx, workspace, yes):
                        topology=topology,
                        settings=settings,
                        output=output)
+
+    if not yes or click.confirm('generate vagrantfile ' + conf['vagrant']['vagrantfile'] + ' ?'):
+        if not os.path.exists(conf['env']['workspace'] + '/vagrant'):
+            os.makedirs(conf['env']['workspace'] + '/vagrant')
+        with open(conf['punch']['blueprint']) as blueprint, \
+                open(conf['vagrant']['vagrantfile'], 'w+') as vagrantfile:
+            print("  punchbox generate vagrantfile \\\n" +
+                  "    --blueprint " + conf['punch']['blueprint'] + "  \\\n" +
+                  "    --template " + conf['vagrant']['template'] + "  \\\n" +
+                  "    --output " + conf['vagrant']['vagrantfile'] + "\n"
+                  )
+            ctx.invoke(generate_vagrantfile, blueprint=blueprint,
+                       template=conf['vagrant']['template'], output=vagrantfile)
 
     if not yes or click.confirm('generate deployment settings ' + conf['punch']['deployment_settings'] + ' ?'):
         with open(conf['punch']['blueprint'], "r") as blueprint, \
@@ -576,47 +581,47 @@ def generate_topology(deployer, topology, output):
     users_dict = {}
 
     for host, item in servers.items():
-        if 'users' in item:
-            for s in item["users"]:
-                params = {}
+        if KEYS["USERS"] in item:
+            for s in item[KEYS["USERS"]]:
+                settings = {}
                 user = None
                 for key, value in s.items():
-                    if key == "user":
+                    if key == KEYS["USER"]:
                         user = s[key]
-                    elif key == "params":
-                        params = s[key]
+                    elif key == KEYS["SETTINGS"]:
+                        settings = s[key]
                     else:
                         raise Exception("only 'user' and 'params' keys are allowed for a host 'users'")
                 if user not in users_dict:
                     users_dict[user] = {}
-                users_dict[user][host] = params
-        if 'services' in item:
-            for s in item["services"]:
-                params = {}
+                users_dict[user][host] = settings
+        if KEYS["SERVICES"] in item:
+            for s in item[KEYS["SERVICES"]]:
+                settings = {}
                 service = None
                 cluster = None
                 for key, value in s.items():
-                    if key == "service":
+                    if key == KEYS["SERVICE"]:
                         service = s[key]
-                    elif key == "cluster":
+                    elif key == KEYS["CLUSTER"]:
                         cluster = s[key]
-                    elif key == "params":
-                        params = s[key]
+                    elif key == KEYS["SETTINGS"]:
+                        settings = s[key]
                     else:
                         raise Exception("only 'service' , 'cluster' and 'params' keys are allowed for 'services'")
                 if cluster is None:
-                    cluster = "common"
+                    cluster = DEFAULT_CLUSTER_NAME
                 if service is None:
                     raise Exception("a service key is mandatory for declaring services")
                 if service not in services_dict:
                     services_dict[service] = {}
                 if cluster not in services_dict[service]:
                     services_dict[service][cluster] = {}
-                services_dict[service][cluster][host] = params
+                services_dict[service][cluster][host] = settings
 
-    topology_dict['network'] = deepcopy(topology_dict['network'])
-    topology_dict['services'] = deepcopy(services_dict)
-    topology_dict['users'] = deepcopy(users_dict)
+    topology_dict[KEYS["SETTINGS"]] = deepcopy(topology_dict[KEYS["SETTINGS"]])
+    topology_dict[KEYS["SERVICES"]] = deepcopy(services_dict)
+    topology_dict[KEYS["USER"]] = deepcopy(users_dict)
     topology_dict['versions'] = deepcopy(get_components_version(deployer))
     formatted_model = yaml.dump(topology_dict)
     if output is None:
@@ -667,33 +672,34 @@ def generate_blueprint(topology, settings, output):
     settings_dict = yaml.load(settings.read(), Loader=yaml.SafeLoader)
 
     #These loops merge all settings from user_settings.yml
-    #less specific rubric (
+    #less specific setting are overriden
     platform_wide_settings = settings_dict.get(KEYS["SETTINGS"], {}).copy()
-    for service, serviceInfo in settings_dict.items():
-        if not service == KEYS["SETTINGS"] and isinstance(serviceInfo, dict):
+    for service, service_info in settings_dict.get(KEYS["SERVICES"],{}).items():
+        if isinstance(service_info, dict):
             buff_merged_settings = platform_wide_settings.copy()
-            buff_merged_settings.update(serviceInfo.get(KEYS["SETTINGS"], {}))
-            settings_dict[service][KEYS["SETTINGS"]] = buff_merged_settings
-            for cluster, clusterInfo in serviceInfo.items():
-                if not cluster == KEYS["SETTINGS"] and isinstance(clusterInfo, dict):
-                    buff_merged_settings = settings_dict[service][KEYS["SETTINGS"]].copy()
-                    buff_merged_settings.update(clusterInfo.get(KEYS["SETTINGS"], {}))
-                    serviceInfo[cluster][KEYS["SETTINGS"]] = buff_merged_settings
+            buff_merged_settings.update(service_info.get(KEYS["SETTINGS"], {}))
+            service_info[KEYS["SETTINGS"]] = buff_merged_settings
+            for cluster, cluster_info in service_info.get(KEYS["CLUSTERS"], {}).items():
+                if isinstance(cluster_info, dict):
+                    buff_merged_settings = service_info[KEYS["SETTINGS"]].copy()
+                    buff_merged_settings.update(cluster_info.get(KEYS["SETTINGS"], {}))
+                    cluster_info[KEYS["SETTINGS"]] = buff_merged_settings
 
 
     platform_wide_topo_settings = topology_dict.get(KEYS["SETTINGS"], {}).copy()
-    for server, serverInfo in topology_dict[KEYS["SERVERS"]].items():
-        if isinstance(serverInfo, dict):
+    for server, server_info in topology_dict[KEYS["SERVERS"]].items():
+        if isinstance(server_info, dict):
             buff_merged_settings = platform_wide_topo_settings.copy()
-            buff_merged_settings.update(serverInfo.get(KEYS["SETTINGS"], {}))
-            topology_dict[KEYS["SERVERS"]][server][KEYS["SETTINGS"]] = buff_merged_settings
-            for serviceInfo in serverInfo[KEYS["SERVICES"]]:
-                if isinstance(serviceInfo, dict):
-                    cluster = serviceInfo.get(KEYS["CLUSTER"], "common")
-                    service = serviceInfo.get(KEYS["SERVICE"])
-                    buff_merged_settings = topology_dict[KEYS["SERVERS"]][server][KEYS["SETTINGS"]].copy()
-                    buff_merged_settings.update(serviceInfo.get(KEYS["SETTINGS"], {}))
-                    serviceInfo[KEYS["SETTINGS"]] = buff_merged_settings
+            buff_merged_settings.update(server_info.get(KEYS["SETTINGS"], {}))
+            server_info[KEYS["SETTINGS"]] = buff_merged_settings
+            for service_info in server_info[KEYS["SERVICES"]]:
+                if isinstance(service_info, dict):
+                    cluster = service_info.get(KEYS["CLUSTER"], DEFAULT_CLUSTER_NAME)
+                    service = service_info.get(KEYS["SERVICE"])
+                    buff_merged_settings = settings_dict[KEYS["SERVICES"]][service][KEYS["CLUSTERS"]][cluster][KEYS["SETTINGS"]].copy()
+                    buff_merged_settings.update(server_info[KEYS["SETTINGS"]])
+                    buff_merged_settings.update(service_info.get(KEYS["SETTINGS"], {}))
+                    service_info[KEYS["SETTINGS"]] = buff_merged_settings
 
     shiva_servers = {}
 
@@ -791,14 +797,14 @@ def generate_resolver(blueprint, template, output):
 
 
 @generate.command(name="vagrantfile")
-@click.option("--topology", required=True, type=click.File("rb"),
+@click.option("--blueprint", required=True, type=click.File("rb"),
               help="a punch topology description file")
 @click.option("--template", required=False, type=click.Path(exists=True),
               help="a vagrant template vile")
 @click.option("--output", type=click.File("w"),
               help="the output file where to write the Vagrant file. If not provided the generated file"
                    " is written to stdout")
-def generate_vagrantfile(topology, template: str, output):
+def generate_vagrantfile(blueprint, template: str, output):
     """
     Generate Vagrantfile.
 
@@ -817,7 +823,7 @@ def generate_vagrantfile(topology, template: str, output):
         logging.info('using default vagrant template ' + template)
 
     template_jinja = load_template(template)
-    config_dict = yaml.load(topology.read(), Loader=yaml.SafeLoader)
+    config_dict = yaml.load(blueprint.read(), Loader=yaml.SafeLoader)
     rendered_template = template_jinja.render(**config_dict)
     if output is not None:
         output.write(rendered_template)

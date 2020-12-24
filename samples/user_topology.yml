@@ -1,18 +1,19 @@
 ---
-os: ubuntu/bionic64
-network:
-    production:
-        iface_name: enp0s8
-        domain_name: .prod.punch
-    admin:
-        iface_name: enp0s8
-
-
-    #TODO identify where this setting is used and remove it
-    production_interface: enp0s8
-    #TODO identify where this setting is used and remove it
-    admin_interface: enp0s8
-
+#settings set in this section are applied on all host
+#specific settings are always overriding these settings
+settings:
+    network:
+        production:
+            iface_name: enp0s8
+            domain_name: .prod.punch
+        admin:
+            iface_name: enp0s8
+#TODO identify where this setting is used and remove it
+        production_interface: enp0s8
+#TODO identify where this setting is used and remove it
+        admin_interface: enp0s8
+    disksize: 40GB
+    os: ubuntu/bionic64
 
 servers:
     # Each value here must be a reachable server. You typically expect your
@@ -22,44 +23,44 @@ servers:
     # 172.28.128.23 server3
     # 172.28.128.24 server4
     server1:
-        disksize: 40GB
-        memory: 3000
-        cpu: 1
+        settings:
+            memory: 3000
+            cpu: 1
         # 'services' is a reserved punch keyword. It is used to indicate
         # you want a 
         services:
         # Possible values are zookeeper kafka elasticsearch spark minio
         # clickhouse kibana gateway. In short all the runtime services
         # you can select to run on top of a punch.
-        - service: kafka
+            - service: kafka
         # 'users' is also a reserved keyword. It is used to indicate you
         # want a unix punch operator account on this server.
         users:
         # here you will get an 'operator' user on server1. You can list
         # several such accounts 'bob' 'ted' if you prefer.
-        - user: operator
+            - user: operator
     # the rest of this file is straightforward
     server2:
-        disksize: 40GB
-        memory: 3000
-        cpu: 1
+        settings:
+            memory: 3000
+            cpu: 1
         services:
-        - service: kafka
+            - service:  kafka
     server3:
-        disksize: 40GB
-        memory: 3000
-        cpu: 1
+        settings:
+            memory: 3000
+            cpu: 1
         services:
-        - service: zookeeper
-        - service: kafka
+            - service: zookeeper
+            - service: kafka
     server4:
-        disksize: 40GB
-        memory: 2000
-        cpu: 1
+        settings:
+            memory: 2000
+            cpu: 1
         services:
         - service: shiva
           # the 'params' keyword is reserved. It allows you to 
-          params:
+          settings:
             runner: true
             can_be_master: false
             tags:

@@ -71,31 +71,6 @@ kafka:
     {% endfor %}
 {% endif %}
 
-{% if topology.services.elasticsearch %}
-{% set esTopo = topology.services.elasticsearch %}
-{% set esSettings = topology.services.elasticsearch %}
-elasticsearch:
-  elasticsearch_version: {{ topology.versions.elastic }}
-  clusters:
-    {% for esCluster, esClusterTopo in topology.services.elasticsearch.items() %}
-    {% set esClusterSettings = settings.elasticsearch.get(cluster) %}
-    {{ esCluster }}:
-      nodes:
-      {% for host, params in esClusterTopo.items() %}
-      - {{ server }}
-        "http_api_address" : {{  [ host , settings.network.get(esClusterSettings.http_interface).domain ] | join (".")  }}:{{ settings.elasticsearch.get(cluster).httpcluster_port }}
-      {% endfor %}
-      zk_cluster: {{ cluster }}
-      zk_root: {{ settings.kafka.get(cluster).zk_root }}
-      brokers_config: {{ settings.kafka.get(cluster).brokers_config }}
-      default_replication_factor: {{ settings.kafka.get(cluster).default_replication_factor }}
-      default_partitions: {{ settings.kafka.get(cluster).default_partitions }}
-      partition_retention_bytes: {{ settings.kafka.get(cluster).partition_retention_bytes }}
-      partition_retention_hours: {{ settings.kafka.get(cluster).partition_retention_hours }}
-      kafka_brokers_jvm_xmx: {{ settings.kafka.get(cluster).kafka_brokers_jvm_xmx }}
-    {% endfor %}
-{% endif %}
-
 {% if topology.services.shiva is defined %}
 shiva:
   shiva_version: {{ topology.versions.shiva }}
