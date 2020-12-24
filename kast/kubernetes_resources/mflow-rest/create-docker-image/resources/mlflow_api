@@ -1,8 +1,0 @@
-#!/bin/bash
-
-function startMLflow {
-	PEX_SCRIPT=mlflow ./packaged models serve $@ --no-conda 
-}
-
-startMLflow $@
-exit $!
