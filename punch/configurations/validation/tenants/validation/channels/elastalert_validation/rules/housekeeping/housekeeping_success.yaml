@@ -1,23 +1,23 @@
-# Alert if no metadata older than 9 min is present
+# Alert if no metadata older than 5 min is present
 #
-# 9 min explanation :
+# 5 min explanation :
 #
-# The housekeeper retention time is 3 min. The housekeeper execution period is 5 min.
+# The housekeeper retention time is 3 min. The housekeeper execution period is 1 min.
 # After execution, the older valid metadata is 3 min old.
-# Right before next execution, 5 min later, the older valid metadata is 5+3 min old. 
-# We add 1 min for safety : result is 9 min. 
+# Right before next execution, 1 min later, the older valid metadata is 1+3 min old. 
+# We add 1 min for safety : result is 5 min. 
 
 name: Archive Housekeeping success
 
 type: flatline
 
-index: mytenant-archive-*
+index: validation-archive-*
 
 filter:
 - query:
     range:
       timestamp:
-        lt: now-9m
+        lt: now-5m
 
 threshold: 1
 timeframe:

@@ -8,6 +8,5 @@ RESET="\033[0m"
 
 echo -e "${BLUE}INFO:${RESET} Run housekeeping check"
 
-echo -e "${BLUE}INFO:${RESET} Start housekeeping channels"
-channelctl -t mytenant start --channel housekeeping
-channelctl -t platform start --channel housekeeping
+echo -e "${BLUE}INFO:${RESET} Start housekeeping channel"
+channelctl -t validation start --channel housekeeping
