@@ -1,0 +1,33 @@
+{
+  destination: {
+    proto: kafka
+    brokers: local
+    topic: validation_archiving
+    encoding: lumberjack
+  }
+  load: {
+    total_messages: 1000000
+    stats_publish_interval: 2s
+    message_throughput: 59
+  }
+  message: {
+    payloads: [
+      {
+        log: %{ts} host%{id}
+        _ppf_id: %{id}
+        _ppf_timestamp: %{ts}
+      }
+    ]
+    fields: {
+      id: {
+        type: random
+        min: 10000
+        max: 99999
+      }
+      timestamp: {
+        type: timestamp
+        format: dd/MMM/yyyy:HH:mm:ss Z
+      }
+    }
+  }
+}

@@ -4,7 +4,7 @@ name: Archiving failure
 
 type: flatline
 
-index: mytenant-archive-*
+index: validation-archive-*
 
 threshold: 1
 timeframe: 

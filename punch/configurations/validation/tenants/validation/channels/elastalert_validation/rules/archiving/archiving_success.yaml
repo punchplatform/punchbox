@@ -4,7 +4,7 @@ name: Archiving success
 
 type: any
 
-index: mytenant-archive-*
+index: validation-archive-*
 
 realert:
   minutes: 15

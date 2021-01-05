@@ -8,7 +8,7 @@
       type: kafka_input
       settings:
       {
-        topic: mytenant_archiving
+        topic: validation_archiving
         start_offset_strategy: last_committed
         fail_action: exit
       }
@@ -91,14 +91,14 @@
             stream: metadatas
             index: {
               type: daily
-              prefix: mytenant-archive-
+              prefix: validation-archive-
             }
             document_json_field: metadata
             batch_size: 1
             reindex_failed_documents: true
             error_index: {
               type: daily
-              prefix: mytenant-archive-errors
+              prefix: validation-archive-errors
             }
           }
         ]
