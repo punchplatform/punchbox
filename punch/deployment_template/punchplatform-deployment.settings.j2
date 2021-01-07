@@ -488,7 +488,7 @@
         "type" : "administration"
         {% if security is defined %}
         ,
-        "local_credentials_dir": "{{security.security_dir}}/platform_certs/server1",
+        "local_ssl_certs_dir": "{{security.security_dir}}/platform_certs/server1",
         "server_ssl_enabled": true,
         "server_ssl_key_name": "server-key.pem",
         "server_ssl_certificate_name": "server-cert.pem",
