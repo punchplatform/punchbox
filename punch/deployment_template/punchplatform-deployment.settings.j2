@@ -37,6 +37,18 @@
                       }
                   }
               },
+              "kibana_clients": {
+                "admin": {
+                  "ssl_enabled": true,
+                  "ssl_client_certificate_authority": "@{PUNCHPLATFORM_SECRETS_DIR}/ca.pem",
+                  "ssl_client_certificate": "@{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem",
+                  "ssl_client_private_key": "@{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem",
+                    "credentials": {
+                      "username": "@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}",
+                      "password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}"
+                      }
+                  }
+              },
               "gateway_clients": {
                   "gateway_32g": {
                     "ssl_enabled": true,
