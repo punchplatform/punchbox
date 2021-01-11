@@ -14,10 +14,10 @@ channelctl -t validation start --channel archiving
 echo -e "${BLUE}INFO:${RESET} Injecting archiving logs"
 {% if storm in punch %}
 {% for server in punch.storm.slaves %}
-nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/validation/archiving_injector.json -H {{ server }} &
+nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/validation/archiving_injector.hjson -H {{ server }} &
 {% endfor %}
 {% else %}
 {% for server in punch.shiva.servers %}
-nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/validation/archiving_injector.json -H {{ server }} &
+nohup punchplatform-log-injector.sh -c $PUNCHPLATFORM_CONF_DIR/resources/injectors/validation/archiving_injector.hjson -H {{ server }} &
 {% endfor %}
 {% endif %}
