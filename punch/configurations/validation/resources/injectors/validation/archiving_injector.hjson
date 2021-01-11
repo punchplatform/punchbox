@@ -13,9 +13,9 @@
   message: {
     payloads: [
       {
-        log: %{ts} host%{id}
-        _ppf_id: %{id}
-        _ppf_timestamp: %{ts}
+        log: "%{ts} host%{id}""
+        _ppf_id: "%{id}"
+        _ppf_timestamp: "%{ts}""
       }
     ]
     fields: {
