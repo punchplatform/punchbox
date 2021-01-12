@@ -75,6 +75,8 @@
          security.protocol: SSL
          ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
          ssl.truststore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         ssl.keystore.location: @{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks
+         ssl.keystore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
          {% endif %}
       }
    }
@@ -97,6 +99,8 @@
          producer.security.protocol: SSL
          producer.ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
          producer.ssl.truststore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         producer.ssl.keystore.location: @{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks
+         producer.ssl.keystore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
          {% endif %}
       }
    }
@@ -121,6 +125,8 @@
          {% if security %}
          ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
          ssl_truststore_password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         ssl.keystore.location: @{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks
+         ssl.keystore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
          {% endif %}
       }
    }
@@ -145,6 +151,8 @@
          security.protocol: SSL
          ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
          ssl.truststore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         ssl.keystore.location: @{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks
+         ssl.keystore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
          {% endif %}
       }
    }
@@ -274,6 +282,8 @@
          security.protocol: SSL
          ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
          ssl.truststore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+         ssl.keystore.location: @{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks
+         ssl.keystore.password: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
          {% endif %}
       }
    }
@@ -325,6 +335,8 @@
                      ssl_enabled: true
                      ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
                      ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+                     ssl_keystore_location: @{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks
+                     ssl_keystore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
                   }
                }
                elasticsearch_clients: {
@@ -335,6 +347,8 @@
                      ssl_client_private_key: @{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem
                      ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
                      ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+                     ssl_keystore_location: @{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks
+                     ssl_keystore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
                      credentials: {
                         username: @{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}
                         password: @{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}
@@ -346,6 +360,8 @@
                      ssl_enabled: true
                      ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
                      ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
+                     ssl_keystore_location: @{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks
+                     ssl_keystore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
                   }
                }
                    "zookeeper_clients": {
@@ -353,6 +369,8 @@
                     "ssl_enabled": true,
                     "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                     "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+                    "ssl_keystore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks"
+                    "ssl_keystore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
                         }
                       }
             }

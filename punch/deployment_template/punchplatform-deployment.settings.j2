@@ -4,8 +4,8 @@
         "setups_root": "{{ installation_directory }}",
         "remote_data_root_directory": "{{data_storage_directory}}",
         "remote_logs_root_directory": "/var/log/punchplatform",
-        "punchplatform_daemons_user": "{{ operator.username }}",
-        "punchplatform_group": "{{ operator.username }}",
+        "punchplatform_daemons_user": "vagrant",
+        "punchplatform_group": "vagrant",
         "binaries_version": "{{ version.binaries }}"
         {% if security is defined %}
         ,
@@ -20,7 +20,9 @@
               "local": {
                 "ssl_enabled": true,
                 "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
-                "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+                "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
+                "ssl_keystore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks",
+                "ssl_keystore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
                 }
             },
             "elasticsearch_clients": {
@@ -31,6 +33,8 @@
                   "ssl_client_private_key": "@{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem",
                   "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                   "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
+                  "ssl_keystore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks",
+                  "ssl_keystore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
                     "credentials": {
                       "username": "@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}",
                       "password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}"
@@ -53,19 +57,23 @@
                   "gateway_32g": {
                     "ssl_enabled": true,
                     "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
-                    "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
-                        }
-                  },
+                    "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
+                    "ssl_keystore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks",
+                    "ssl_keystore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+                  }
+              },
               "zookeeper_clients": {
                   "local": {
                     "ssl_enabled": true,
                     "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
-                    "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
-                        }
-                      }
-                  }
+                    "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
+                    "ssl_keystore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks",
+                    "ssl_keystore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+                    }
               }
-        {% endif %}
+          }
+      }
+    {% endif %}
     },
 
     "reporters": {
@@ -80,6 +88,8 @@
         "security.protocol": "SSL",
         "ssl.truststore.location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
         "ssl.truststore.password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+        "ssl.keystore.location": "@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks",
+        "ssl.keystore.password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
         {% endif %}
       }
    },
@@ -110,6 +120,8 @@
             {% if security is defined %}
             ,
             "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
+            "keystore_name": "server-keystore.jks",
+            "keystore_password": "@{DEPLOYMENT_SECRETS.shiva.keystore_pass}",
             "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks"],
             "custom_secrets_file": "shiva_secrets.json"
             {% endif %}
@@ -212,7 +224,6 @@
         "punchplatform_root_node": "/punchplatform-primary",
         {% if security is defined %}
         "ssl_enabled": true,
-        "zk_client_auth": "none",
         {% endif %}
         "servers": {
             {% for server in zookeeper.servers %}
