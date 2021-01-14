@@ -8,6 +8,8 @@ RESET="\033[0m"
 
 echo -e "${BLUE}INFO:${RESET} Run gateway check"
 
+channelctl -t validation start --channel gateway_validation
+
 {%- if os == "ubuntu/bionic64" %}
 curl -sL https://deb.nodesource.com/setup_lts.x | sudo -E bash - >> /dev/null 2>&1
 sudo apt-get install -y nodejs >> /dev/null 2>&1

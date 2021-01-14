@@ -26,7 +26,7 @@
       }
       timestamp: {
         type: timestamp
-        format: dd/MMM/yyyy:HH:mm:ss Z
+        format: "dd/MMM/yyyy:HH:mm:ss Z"
       }
     }
   }

@@ -57,9 +57,12 @@ function startFullTest() {
     channelctl -t validation start --channel elastalert_validation
 }
 
-function close() {
+function waitForInjection() {
     echo -e "${BLUE}INFO:${RESET} Wait for 15 min, logs are being inserted in platform"
     sleep 900
+}
+
+function clean() {
     pkill -f org.thales.punch.injector.Main >/dev/null 2>/dev/null
 
     echo -e "${BLUE}INFO:${RESET} Stop channels"
@@ -84,12 +87,18 @@ case $1 in
     -f | --full)
         init
         startFullTest
-        close
+        waitForInjection
+        clean
         ;;
 
     -r | --rule)
         startRule "$2"
         ;;
+
+    -c | --clean)
+        clean
+        ;;
+
 
     *)
         usage
