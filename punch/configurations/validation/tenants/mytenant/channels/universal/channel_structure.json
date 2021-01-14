@@ -7,7 +7,7 @@
             "name": "single_topology",
             "runtime" : "storm",
             "execution_mode": "cluster",
-            "cluster": "local",
+            "cluster": "common",
             "reload_action": "kill_then_start"
         }
     ]

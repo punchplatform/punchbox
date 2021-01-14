@@ -10,9 +10,9 @@
             "args": [
                 "-f", "logstash.conf"
             ],
-            "cluster": "local",
+            "cluster": "common",
             "shiva_runner_tags": [
-                "local"
+                "common"
             ]
         }
     ],
@@ -20,7 +20,7 @@
         {
             "type": "kafka_topic",
             "name": "mytenant_logstash",
-            "cluster": "local",
+            "cluster": "common",
             "partitions": 1,
             "replication_factor": 1
         }

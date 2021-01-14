@@ -17,7 +17,7 @@
         "punch_commands": {
           "security": {
             "kafka_clients": {
-              "local": {
+              "common": {
                 "ssl_enabled": true,
                 "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                 "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
@@ -63,7 +63,7 @@
                   }
               },
               "zookeeper_clients": {
-                  "local": {
+                  "common": {
                     "ssl_enabled": true,
                     "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                     "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
@@ -79,7 +79,7 @@
     "reporters": {
       "myreporter" : {
         "type": "kafka",
-        "brokers": "local",
+        "brokers": "common",
         "topic": "platform-events",
         "reporting_interval": 30,
         "encoding": "json"
@@ -99,13 +99,13 @@
     "shiva": {
     "shiva_version": "{{ version.shiva }}",
     "clusters": {
-      "local": {
+      "common": {
         "reporters" : ["myreporter"],
         "storage": {
           "type" : "{{ shiva.mode }}"
           {% if shiva.mode == "kafka" %}
           ,
-          "kafka_cluster": "local"
+          "kafka_cluster": "common"
           {% endif %}
         },
         {% if security is defined %}
@@ -116,7 +116,7 @@
           "{{ server }}": {
             "runner": true,
             "can_be_master": true,
-            "tags": [ "local" ]
+            "tags": [ "common" ]
             {% if security is defined %}
             ,
             "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
@@ -147,7 +147,7 @@
       "operators_username" : ["{{ operator.username }}"],
       "storage" : {
             "type" : "kafka",
-            "kafka_cluster": "local"
+            "kafka_cluster": "common"
       },
       "servers" : {
       {% for server in operator.servers %}
@@ -172,7 +172,7 @@
     "spark_version" : "{{ version.spark }}",
     "punchplatform_analytics_deployment_version": "{{ version["analytics-deployment"] }}",
     "clusters" : {
-      "local": {
+      "common": {
         "master" : {
           "servers" : {{ spark.masters | tojson }},
           "listen_interface" : "{{ iface }}",
@@ -203,7 +203,7 @@
         },
         {% endif %}
         "spark_workers_by_punchplatform_spark": 1,
-        "zk_cluster" : "local",
+        "zk_cluster" : "common",
         "zk_root" : "spark-main",
         "slaves_cpu" : 2,
         "slaves_memory" : "{{ spark.slaves_memory }}"
@@ -218,7 +218,7 @@
    "zookeeper_nodes_production_interface": "{{ iface }}",
    "zookeeper_childopts": "{{ zookeeper.childopts }}",
     "clusters": {
-      "local": {
+      "common": {
         "hosts": {{ zookeeper.servers | tojson }},
         "cluster_port": 2181,
         "punchplatform_root_node": "/punchplatform-primary",
@@ -348,7 +348,7 @@
    "kafka_version" : "{{ version.kafka }}",
    "kafka_brokers_production_interface" : "{{ iface }}",
     "clusters" : {
-      "local" : {
+      "common" : {
         "brokers_with_ids" : [
               {%- for broker in kafka.brokers %}
               {
@@ -369,9 +369,9 @@
         {% if security is defined %}
         "ssl_enabled": true,
         {% endif %}
-        "zk_cluster" : "local",
-        "zk_root" : "kafka-local",
-        "brokers_config" : "punchplatform-local-server.properties",
+        "zk_cluster" : "common",
+        "zk_root" : "kafka-common",
+        "brokers_config" : "punchplatform-common-server.properties",
         "default_replication_factor" : 1,
         "default_partitions" : 2,
         "partition_retention_bytes" : 1073741824,
@@ -449,7 +449,7 @@
    "storm_version" : "{{ version.storm }}",
    "storm_nimbus_nodes_production_interface" : "{{ iface }}",
     "clusters" : {
-      "local": {
+      "common": {
         "master" : {
           "servers" : {{ storm.master.servers | tojson }}
         },
@@ -457,7 +457,7 @@
           "servers" : {{ storm.ui.servers | tojson }}
         },
         "slaves" : {{ storm.slaves | tojson }},
-        "zk_cluster" : "local",
+        "zk_cluster" : "common",
         "zk_root" : "storm-1.2.2-main",
         "storm_workers_by_punchplatform_supervisor" : 10,
         "workers_childopts" : "{{ storm.workers_childopts }}",
@@ -474,7 +474,7 @@
     "minio_access_key": "admin",
     "minio_secret_key": "punchplatform",
       "clusters": {
-        "local": {
+        "common": {
           "hosts": {{ minio.servers | tojson }},
           "port": "9000"
         }
@@ -492,7 +492,7 @@
             "servers": {{ clickhouse.servers | tojson }}
           }
         ],
-        "zk_cluster": "local",
+        "zk_cluster": "common",
         "zk_root": "clickhouse",
         "http_port": 8123,
         "tcp_port": 9100

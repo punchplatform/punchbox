@@ -13,9 +13,9 @@
         "--runtime",
         "spark"
       ],
-      "cluster": "local",
+      "cluster": "common",
       "shiva_runner_tags": [
-        "local"
+        "common"
       ],
       "name": "plan-aggregation",
       "runtime": "shiva",

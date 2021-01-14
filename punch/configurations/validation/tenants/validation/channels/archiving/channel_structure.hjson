@@ -6,7 +6,7 @@
     {
       type: kafka_topic
       name: validation_archiving
-      cluster: local
+      cluster: common
       partitions: 1
       replication_factor: 1
     }
@@ -16,7 +16,7 @@
       name: archiving
       runtime: storm
       execution_mode: cluster
-      cluster: local
+      cluster: common
       reload_action: kill_then_start
     }
   ]

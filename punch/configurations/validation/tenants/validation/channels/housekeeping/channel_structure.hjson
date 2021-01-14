@@ -6,7 +6,7 @@
     {
       name: archives-housekeeping
       runtime: shiva
-      cluster: local
+      cluster: common
       command: archives-housekeeping
       args: [
         "archives-housekeeping.hjson"

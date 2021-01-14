@@ -6,7 +6,7 @@
   "start_by_tenant": false,
   "applications": [
     {
-      "cluster": "local",
+      "cluster": "common",
       "execution_mode": "cluster",
       "name": "input",
       "runtime": "storm",

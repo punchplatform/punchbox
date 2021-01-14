@@ -13,9 +13,9 @@
         "--spark-master",
         "spark://{{spark_master}}:7077"
       ],
-      "cluster": "local",
+      "cluster": "common",
       "shiva_runner_tags": [
-        "local"
+        "common"
       ],
       "name": "dataset_generator_to_stdout_java",
       "runtime": "shiva",
@@ -31,9 +31,9 @@
         "--spark-master",
         "spark://{{spark_master}}:7077"
       ],
-      "cluster": "local",
+      "cluster": "common",
       "shiva_runner_tags": [
-        "local"
+        "common"
       ],
       "name": "dataset_generator_to_stdout_python",
       "runtime": "shiva",
@@ -49,9 +49,9 @@
         "--spark-master",
         "spark://{{spark_master}}:7077"
       ],
-      "cluster": "local",
+      "cluster": "common",
       "shiva_runner_tags": [
-        "local"
+        "common"
       ],
       "name": "punchline_java_python",
       "runtime": "shiva",

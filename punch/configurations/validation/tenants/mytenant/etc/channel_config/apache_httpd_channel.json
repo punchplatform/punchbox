@@ -20,7 +20,7 @@
 
     # define channel runtime type
     "channel_type": "storm",
-    "cluster_name": "local",
+    "cluster_name": "common",
 
     # the processings you want to run on the data stream
     "processing": {

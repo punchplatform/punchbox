@@ -1,7 +1,7 @@
 {
   destination: {
     proto: kafka
-    brokers: local
+    brokers: common
     topic: validation_archiving
     encoding: lumberjack
   }
@@ -13,9 +13,9 @@
   message: {
     payloads: [
       {
-        log: "%{ts} host%{id}""
+        log: "%{ts} host%{id}"
         _ppf_id: "%{id}"
-        _ppf_timestamp: "%{ts}""
+        _ppf_timestamp: "%{ts}"
       }
     ]
     fields: {

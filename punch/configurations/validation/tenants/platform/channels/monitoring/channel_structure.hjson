@@ -21,7 +21,7 @@
 		/* 	This is a monitoring service, so we run it in the processing_shiva, because the other shiva (the front cluster) 
 			would not have access to all instances of the services  (network isolation/firewalling is the main reason to have a separate front tier).
 		*/
-		cluster: local
+		cluster: common
 		// platform-monitoring is a builtin punchplatform micro-service, automatically available on shiva runner nodes
 		command: platform-monitoring
 		// The only needed argument is the service configuration file
@@ -35,9 +35,9 @@
       	*/
 		name: local_events_dispatcher 
 		runtime: shiva
-		cluster: local
+		cluster: common
 		/*	As for all punchline running on shiva, the actual command that shiva is using is 'punchlinectl', 
-			which is the same a user would use on a local node to start a punchline manually.
+			which is the same a user would use on a common node to start a punchline manually.
 			The command is automatically available on shiva runner nodes.
 		*/
 	    	command: punchlinectl
@@ -51,9 +51,9 @@
       	*/
 		name: channels_monitoring 
 		runtime: shiva
-		cluster: local
+		cluster: common
 		/*	As for all punchline running on shiva, the actual command that shiva is using is 'punchlinectl', 
-			which is the same a user would use on a local node to start a punchline manually.
+			which is the same a user would use on a common node to start a punchline manually.
 			The command is automatically available on shiva runner nodes.
 		*/
 	    	command: channels-monitoring
@@ -72,7 +72,7 @@
                 type: kafka_topic
                 name: platform-events
                 // This is the kafka cluster id in which the topic will be created (it must match what is used in the punchline itself)
-                cluster: local
+                cluster: common
                 /* The following settings are used only when creating the topic if it does not exist.
                 		These settings will not be changed if the topic already exists (it would require a human administration action
                 		using kafka administration tools to alter these characteristics, because it involves allocating/deleting data storage)
