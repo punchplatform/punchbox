@@ -31,10 +31,6 @@
                   "ssl_client_certificate_authority": "@{PUNCHPLATFORM_SECRETS_DIR}/ca.pem",
                   "ssl_client_certificate": "@{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem",
                   "ssl_client_private_key": "@{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem",
-                  "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
-                  "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
-                  "ssl_keystore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks",
-                  "ssl_keystore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
                     "credentials": {
                       "username": "@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}",
                       "password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}"
@@ -122,7 +118,7 @@
             "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
             "keystore_name": "server-keystore.jks",
             "keystore_password": "@{DEPLOYMENT_SECRETS.shiva.keystore_pass}",
-            "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks"],
+            "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks", "server-key.pem", "server-cert.pem", "ca.pem"],
             "custom_secrets_file": "shiva_secrets.json"
             {% endif %}
           }
@@ -144,7 +140,7 @@
         {%- for server in zookeeper.servers %}
            {%- do temp_servers.append(server + ":2181/punchplatform-primary") %}
         {%- endfor %}
-      "operators_username" : ["{{ operator.username }}"],
+      "operators_username" : ["ppoperator"],
       "storage" : {
             "type" : "kafka",
             "kafka_cluster": "local"
@@ -153,10 +149,10 @@
       {% for server in operator.servers %}
          "{{server}}" : {
             {% if security is defined %}
-            "{{operator.username}}": {
+            "ppoperator": {
                 "credentials": {
                     "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
-                    "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks"],
+                    "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks", "server-cert.pem", "server-key.pem", "ca.pem"],
                     "custom_secrets_file": "operator_user_secrets.json"
                 }
             }
@@ -427,6 +423,7 @@
           "opendistro_security": {
             "opendistro_security_version": "{{ version.opendistro_security }}",
             "ssl_http_enabled": true,
+            "ssl_http_clientauth_mode": "REQUIRE",
             "authcz_admin_dn": [
               "emailAddress=admin-server2-super-1@easyssl.com,CN=server2,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR",
               "emailAddress=admin-server3-super-1@easyssl.com,CN=server3,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR"
@@ -559,9 +556,6 @@
       ,
       "opendistro_security": {
         "opendistro_security_version": "{{ version.opendistro_security }}"
-      },
-      "opendistro_alerting": {
-        "opendistro_alerting_version": "{{ version.opendistro_security }}"
       }
       {% endif %}
     }
