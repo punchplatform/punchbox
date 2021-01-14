@@ -11,7 +11,7 @@
       "resources": [
         "result_newman.csv"
       ],
-      "cluster": "local",
+      "cluster": "common",
       "shiva_runner_tags": [
         "{{ shiva_host }}"
       ]

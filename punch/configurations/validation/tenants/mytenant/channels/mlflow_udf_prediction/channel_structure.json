@@ -11,9 +11,9 @@
         "--runtime", "pyspark",
 	"--verbose"
       ],
-      "cluster": "local",
+      "cluster": "common",
       "shiva_runner_tags": [
-        "local"
+        "common"
       ],
         "resources": [
 		"mlflow_udf_prediction_reduce.hjson"

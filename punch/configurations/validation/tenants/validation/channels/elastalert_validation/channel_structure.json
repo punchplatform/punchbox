@@ -13,9 +13,9 @@
             "resources": [
                 "config.yaml", "rules"
             ],
-            "cluster": "local",
+            "cluster": "common",
             "shiva_runner_tags": [
-                "local"
+                "common"
             ]
         }
     ]

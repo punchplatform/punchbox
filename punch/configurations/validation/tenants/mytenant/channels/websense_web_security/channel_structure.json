@@ -6,7 +6,7 @@
       {
         "name": "input",
         "runtime" : "storm",
-        "cluster": "local",
+        "cluster": "common",
         "execution_mode": "cluster",
         "reload_action": "kill_then_start"
       }

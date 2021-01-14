@@ -15,7 +15,7 @@
 			{
 				type : kafka_input
 				settings : { 
-					brokers: local
+					brokers: common
 					topic: platform-events
 					/*
 						 This topic receives metric / events from the platform component, but directly stored in 

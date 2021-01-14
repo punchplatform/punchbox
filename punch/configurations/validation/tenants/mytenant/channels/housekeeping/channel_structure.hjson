@@ -10,7 +10,7 @@
 		name: elasticsearch-housekeeping
 		runtime: shiva
 		// Here goes the name of the shiva cluster. On production platforms, there may be several in different security zones.
-		cluster: local
+		cluster: common
 		// elasticsearch-housekeeping is a builtin punchplatform micro-service, automatically available on shiva runner nodes
 		command: elasticsearch-housekeeping
 		// The only needed argument is the service configuration file

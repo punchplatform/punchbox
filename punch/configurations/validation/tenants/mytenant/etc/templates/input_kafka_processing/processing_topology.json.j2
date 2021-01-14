@@ -12,7 +12,7 @@
       "type": "kafka_spout",
       "spout_settings": {
         "start_offset_strategy": "last_committed",
-        "brokers": "local",
+        "brokers": "common",
         "topic": "{{channel.tenant}}_{{channel.channel}}"
       },
       "storm_settings": {

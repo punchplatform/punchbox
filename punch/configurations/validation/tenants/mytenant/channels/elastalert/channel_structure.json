@@ -10,9 +10,9 @@
             "args": [
                 "--config", "config.yaml", "--verbose"
             ],
-            "cluster": "local",
+            "cluster": "common",
             "shiva_runner_tags": [
-                "local"
+                "common"
             ]
         }
     ]

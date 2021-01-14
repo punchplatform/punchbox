@@ -9,7 +9,7 @@
 
     # define channel runtime type
     "channel_type": "storm",
-    "cluster_name": "local",
+    "cluster_name": "common",
     
     # where the data comes from
     "input": {
