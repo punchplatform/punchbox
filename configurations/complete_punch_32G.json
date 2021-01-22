@@ -111,7 +111,7 @@
       "servers": [
         "server1"
       ],
-      "username": "vagrant"
+      "username": "ppoperator"
     },
     "metricbeat": {
       "servers": [

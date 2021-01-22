@@ -106,6 +106,10 @@
         },
         {% if security is defined %}
         "ssl_enabled": true,
+        "keystore_name": "server-keystore.jks",
+        "keystore_password": "@{DEPLOYMENT_SECRETS.shiva.keystore_pass}",
+        "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks", "server-key.pem", "server-cert.pem", "ca.pem"],
+        "custom_secrets_file": "shiva_secrets.json",
         {% endif %}
         "servers": {
         {% for server in shiva.servers %}
@@ -113,23 +117,13 @@
             "runner": true,
             "can_be_master": true,
             "tags": [ "local" ]
-            {% if security is defined %}
-            ,
-            "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
-            "keystore_name": "server-keystore.jks",
-            "keystore_password": "@{DEPLOYMENT_SECRETS.shiva.keystore_pass}",
-            "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks", "server-key.pem", "server-cert.pem", "ca.pem"],
-            "custom_secrets_file": "shiva_secrets.json"
-            {% endif %}
-          }
-      {% if not loop.last %}
-      ,
-      {% endif %}
+          }{% if not loop.last %},{% endif %}
       {% endfor %}
         }
       }
     }
   },
+
   {% endif %}
     {% if operator is defined %}
     "punchplatform_operator" : {
@@ -140,26 +134,28 @@
         {%- for server in zookeeper.servers %}
            {%- do temp_servers.append(server + ":2181/punchplatform-primary") %}
         {%- endfor %}
-      "operators_username" : ["ppoperator"],
       "storage" : {
             "type" : "kafka",
             "kafka_cluster": "local"
       },
-      "servers" : {
-      {% for server in operator.servers %}
-         "{{server}}" : {
-            {% if security is defined %}
-            "ppoperator": {
-                "credentials": {
-                    "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
-                    "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks", "server-cert.pem", "server-key.pem", "ca.pem"],
-                    "custom_secrets_file": "operator_user_secrets.json"
-                }
-            }
-            {% endif %}
-         }{% if not loop.last %},{% endif %}
-       {% endfor %}
+      "servers": {
+        "server1": {}
       }
+      {% if security is defined %}
+      ,
+      "custom_additional_credentials_files" : [
+        "server-key.pem",
+        "server-cert.pem",
+        "server-keystore.jks"
+       ],
+      "custom_secrets_file" : "operator_user_secrets.json",
+       "users": {
+         "{{ operator.username }}": {
+              "local_credentials_dir": "{{security.security_dir}}/platform_certs/server1"
+        }
+       }
+       {% endif %}
+
     },
     {% endif %}
 
@@ -220,18 +216,9 @@
         "punchplatform_root_node": "/punchplatform-primary",
         {% if security is defined %}
         "ssl_enabled": true,
+        "keystore_name": "server-keystore.jks",
+        "keystore_password": "@{DEPLOYMENT_SECRETS.zookeeper.keystore_pass}"
         {% endif %}
-        "servers": {
-            {% for server in zookeeper.servers %}
-            "{{server}}": {
-                {% if security is defined %}
-                "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
-                "keystore_name": "server-keystore.jks",
-                "keystore_password": "@{DEPLOYMENT_SECRETS.zookeeper.keystore_pass}"
-                {% endif %}
-            }{% if not loop.last %},{% endif %}
-            {% endfor %}
-          }
       }
     }
     },
@@ -251,28 +238,19 @@
       "gateway_32g": {
         "tenant": "mytenant",
         "modsecurity_enabled": false,
+        {% if security is defined %}
+        "ssl_enabled": true,
+        "custom_secrets_file": "gateway_user_secrets.json",
+        "key_store_name": "server-keystore.jks",
+        "server_key_store_password" : "@{DEPLOYMENT_SECRETS.gateway.keystore_pass}",
+        "client_private_key_name": "server-key.pem",
+        "client_certificate_name": "server-cert.pem",
+        {% endif %}
         "servers": {
         {% for server in gateway.servers %}
           "{{ server }}": {
             "inet_address": "{{ gateway.inet_address }}",
             "port": 4242
-            {% if security is defined %}
-            ,
-            "credentials": {
-                "user": "@{DEPLOYMENT_SECRETS.user}",
-                "password" : "@{DEPLOYMENT_SECRETS.password}"
-              },
-            "ssl": {
-              "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
-              "custom_secrets_file": "gateway_user_secrets.json",
-              "key_store_name": "server-keystore.jks",
-              "key_store_type": "JKS",
-              "key_alias": "{{server}}",
-              "server_key_store_password" : "@{DEPLOYMENT_SECRETS.gateway.keystore_pass}",
-              "client_private_key_name": "server-key.pem",
-              "client_certificate_name": "server-cert.pem"
-            }
-            {% endif %}
           }
         {% if not loop.last %}
           ,
@@ -350,12 +328,6 @@
               {
                 "id" : {{ loop.index }},
                 "broker" : "{{broker}}"
-                {% if security is defined %}
-                ,
-                "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{broker | url_to_host}}",
-                "keystore_name": "server-keystore.jks",
-                "keystore_password": "@{DEPLOYMENT_SECRETS.kafka.keystore_pass}"
-                {% endif %}
               }
               {% if not loop.last %}
               ,
@@ -364,6 +336,8 @@
         ],
         {% if security is defined %}
         "ssl_enabled": true,
+        "keystore_name": "server-keystore.jks",
+        "keystore_password": "@{DEPLOYMENT_SECRETS.kafka.keystore_pass}",
         {% endif %}
         "zk_cluster" : "local",
         "zk_root" : "kafka-local",
@@ -390,14 +364,6 @@
             "transport_address" : "{{ server }}",
             "bind_address" : "_{{ iface }}_",
             "rack_id" : "{{ loop.index }}"
-            {% if security is defined %}
-            ,
-            "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
-            "admin_pemkey_name": "admin-server-key.pem",
-            "admin_pemcert_name": "admin-server-cert.pem",
-            "ssl_pemkey_name": "server-key.pem",
-            "ssl_pemcert_name": "server-cert.pem"
-            {% endif %}
           }
           {% if not loop.last %}
           ,
@@ -424,6 +390,10 @@
             "opendistro_security_version": "{{ version.opendistro_security }}",
             "ssl_http_enabled": true,
             "ssl_http_clientauth_mode": "REQUIRE",
+            "admin_pemkey_name": "admin-server-key.pem",
+            "admin_pemcert_name": "admin-server-cert.pem",
+            "ssl_pemkey_name": "server-key.pem",
+            "ssl_pemcert_name": "server-cert.pem",
             "authcz_admin_dn": [
               "emailAddress=admin-server2-super-1@easyssl.com,CN=server2,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR",
               "emailAddress=admin-server3-super-1@easyssl.com,CN=server3,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR"
@@ -562,19 +532,8 @@
   },
     {% endif %}
 
-    "metricbeat" : {
+  "metricbeat" : {
     "metricbeat_version" : "{{ version.metricbeat }}",
-    "servers": {
-        {% for server in metricbeat.servers %}
-        "{{server}}": {
-            {% if security is defined %}
-            "local_credentials_dir": "{{security.security_dir}}/platform_certs/{{server}}",
-            "private_key_name": "server-key.pem",
-            "certificate_name": "server-cert.pem"
-            {% endif %}
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    },
     "modules" : {
       "system" : {
         "high_frequency_system_metrics": {
@@ -598,6 +557,13 @@
       "ssl_enabled": true
       {% endif %}
     }
+    {% if security is defined %}
+    ,
+    "elasticsearch_private_key_name": "server-key.pem",
+    "elasticsearch_certificate_name": "server-cert.pem",
+    "elasticsearch_user": "admin",
+    "elasticsearch_password": "admin"
+    {% endif %}
   }
 
 }
