@@ -1,1 +1,18 @@
-/home/romain/Documents/punch/kast/hosts
+[all:vars]
+ansible_connection=ssh
+ansible_user=vagrant
+
+[kube_master]
+server1  internal_address=172.28.128.21
+
+[kube_worker]
+server2  internal_address=172.28.128.22
+server3  internal_address=172.28.128.23
+
+[any]
+server1
+
+[ingress]
+server1
+server2
+server3
