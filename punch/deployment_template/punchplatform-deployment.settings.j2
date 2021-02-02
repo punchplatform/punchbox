@@ -123,8 +123,8 @@
       }
     }
   },
-
   {% endif %}
+
     {% if operator is defined %}
     "punchplatform_operator" : {
       "punchplatform_operator_environment_version": "{{ version.operator }}",
@@ -134,6 +134,7 @@
         {%- for server in zookeeper.servers %}
            {%- do temp_servers.append(server + ":2181/punchplatform-primary") %}
         {%- endfor %}
+      "operators_username" : ["{{ operator.username }}"],
       "storage" : {
             "type" : "kafka",
             "kafka_cluster": "local"
@@ -213,8 +214,9 @@
       "local": {
         "hosts": {{ zookeeper.servers | tojson }},
         "cluster_port": 2181,
-        "punchplatform_root_node": "/punchplatform-primary",
+        "punchplatform_root_node": "/punchplatform-primary"
         {% if security is defined %}
+        ,
         "ssl_enabled": true,
         "keystore_name": "server-keystore.jks",
         "keystore_password": "@{DEPLOYMENT_SECRETS.zookeeper.keystore_pass}"
@@ -242,7 +244,7 @@
         "ssl_enabled": true,
         "custom_secrets_file": "gateway_user_secrets.json",
         "key_store_name": "server-keystore.jks",
-        "server_key_store_password" : "@{DEPLOYMENT_SECRETS.gateway.keystore_pass}",
+        "key_store_password" : "@{DEPLOYMENT_SECRETS.gateway.keystore_pass}",
         "client_private_key_name": "server-key.pem",
         "client_certificate_name": "server-cert.pem",
         {% endif %}

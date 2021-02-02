@@ -41,7 +41,7 @@ Vagrant.configure("2") do |config|
       {#- temporary fix : Linux kernel version in centos vagrant official boxes are not supported by redhat anymore #}
       {#- forcing eurolinux boxes for centos. Replace them later by vagrant official boxes #}
       {%- if os == 'centos/8' %}
-      server.vm.box = "eurolinux-vagrant/centos-8"
+      server.vm.box = "generic/centos8"
       {% elif os == 'centos/7' %}
       server.vm.box = "eurolinux-vagrant/centos-7"
       {#- rhel boxes need a redhat dev accout to download packages #}
