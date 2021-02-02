@@ -14,7 +14,7 @@ As an example select the 16G template, make sure you use a
 supported os (for example "bento/centos-8") amd generate your vagrantfile using :
 
 ```sh
-punchbox -platform-config-file configurations/empty_16G.json --generate-vagrantfile
+punchbox --platform-config-file configurations/empty_16G.json --generate-vagrantfile
 ```
 
 That create a vagrant/Vagrantfile file. Start your servers:
