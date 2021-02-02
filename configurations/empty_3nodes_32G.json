@@ -1,0 +1,26 @@
+{
+  "targets": {
+    "info": {
+      "server1": {
+        "disksize": "20GB",
+        "memory": 8192,
+        "cpu": 3
+      },
+      "server2": {
+        "disksize": "20GB",
+        "memory": 8192,
+        "cpu": 3
+      },
+      "server3": {
+        "disksize": "20GB",
+        "memory": 8192,
+        "cpu": 3
+      }
+    },
+    "meta": {
+      "os": "ubuntu/bionic64"
+    }
+  },
+  "punch": {
+  }
+}
