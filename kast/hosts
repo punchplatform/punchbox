@@ -16,7 +16,7 @@ server1
 [ingress]
 server2
 server3
-server3
+server4
 
 [monitor]
 server2
