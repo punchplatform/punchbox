@@ -8,11 +8,20 @@ server1  internal_address=172.28.128.21
 [kube_worker]
 server2  internal_address=172.28.128.22
 server3  internal_address=172.28.128.23
+server4  internal_address=172.28.128.24
 
 [any]
 server1
 
 [ingress]
-server1
 server2
 server3
+server3
+
+[monitor]
+server2
+
+[clickhouse]
+server3
+
+
