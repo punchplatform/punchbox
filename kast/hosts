@@ -2,7 +2,7 @@ all:
   vars:
     ansible_connection: ssh
     ansible_user: vagrant
-    nic: eth1
+    nic: enp0s8 
 
 any: 
   hosts:
@@ -32,6 +32,21 @@ monitor:
   hosts:
     server2:
 
+postgresql:
+  hosts:
+    server4:
+
+redis:
+  hosts:
+    server2:
+
 clickhouse:
   hosts:
     server3:
+  vars: 
+    ch_limit_cpu: 1
+    ch_request_cpu: 1
+
+superset:
+  hosts:
+    server4:

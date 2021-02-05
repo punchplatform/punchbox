@@ -143,7 +143,7 @@ kubectl get pods --all-namespaces -o wide
 
 ![](./images/test_kube.gif)
 
-### Step 4. Run kubectl commands from your laptop
+### Step 4. Run kubectl commands from your laptop (Optional)
 
 if you want to run kubectl command directly from you laptop, you need to install kubectl and run following commands :
 
@@ -168,3 +168,39 @@ scp -i /path/to/your/private/key vagrant@server1:/home/vagrant/.kube/config  $HO
 export KUBECONFIG=$HOME/.kube/config
 ```
 
+### Step 5. Deploy other components
+
+#### Install ingress, grafana and kube dashboard 
+
+ansible-playbook -i hosts $KAST_DIR/playbook/ingress.yml -u vagrant
+
+ansible-playbook -i hosts $KAST_DIR/playbook/monitor.yml -u vagrant
+
+ansible-playbook -i hosts $KAST_DIR/playbook/dashboard.yml -u vagrant
+
+
+!!! note 
+
+    To validate your deployment, go to http://server2/dashboard/ and  http://server2/grafana
+
+
+#### Install clickhouse 
+
+ansible-playbook -i hosts $KAST_DATA_DIR/playbook/clickhouse.yml -u vagrant
+
+!!! note 
+
+    To validate your deployment, go to http://server2/clickhouse (must have "Ok")
+
+#### Install superset 
+
+ansible-playbook -i hosts $KAST_DIR/playbook/sql_db.yml -u vagrant
+
+ansible-playbook -i hosts $KAST_DATA_DIR/playbook/redis.yml -u vagrant
+
+ansible-playbook -i hosts $KAST_DATA_DIR/playbook/superset.yml -u vagrant
+
+!!! note 
+    Edit your /etc/hosts with the following line : 172.28.128.22 server2 superset.example.com
+
+    To validate your deployment, go to http://superset.example.com 
