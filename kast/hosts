@@ -1,27 +1,37 @@
-[all:vars]
-ansible_connection=ssh
-ansible_user=vagrant
+all: 
+  vars:
+    ansible_connection: ssh
+    ansible_user: vagrant
+    nic: eth1
 
-[kube_master]
-server1  internal_address=172.28.128.21
+any: 
+  hosts:
+    server1:
 
-[kube_worker]
-server2  internal_address=172.28.128.22
-server3  internal_address=172.28.128.23
-server4  internal_address=172.28.128.24
+kube_master:
+  hosts:
+    server1:
+      internal_address: 172.28.128.21    
 
-[any]
-server1
+kube_worker:
+  hosts:
+    server2:
+      internal_address: 172.28.128.22
+    server3:
+      internal_address: 172.28.128.23
+    server4:
+      internal_address: 172.28.128.24
 
-[ingress]
-server2
-server3
-server4
+ingress:
+  hosts:
+    server2:
+    server3:
+    server4:
 
-[monitor]
-server2
+monitor: 
+  hosts:
+    server2:
 
-[clickhouse]
-server3
-
-
+clickhouse:
+  hosts:
+    server3:
