@@ -227,12 +227,14 @@
 
    {% endif %}
 
-  {% if gateway is defined %}
-  {% set server_ip = [] %}
-  {% set port = "9200" %}
-  {% for server in elasticsearch.servers  %}
-  {% set server_ip = server_ip.append( server+":"+port ) %}
-  {% endfor %}
+  {%- if gateway is defined %}
+  {%- set server_ip = [] %}
+  {%- set server_ip_modsecurity = [] %}
+  {%- set port = "9200" %}
+  {%- for server in elasticsearch.servers  %}
+    {%- do server_ip.append( server+":"+port ) %}
+    {%- do server_ip_modsecurity.append( server+":9100" ) %}
+  {%- endfor %}
 
   "gateway": {
     "gateway_version": "{{ version.gateway }}",
@@ -262,7 +264,12 @@
         "elasticsearch": {
           "data_cluster": {
             "cluster_id": "es_search",
+            {%- if elasticsearch.modsecurity_enabled | default(false) %}
+            "hosts" : {{ server_ip_modsecurity | tojson }},
+            "prefix" : "mytenant",
+            {%- else %}
             "hosts" : {{ server_ip | tojson }},
+            {%- endif %}
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
             {% if security is defined %}
             ,
@@ -378,8 +385,8 @@
         "settings_by_type" : {
           "data_node": {
             "max_memory": "{{ elasticsearch.memory }}",
-            "modsecurity_enabled": false,
-            "modsecurity_blocking_requests": false,
+            "modsecurity_enabled": {{elasticsearch.modsecurity_enabled|default(false)|lower}},
+            "modsecurity_blocking_requests": {{elasticsearch.modsecurity_enabled|default(false)|lower}},
             "script_execution_authorized": true,
             "http_cors_enabled" : true,
             "readonly" : true
@@ -407,9 +414,26 @@
             "kibana_index": ".kibana-admin"
           }
         }
-        {% endif %}
+        {%- endif %}
       }
     }
+    {%- if elasticsearch.modsecurity_enabled| default(false) %},
+    "modsecurity": {
+            "modsecurity_production_interface" : "{{ iface }}",
+            "port" : 9100,
+            "domains" : {
+                "admin": {
+                    "elasticsearch_security_aliases_pattern": ".*",
+                    "elasticsearch_security_index_pattern": ".*"
+                },
+                "mytenant": {
+                    "elasticsearch_security_aliases_pattern": "events-mytenant-kibana-[-a-zA-Z0-9.*_:]+",
+                    "elasticsearch_security_index_pattern": "events-mytenant-[-a-zA-Z0-9.*_:]+"
+                }
+            }
+
+    }
+    {%- endif %}
   },
    {% endif %}
 
@@ -475,11 +499,44 @@
   "kibana_version" : "{{ version.elastic }}",
     "domains" : {
       "admin" : {
+        "es_cluster_target": "es_search",
+        "es_type_of_nodes_targeted": "data_node",
+        "kibana_port" : 5601,
+        "type" : "administration"
+        {%- if security is defined %},
+        "local_ssl_certs_dir": "{{security.security_dir}}/platform_certs/server1",
+        "server_ssl_enabled": true,
+        "server_ssl_key_name": "server-key.pem",
+        "server_ssl_certificate_name": "server-cert.pem",
+        "elasticsearch_ssl_enabled": true,
+        "elasticsearch_ssl_verificationMode": "full",
+        "elasticsearch_ssl_certificateAuthorities_names": ["ca.pem"],
+        {%- endif %}
+        {%- if gateway is defined -%}
+        {%- set server_ip = [] %}
+        {%- set port = "4242" %}
+        {%- if security is defined %}{% set scheme = "https" %}{% else %}{% set scheme = "http" %}{% endif %}
+        {%- for server in gateway.servers  %}
+        {%- set server_ip = server_ip.append( scheme + "://"+server+":"+port ) %}
+        {%- endfor %}
+        ,
+        "plugins":{
+          "punchplatform": {
+            "rest_api": {
+              "hosts": {{ server_ip | tojson }}
+              {%- if security is defined %},
+              "ssl_enabled": true
+              {%- endif %}
+            }
+          }
+        }
+        {%- endif %}
+      },
+      "mytenant" : {
         "gateway_cluster_target": "gateway_32g",
         "kibana_port" : 5601,
         "type" : "administration"
-        {% if security is defined %}
-        ,
+        {%- if security is defined %},
         "local_ssl_certs_dir": "{{security.security_dir}}/platform_certs/server1",
         "server_ssl_enabled": true,
         "server_ssl_key_name": "server-key.pem",
@@ -487,14 +544,14 @@
         "elasticsearch_ssl_enabled": true,
         "elasticsearch_ssl_verificationMode": "full",
         "elasticsearch_ssl_certificateAuthorities_names": ["ca.pem"]
-        {% endif %}
-        {% if gateway is defined %}
-        {% set server_ip = [] %}
-        {% set port = "4242" %}
-        {% if security is defined %}{% set scheme = "https" %}{% else %}{% set scheme = "http" %}{% endif %}
-        {% for server in gateway.servers  %}
-        {% set server_ip = server_ip.append( scheme + "://"+server+":"+port ) %}
-        {% endfor %}
+        {%- endif %}
+        {%- if gateway is defined %}
+        {%- set server_ip = [] %}
+        {%- set port = "4242" %}
+        {%- if security is defined %}{% set scheme = "https" %}{% else %}{% set scheme = "http" %}{% endif %}
+        {%- for server in gateway.servers  %}
+        {%- set server_ip = server_ip.append( scheme + "://"+server+":"+port ) %}
+        {%- endfor %}
         ,
         "plugins":{
           "punchplatform": {

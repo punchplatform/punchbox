@@ -35,6 +35,7 @@
     "installation_directory": "/data/opt",
     "data_storage_directory": "/data",
     "elasticsearch": {
+      "modsecurity_enabled": true,
       "servers": [
         "server2",
         "server3"
