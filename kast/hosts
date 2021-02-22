@@ -2,7 +2,9 @@ all:
   vars:
     ansible_connection: ssh
     ansible_user: vagrant
-    nic: enp0s8 
+    nic: enp0s8
+    account_ns: mytenant
+    strimzi_entity_operator_enabled: true    
 
 any: 
   hosts:
@@ -50,3 +52,33 @@ clickhouse:
 superset:
   hosts:
     server4:
+
+s3:
+  hosts:
+    server3:
+  vars: 
+    s3_browser: true
+
+registry:
+  hosts:
+    server2:
+
+elastic:
+  hosts:
+    server2:
+  vars:
+    es_cpu_limits: 1
+
+zk:
+  hosts:
+    server2:
+    server3:
+    server4:
+
+
+kafka:
+  hosts:
+    server2:
+    server3:
+    server4:
+
