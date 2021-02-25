@@ -68,6 +68,8 @@ elastic:
     server2:
   vars:
     es_cpu_limits: 1
+    es_ingress: true
+    es_ns: kast
 
 zk:
   hosts:
