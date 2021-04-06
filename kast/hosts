@@ -1,11 +1,12 @@
+## With Kast branch : kas-punch-sink-log
+
 all: 
   vars:
     ansible_connection: ssh
     ansible_user: vagrant
     nic: enp0s8
-    account_ns: mytenant
     strimzi_entity_operator_enabled: true    
-
+    domain: kast
 any: 
   hosts:
     server1:
@@ -24,39 +25,37 @@ kube_worker:
     server4:
       internal_address: 172.28.128.24
 
+kube_join:
+  hosts:
+    server4:
+      internal_address: 172.28.128.24
+
 ingress:
   hosts:
     server2:
     server3:
     server4:
+  vars:
+    data_tcp:
+      9997: "kast/syslogtokafka-service:9997"
+    data_udp:
+      9998: "kast/syslogtokafka-service:9998"
+
+kibana:
+  hosts:
+    server4:
+  vars:
+    kibana_docker_image: gitlab.thalesdigital.io:5005/punch/product/pp-punch/punchline
+    kibana_version: 7.0.0-SNAPSHOT   
 
 monitor: 
   hosts:
     server2:
 
-postgresql:
-  hosts:
-    server4:
-
-redis:
-  hosts:
-    server2:
-
-clickhouse:
-  hosts:
-    server3:
-  vars: 
-    ch_limit_cpu: 1
-    ch_request_cpu: 1
-
-superset:
-  hosts:
-    server4:
-
 s3:
   hosts:
     server3:
-  vars: 
+  vars:
     s3_browser: true
 
 registry:
@@ -69,7 +68,13 @@ elastic:
   vars:
     es_cpu_limits: 1
     es_ingress: true
-    es_ns: kast
+    log_sink: true
+    client_ca_crt_path: /home/punch/workspace/kast/ca_file.crt
+    log_sink_crt_path: /home/punch/workspace/kast/server1.crt
+    log_sink_key_path: /home/punch/workspace/kast/server1.p8
+    es_image: docker.elastic.co/elasticsearch/elasticsearch 
+    es_version: 7.10.2
+    opendistro_image: false
 
 zk:
   hosts:
