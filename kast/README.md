@@ -74,6 +74,9 @@ TCP      Inbound   30000-32767 NodePort Services† All
 
 Punchbox provides an example with 1 master and 3 workers containing some services as Clickhouse, Superset. Be free to update the inventory for your own usage
 
+> :warning: 
+> In your hosts file the `ǹic` variable corresponding to the network interface used by services to communicate together. Choose an interface which permit all VM to communicate together.
+
 ### Step 2. Bootstrap your kubernetes cluster
 
 To bootstrap your Kubernetes cluster you need to run 3 ansible role :
@@ -83,6 +86,7 @@ To bootstrap your Kubernetes cluster you need to run 3 ansible role :
  - `kube.yml` : it will install Kubernetes composant
 
  $KAST_DIR is the directory where you cloned the Kast directory
+ 
 
 #### Run role preflight
 
