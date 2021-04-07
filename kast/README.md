@@ -179,18 +179,17 @@ ansible-playbook -i hosts $KAST_DIR/playbook/monitor.yml -u vagrant
 ansible-playbook -i hosts $KAST_DIR/playbook/dashboard.yml -u vagrant
 
 
-!!! note 
 
-    To validate your deployment, go to http://server2/dashboard/ and  http://server2/grafana
+> :warning: 
+> To validate your deployment, go to http://server2/dashboard/ and  http://server2/grafana
 
 
 #### Install clickhouse 
 
 ansible-playbook -i hosts $KAST_DATA_DIR/playbook/clickhouse.yml -u vagrant
 
-!!! note 
-
-    To validate your deployment, go to http://server2/clickhouse (must have "Ok")
+> :warning: 
+> To validate your deployment, go to http://server2/clickhouse (must have "Ok")
 
 #### Install superset 
 
@@ -200,7 +199,8 @@ ansible-playbook -i hosts $KAST_DATA_DIR/playbook/redis.yml -u vagrant
 
 ansible-playbook -i hosts $KAST_DATA_DIR/playbook/superset.yml -u vagrant
 
-!!! note 
-    Edit your /etc/hosts with the following line : 172.28.128.22 server2 superset.example.com
-
-    To validate your deployment, go to http://superset.example.com 
+> :warning: 
+>  If you have deployed a ingress to have an external access to the service, if the ingress use a virtual host you should configure your /etc/hosts.
+>  Check your ingress with  `kubectl get ingress -n namespace_name`
+>  Edit your /etc/hosts with the following line : 172.28.128.22 server2 (ingress_virtual_host)
+>  If your virtual host is superset.example.com. To validate your deployment, go to http://superset.example.com 
