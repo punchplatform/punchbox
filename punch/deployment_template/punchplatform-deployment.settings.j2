@@ -286,6 +286,11 @@
             {% endif %}
           }
         },
+        "services": {
+          "extraction": {
+            "formats": ["csv", "json"]
+          }
+        },
         "resources": {
           "doc_dir": "{{ installation_directory }}/punchplatform-documentation-{{version.gateway}}/doc/html",
           "punchlines_dir": "punchlines/mytenant",
