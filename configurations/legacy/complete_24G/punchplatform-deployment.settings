@@ -1,0 +1,360 @@
+{
+  "platform": {
+    "platform_id": "punchplatform-primary",
+    "setups_root": "/data/opt",
+    "remote_data_root_directory": "/data",
+    "remote_logs_root_directory": "/var/log/punchplatform",
+    "punchplatform_daemons_user": "vagrant",
+    "punchplatform_group": "vagrant",
+    "binaries_version": "punch-binaries-6.3.3-SNAPSHOT"
+  },
+  "reporters": {
+    "myreporter": {
+      "type": "kafka",
+      "brokers": "local",
+      "topic": "platform-events",
+      "reporting_interval": 30,
+      "encoding": "json"
+    }
+  },
+  "shiva": {
+    "shiva_version": "punch-shiva-6.3.3-SNAPSHOT",
+    "clusters": {
+      "local": {
+        "reporters": [
+          "myreporter"
+        ],
+        "storage": {
+          "type": "kafka",
+          "kafka_cluster": "local"
+        },
+        "servers": {
+          "server4": {
+            "runner": true,
+            "can_be_master": true,
+            "tags": [
+              "local"
+            ]
+          },
+          "server3": {
+            "runner": true,
+            "can_be_master": true,
+            "tags": [
+              "local"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "punchplatform_operator": {
+    "punchplatform_operator_environment_version": "punch-operator-6.3.3-SNAPSHOT",
+    "configuration_name_dir_from_home": "pp-conf",
+    "reporters": [
+      "myreporter"
+    ],
+    "operators_username": [
+      "ppoperator"
+    ],
+    "storage": {
+      "type": "kafka",
+      "kafka_cluster": "local"
+    },
+    "servers": {
+      "server1": {}
+    }
+  },
+  "spark": {
+    "spark_version": "spark-2.4.3-bin-hadoop2.7",
+    "punchplatform_analytics_deployment_version": "punch-spark-deployment-6.3.3-SNAPSHOT",
+    "clusters": {
+      "local": {
+        "master": {
+          "servers": [
+            "server5"
+          ],
+          "listen_interface": "eth1",
+          "master_port": 7077,
+          "rest_port": 6066,
+          "ui_port": 8081
+        },
+        "slaves": {
+          "server3": {
+            "listen_interface": "eth1",
+            "slave_port": 7078,
+            "webui_port": 8084
+          }
+        },
+        "spark_workers_by_punchplatform_spark": 1,
+        "zk_cluster": "local",
+        "zk_root": "spark-main",
+        "slaves_cpu": 2,
+        "slaves_memory": "1200M"
+      }
+    }
+  },
+  "zookeeper": {
+    "zookeeper_version": "apache-zookeeper-3.5.7-bin",
+    "zookeeper_nodes_production_interface": "eth1",
+    "zookeeper_childopts": "-server -Xmx128m -Xms128m",
+    "clusters": {
+      "local": {
+        "hosts": [
+          "server2"
+        ],
+        "cluster_port": 2181,
+        "punchplatform_root_node": "/punchplatform-primary"
+      }
+    }
+  },
+  "gateway": {
+    "gateway_version": "6.3.3-SNAPSHOT",
+    "clusters": {
+      "gateway_32g": {
+        "tenant": "mytenant",
+        "modsecurity_enabled": false,
+        "servers": {
+          "server2": {
+            "inet_address": "172.28.128.22",
+            "port": 4242
+          }
+        },
+        "elasticsearch": {
+          "data_cluster": {
+            "cluster_id": "es_search",
+            "hosts": [
+              "server2:9200",
+              "server3:9200"
+            ],
+            "settings": [
+              "es.index.read.missing.as.empty: yes",
+              "es.nodes.discovery: true"
+            ]
+          },
+          "metric_cluster": {
+            "cluster_id": "es_search",
+            "hosts": [
+              "server2:9200",
+              "server3:9200"
+            ],
+            "index_name": "mytenant-gateway-logs",
+            "settings": [
+              "es.index.read.missing.as.empty: yes",
+              "es.nodes.discovery: true"
+            ]
+          }
+        },
+        "services": {
+          "extraction": {
+            "formats": [
+              "csv",
+              "json"
+            ]
+          }
+        },
+        "resources": {
+          "doc_dir": "/data/opt/punchplatform-documentation-6.3.3-SNAPSHOT/doc/html",
+          "punchlines_dir": "punchlines/mytenant",
+          "archives_dir": "/tmp",
+          "manager": {
+            "metadata": [
+              {
+                "type": "elasticsearch",
+                "hosts": [
+                  "server2:9200",
+                  "server3:9200"
+                ],
+                "index": "resources-metadata"
+              }
+            ],
+            "data": [
+              {
+                "type": "file",
+                "root_path": "/tmp/punchplatform/resources"
+              }
+            ]
+          }
+        },
+        "reporters": [
+          "myreporter"
+        ]
+      }
+    }
+  },
+  "kafka": {
+    "kafka_version": "kafka_2.11-2.4.0",
+    "kafka_brokers_production_interface": "eth1",
+    "clusters": {
+      "local": {
+        "brokers_with_ids": [
+          {
+            "id": 1,
+            "broker": "server2:9092"
+          }
+        ],
+        "zk_cluster": "local",
+        "zk_root": "kafka-local",
+        "brokers_config": "punchplatform-local-server.properties",
+        "default_replication_factor": 1,
+        "default_partitions": 2,
+        "partition_retention_bytes": 1073741824,
+        "partition_retention_hours": 24,
+        "kafka_brokers_jvm_xmx": "512M"
+      }
+    }
+  },
+  "elasticsearch": {
+    "elasticsearch_version": "7.8.0",
+    "clusters": {
+      "es_search": {
+        "nodes": {
+          "server2": {
+            "http_api_address": "server2",
+            "transport_address": "server2",
+            "bind_address": "_eth1_",
+            "rack_id": "1"
+          },
+          "server3": {
+            "http_api_address": "server3",
+            "transport_address": "server3",
+            "bind_address": "_eth1_",
+            "rack_id": "2"
+          }
+        },
+        "http_api_port": 9200,
+        "transport_port": 9300,
+        "minimum_master_nodes": 2,
+        "settings_by_type": {
+          "data_node": {
+            "max_memory": "512m",
+            "modsecurity_enabled": false,
+            "modsecurity_blocking_requests": false,
+            "script_execution_authorized": true,
+            "http_cors_enabled": true,
+            "readonly": true
+          }
+        }
+      }
+    }
+  },
+  "storm": {
+    "storm_version": "apache-storm-2.2.0",
+    "storm_nimbus_nodes_production_interface": "eth1",
+    "clusters": {
+      "local": {
+        "master": {
+          "servers": [
+            "server3"
+          ]
+        },
+        "ui": {
+          "servers": [
+            "server3"
+          ]
+        },
+        "slaves": [
+          "server3"
+        ],
+        "zk_cluster": "local",
+        "zk_root": "storm-1.2.2-main",
+        "storm_workers_by_punchplatform_supervisor": 10,
+        "workers_childopts": "-Xmx128m",
+        "supervisor_memory_mb": 256,
+        "supervisor_cpu": 2
+      }
+    }
+  },
+  "minio": {
+    "minio_version": "RELEASE.2020-08-26T00-00-49Z",
+    "minio_access_key": "admin",
+    "minio_secret_key": "punchplatform",
+    "clusters": {
+      "local": {
+        "hosts": [
+          "server2"
+        ],
+        "port": "9000"
+      }
+    }
+  },
+  "clickhouse": {
+    "clickhouse_version": "20.4.6.53",
+    "clusters": {
+      "common": {
+        "shards": [
+          {
+            "servers": [
+              "server5"
+            ]
+          }
+        ],
+        "zk_cluster": "local",
+        "zk_root": "clickhouse",
+        "http_port": 8123,
+        "tcp_port": 9100
+      }
+    }
+  },
+  "kibana": {
+    "kibana_version": "7.8.0",
+    "domains": {
+      "admin": {
+        "gateway_cluster_target": "gateway_32g",
+        "kibana_port": 5601,
+        "type": "administration",
+        "plugins": {
+          "punchplatform": {
+            "rest_api": {
+              "hosts": [
+                "http://server2:4242"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "servers": {
+      "server1": {
+        "address": "server1"
+      }
+    },
+    "plugins": {
+      "punchplatform": {
+        "punchplatform_version": "6.3.3-SNAPSHOT"
+      },
+      "punchplatform_feedback": {
+        "punchplatform_feedback_version": "6.3.3-SNAPSHOT"
+      }
+    }
+  },
+  "metricbeat": {
+    "metricbeat_version": "7.8.0",
+    "modules": {
+      "system": {
+        "high_frequency_system_metrics": {
+          "metricsets": [
+            "cpu",
+            "load",
+            "memory"
+          ],
+          "reporting_interval": "30s"
+        },
+        "normal_frequency_system_metrics": {
+          "metricsets": [
+            "fsstat"
+          ],
+          "reporting_interval": "5m"
+        },
+        "slow_frequency_system_metrics": {
+          "metricsets": [
+            "uptime"
+          ],
+          "reporting_interval": "1h"
+        }
+      }
+    },
+    "elasticsearch": {
+      "cluster_id": "es_search"
+    }
+  }
+}

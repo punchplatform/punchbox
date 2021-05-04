@@ -1,0 +1,708 @@
+topology_settings:
+  selection:
+    tenant: '*'
+    channel: '*'
+    runtime: '*'
+  match: $.settings
+  additional_values:
+    topology.worker.childopts: -server -Xms96m -Xmx156m
+kafka_metrics_reporters:
+  selection:
+    tenant: '*'
+    channel: '*'
+    runtime: '*'
+  match: $.metrics.reporters[?(@.type=='kafka')]
+  additional_values:
+    brokers: kafka_back
+    topic: platform-monitoring
+    reporting_interval: 30
+    encoding: json
+    bootstrap.servers: central-back-1:9092
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+elastic_metrics_reporters:
+  selection:
+    tenant: '*'
+    channel: '*'
+    runtime: '*'
+  match: $.metrics.reporters[?(@.type=='elasticsearch')]
+  additional_values:
+    es.nodes: central-back-2
+    es.port: 9200
+    cluster_name: es_monitoring
+    reporting_interval: 30
+    credentials:
+      user: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+      password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}'
+    ssl: true
+    ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+kafka_input_front:
+  selection:
+    tenant: '*'
+    channel: '*'
+    runtime: '*'
+    file: '*'
+  match: $.dag[?(@.type == 'kafka_input' && @.component =~ /kafka_front_.*/)].settings
+  additional_values:
+    brokers: kafka_front
+    bootstrap.servers: central-front-1:9092
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+kafka_output_front:
+  selection:
+    tenant: '*'
+    channel: '*'
+    runtime: '*'
+    file: '*'
+  match: $.dag[?(@.type == 'kafka_output' && @.component =~ /kafka_front_.*/)].settings
+  additional_values:
+    brokers: kafka_front
+    bootstrap.servers: central-front-1:9092
+    producer.security.protocol: SSL
+    producer.ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    producer.ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    producer.ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    producer.ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+kafka_input_back:
+  selection:
+    tenant: '*'
+    channel: '*'
+    runtime: '*'
+    file: '*'
+  match: $.dag[?(@.type == 'kafka_input' && @.component =~ /kafka_back.*/) ].settings
+  additional_values:
+    brokers: kafka_back
+    bootstrap.servers: central-back-1:9092
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+kafka_output_back:
+  selection:
+    tenant: '*'
+    channel: '*'
+    runtime: '*'
+    file: '*'
+  match: $.dag[?(@.type == 'kafka_output' && @.component =~ /kafka_back.*/) ].settings
+  additional_values:
+    brokers: kafka_back
+    bootstrap.servers: central-back-1:9092
+    producer.security.protocol: SSL
+    producer.ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    producer.ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    producer.ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    producer.ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+lumberjack_input_nodes:
+  selection:
+    tenant: '*'
+    channel: '*'
+    runtime: '*'
+    file: '*'
+  match: $.dag[?(@.type=='lumberjack_input')].settings.listen
+  additional_values:
+    ssl: true
+    ssl_private_key: '@{PUNCHPLATFORM_SECRETS_DIR}/server.pem'
+    ssl_certificate: '@{PUNCHPLATFORM_SECRETS_DIR}/server.crt'
+    ssl_trusted_certificate: '@{PUNCHPLATFORM_SECRETS_DIR}/fullchain-collector.crt'
+ltr_events_receiver_channel_structure:
+  selection:
+    tenant: platform
+    channel: ltr_monitoring
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='ltr_events_receiver')]
+  additional_values:
+    shiva_runner_tags:
+    - central-front-1
+    cluster: shiva_front
+ltr_events_receiver_channel_structure_kafka:
+  selection:
+    tenant: platform
+    channel: ltr_monitoring
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.resources[?(@.type=='kafka_topic')]
+  additional_values:
+    cluster: kafka_front
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+ltr_events_indexer_channel_structure:
+  selection:
+    tenant: platform
+    channel: ltr_monitoring
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='ltr_events_indexer')]
+  additional_values:
+    shiva_runner_tags:
+    - central-front-1
+    cluster: shiva_front
+ltr_events_indexer_kafka_input:
+  selection:
+    tenant: platform
+    channel: ltr_monitoring
+    runtime: '*'
+    name: ltr_events_indexer
+  match: $.dag[?(@.type=='kafka_input')].settings
+  additional_values:
+    brokers: kafka_front
+    bootstrap.servers: central-front-1:9092
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+ltr_events_indexer_elasticsearch_output:
+  selection:
+    tenant: platform
+    channel: ltr_monitoring
+    runtime: '*'
+    name: ltr_events_indexer
+  match: $.dag[?(@.type=='elasticsearch_output')].settings
+  additional_values:
+    es.nodes: central-back-2
+    es.port: 9200
+    cluster_name: es_monitoring
+    cluster_id: es_monitoring
+    credentials:
+      user: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+      password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}'
+    ssl: true
+    ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+central_events_dispatcher_channel_structure:
+  selection:
+    tenant: platform
+    channel: monitoring
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='central_events_dispatcher')]
+  additional_values:
+    shiva_runner_tags:
+    - central-back-1
+    cluster: shiva_back
+platform_monitoring_channel_structure_kafka:
+  selection:
+    tenant: platform
+    channel: monitoring
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.resources[?(@.type=='kafka_topic')]
+  additional_values:
+    cluster: kafka_back
+    bootstrap.servers: central-back-1:9092
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+central_events_dispatcher_kafka_input:
+  selection:
+    tenant: platform
+    channel: monitoring
+    runtime: '*'
+    file: central_events_dispatcher.yaml
+  match: $.dag[?(@.type=='kafka_input')].settings
+  additional_values:
+    brokers: kafka_back
+    bootstrap.servers: central-back-1:9092
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+central_events_dispatcher_elasticsearch_output:
+  selection:
+    tenant: platform
+    channel: monitoring
+    runtime: '*'
+    file: central_events_dispatcher.yaml
+  match: $.dag[?(@.type=='elasticsearch_output')].settings
+  additional_values:
+    es.nodes: central-back-2
+    es.port: 9200
+    cluster_name: es_monitoring
+    cluster_id: es_monitoring
+    credentials:
+      user: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+      password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}'
+    ssl: true
+    ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+channels_monitoring_channel_structure:
+  selection:
+    tenant: '*'
+    channel: monitoring
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='channels_monitoring')]
+  additional_values:
+    shiva_runner_tags:
+    - central-back-1
+    cluster: shiva_back
+channels_monitoring_kafka_reporters:
+  selection:
+    tenant: '*'
+    channel: monitoring
+    runtime: '*'
+  match: $.reporters[?(@.type=='kafka')]
+  additional_values:
+    brokers: kafka_back
+    topic: platform-monitoring
+    reporting_interval: 30
+    encoding: json
+    bootstrap.servers: central-back-1:9092
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+channels_monitoring_elasticsearch_cluster:
+  selection:
+    tenant: '*'
+    channel: monitoring
+    runtime: '*'
+    file: channels_monitoring.yaml
+  match: $.elasticsearch
+  additional_values:
+    es_cluster_id: es_monitoring
+    credentials:
+      user: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+      password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}'
+    ssl: true
+    ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+platform_health_channel_structure:
+  selection:
+    tenant: platform
+    channel: monitoring
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='platform_health')]
+  additional_values:
+    shiva_runner_tags:
+    - central-back-1
+    cluster: shiva_back
+platform_health_kafka_reporter:
+  selection:
+    tenant: platform
+    channel: monitoring
+    runtime: '*'
+    file: platform_health.yaml
+  match: $.reporters[?(@.type=='kafka')]
+  additional_values:
+    brokers: kafka_back
+    bootstrap.servers: central-back-1:9092
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+platform_health_punch_commands_security:
+  selection:
+    tenant: platform
+    channel: monitoring
+    runtime: '*'
+    file: platform_health.yaml
+  match: $
+  additional_values:
+    security:
+      kafka_clients:
+        kafka_front:
+          ssl_enabled: true
+          ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+          ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.truststore_pwd}'
+          ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+          ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.keystore_pwd}'
+        kafka_back:
+          ssl_enabled: true
+          ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+          ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.truststore_pwd}'
+          ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+          ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.keystore_pwd}'
+      elasticsearch_clients:
+        es_data:
+          ssl_enabled: true
+          ssl_client_certificate_authority: '@{PUNCHPLATFORM_SECRETS_DIR}/fullchain.crt'
+          ssl_client_certificate: '@{PUNCHPLATFORM_SECRETS_DIR}/server.crt'
+          ssl_client_private_key: '@{PUNCHPLATFORM_SECRETS_DIR}/server.pem'
+          ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+          ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.truststore_pwd}'
+          ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+          ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.keystore_pwd}'
+          credentials:
+            username: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+            password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.password}'
+        es_monitoring:
+          ssl_enabled: true
+          ssl_client_certificate_authority: '@{PUNCHPLATFORM_SECRETS_DIR}/fullchain.crt'
+          ssl_client_certificate: '@{PUNCHPLATFORM_SECRETS_DIR}/server.crt'
+          ssl_client_private_key: '@{PUNCHPLATFORM_SECRETS_DIR}/server.pem'
+          ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+          ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.truststore_pwd}'
+          ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+          ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.keystore_pwd}'
+          credentials:
+            username: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+            password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.password}'
+      zookeeper_clients:
+        zk_front:
+          ssl_enabled: true
+          ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+          ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.truststore_pwd}'
+          ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+          ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.keystore_pwd}'
+        zk_back:
+          ssl_enabled: true
+          ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+          ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.truststore_pwd}'
+          ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+          ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.keystore_pwd}'
+      gateway_clients:
+        gateway_back:
+          ssl_enabled: true
+          ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+          ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.truststore_pwd}'
+          ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+          ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.cmn.keystore_pwd}'
+elasticsearch_housekeeping_channel_structure:
+  selection:
+    tenant: '*'
+    channel: elasticsearch_housekeeping
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='elasticsearch_housekeeping')]
+  additional_values:
+    shiva_runner_tags:
+    - central-back-1
+    cluster: shiva_back
+elasticsearch_housekeeping_clusters_settings:
+  selection:
+    tenant: '*'
+    channel: housekeeping
+    runtime: '*'
+    file: elasticsearch-housekeeping.json
+  match: $.clusters_settings[*]
+  additional_values:
+    cluster_id: es_search
+    credentials:
+      user: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+      password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.password}'
+    use_ssl: true
+    client_certificate: '@{PUNCHPLATFORM_SECRETS_DIR}/server.crt'
+    client_key: '@{PUNCHPLATFORM_SECRETS_DIR}/server.pem'
+    certificate: '@{PUNCHPLATFORM_SECRETS_DIR}/fullchain.crt'
+central_receiver_channel_structure:
+  selection:
+    tenant: onesky
+    channel: central_site_receiver
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='central_receiver')]
+  additional_values:
+    shiva_runner_tags:
+    - central-front-1
+    cluster: shiva_front
+central_errors_receiver_channel_structure:
+  selection:
+    tenant: onesky
+    channel: central_site_receiver
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='central_errors_receiver')]
+  additional_values:
+    shiva_runner_tags:
+    - central-front-1
+    cluster: shiva_front
+central_site_receiver_channel_structure_kafka:
+  selection:
+    tenant: onesky
+    channel: central_site_receiver
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.resources[?(@.type=='kafka_topic')]
+  additional_values:
+    cluster: kafka_front
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+central_processor_channel_structure:
+  selection:
+    tenant: onesky
+    channel: central_site_processor
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.runtime=='shiva')]
+  additional_values:
+    shiva_runner_tags:
+    - central-back-1
+    cluster: shiva_back
+central_processor_channel_structure_kafka:
+  selection:
+    tenant: onesky
+    channel: central_site_processor
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.resources[?(@.type=='kafka_topic')]
+  additional_values:
+    cluster: kafka_back
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+central_indexer_channel_structure:
+  selection:
+    tenant: onesky
+    channel: central_site_indexer
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='central_indexer')]
+  additional_values:
+    shiva_runner_tags:
+    - central-back-1
+    cluster: shiva_back
+central_indexer_elasticsearch_output_logs_and_errors:
+  selection:
+    tenant: onesky
+    channel: central_site_indexer
+    runtime: '*'
+    file: central_indexer.yaml
+  match: $.dag[?(@.component=='elasticsearch_output_logs_and_errors')].settings
+  additional_values:
+    es.nodes: central-back-1
+    es.port: 9200
+    cluster_name: es_data
+    cluster_id: es_data
+    credentials:
+      user: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+      password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}'
+    ssl: true
+    ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+central_archiver_channel_structure:
+  selection:
+    tenant: onesky
+    channel: central_site_archiver
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='central_archiver')]
+  additional_values:
+    shiva_runner_tags:
+    - central-back-1
+    cluster: shiva_back
+central_errors_archiver_channel_structure:
+  selection:
+    tenant: onesky
+    channel: central_site_archiver
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='central_errors_archiver')]
+  additional_values:
+    shiva_runner_tags:
+    - central-back-1
+    cluster: shiva_back
+central_metadatas_errors_indexer_channel_structure:
+  selection:
+    tenant: onesky
+    channel: central_site_archiver
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='central_metadatas_errors_indexer')]
+  additional_values:
+    shiva_runner_tags:
+    - central-back-1
+    cluster: shiva_back
+central_site_archiver_channel_structure_kafka:
+  selection:
+    tenant: onesky
+    channel: central_site_archiver
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.resources[?(@.type=='kafka_topic')]
+  additional_values:
+    cluster: kafka_back
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+central_archiver_elasticsearch_output_metadatas:
+  selection:
+    tenant: onesky
+    channel: central_site_archiver
+    runtime: '*'
+    file: central_archiver.yaml
+  match: $.dag[?(@.component=='elasticsearch_output_metadatas')].settings
+  additional_values:
+    es.nodes: central-back-1
+    es.port: 9200
+    cluster_name: es_data
+    cluster_id: es_data
+    credentials:
+      user: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+      password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}'
+    ssl: true
+    ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+central_errors_archiver_elasticsearch_output_metadatas:
+  selection:
+    tenant: onesky
+    channel: central_site_archiver
+    runtime: '*'
+    file: central_errors_archiver.yaml
+  match: $.dag[?(@.component=='elasticsearch_output_metadatas')].settings
+  additional_values:
+    es.nodes: central-back-1
+    es.port: 9200
+    cluster_name: es_data
+    cluster_id: es_data
+    credentials:
+      user: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+      password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}'
+    ssl: true
+    ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+central_metadatas_errors_indexer_elasticsearch_output_metadatas:
+  selection:
+    tenant: onesky
+    channel: central_site_archiver
+    runtime: '*'
+    file: central_metadatas_errors_indexer.yaml
+  match: $.dag[?(@.component=='elasticsearch_output_metadatas')].settings
+  additional_values:
+    es.nodes: central-back-1
+    es.port: 9200
+    cluster_name: es_data
+    cluster_id: es_data
+    credentials:
+      user: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+      password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}'
+    ssl: true
+    ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+central_site_extractor_channel_structure_kafka:
+  selection:
+    tenant: onesky
+    channel: central_site_extractor
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.resources[?(@.type=='kafka_topic')]
+  additional_values:
+    cluster: kafka_back
+    security.protocol: SSL
+    ssl.truststore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl.truststore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl.keystore.location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl.keystore.password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+central_archive_extractor_channel_structure:
+  selection:
+    tenant: onesky
+    channel: central_site_extractor
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='central_archive_extractor')]
+  additional_values:
+    shiva_runner_tags:
+    - central-back-1
+    cluster: shiva_back
+central_archive_indexer_channel_structure:
+  selection:
+    tenant: onesky
+    channel: central_site_extractor
+    runtime: '*'
+    file: channel_structure.yaml
+  match: $.applications[?(@.name=='central_archive_indexer')]
+  additional_values:
+    shiva_runner_tags:
+    - central-back-1
+    cluster: shiva_back
+central_archive_extractor_extraction_input:
+  selection:
+    tenant: onesky
+    channel: central_site_extractor
+    runtime: '*'
+    file: central_archive_extractor.yaml
+  match: $.dag[?(@.type=='extraction_input')].settings
+  additional_values:
+    nodes:
+    - central-back-1
+    port: 9200
+    elastic_settings:
+      es.net.http.auth.user: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+      es.net.http.auth.pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}'
+      es.net.ssl: true
+      es.net.ssl.keystore.pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+      es.net.ssl.keystore.location: file://@{PUNCHPLATFORM_SECRETS_DIR}/server.jks
+      es.net.ssl.truststore.location: file://@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
+      es.net.ssl.truststore.pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+      es.scroll: true
+      es.scroll.size: 1
+      es.scroll.keepalive: 10m
+central_archive_extractor_elasticsearch_output_task_indexer:
+  selection:
+    tenant: onesky
+    channel: central_site_extractor
+    runtime: '*'
+    file: central_archive_extractor.yaml
+  match: $.dag[?(@.component=='elasticsearch_output_task_indexer')].settings
+  additional_values:
+    es.nodes: central-back-1
+    es.port: 9200
+    cluster_id: es_data
+    credentials:
+      user: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+      password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}'
+    ssl: true
+    ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+central_archive_indexer_elasticsearch_output:
+  selection:
+    tenant: onesky
+    channel: central_site_extractor
+    runtime: '*'
+    file: central_archive_indexer.yaml
+  match: $.dag[?(@.type=='elasticsearch_output')].settings
+  additional_values:
+    es.nodes: central-back-1
+    es.port: 9200
+    cluster_id: es_data
+    credentials:
+      user: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}'
+      password: '@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}'
+    ssl: true
+    ssl_keystore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'
+    ssl_keystore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/server.jks'
+    ssl_truststore_location: '@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks'
+    ssl_truststore_pass: '@{PUNCHPLATFORM_RUNTIME_SECRETS.store_pwd}'

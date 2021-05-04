@@ -1,4 +1,4 @@
-export PUNCHBOX_DIR=/home/cedric/lmc/pp-punchbox
+export PUNCHBOX_DIR=/home/lca/Projects/punch/punchbox
 export PUNCHBOX_BUILD_DIR="${PUNCHBOX_DIR}/punch/build"
 export PUNCHPLATFORM_CONF_DIR="${PUNCHBOX_BUILD_DIR}"/pp-conf
 export PATH="${PUNCHBOX_DIR}/bin:${PUNCHBOX_DIR}/bin/pex/ansible_pex:$PATH"
