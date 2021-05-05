@@ -6,7 +6,7 @@
     "remote_logs_root_directory": "/var/log/punchplatform",
     "punchplatform_daemons_user": "punchplatform",
     "punchplatform_group": "punchplatform",
-    "binaries_version": "punch-binaries-6.3.3",
+    "binaries_version": "punch-binaries-6.3.4-SNAPSHOT",
     "platform_local_credentials_dir": "security/platform_secrets",
     "platform_ca_name": "ca_file.crt",
     "platform_truststore_name": "truststore.jks",
@@ -96,7 +96,7 @@
     }
   },
   "punchplatform_operator": {
-    "punchplatform_operator_environment_version": "punch-operator-6.3.3",
+    "punchplatform_operator_environment_version": "punch-operator-6.3.4-SNAPSHOT",
     "configuration_name_dir_from_home": "central-conf",
     "operators_username": [
       "punch-operator",
@@ -131,7 +131,6 @@
     "zookeeper_version": "apache-zookeeper-3.5.7-bin",
     "zookeeper_nodes_production_interface": "eth1",
     "zookeeper_childopts": "-server -Xmx512m -Xms512m",
-    "zookeeper_admin_cluster_name": "zk_central",
     "clusters": {
       "zk_central": {
         "hosts": [
@@ -235,10 +234,10 @@
             "ssl_http_enabled": true,
             "ssl_http_clientauth_mode": "REQUIRE",
             "authcz_admin_dn": [
-                "emailAddress=central-back-1-admin@easyssl.com,CN=central-back-1-admin,OU=EasySSL,O=ValhallaCorp,DC=easyssl.com"
+                "emailAddress=central-back-2-admin@easyssl.com,CN=central-back-2-admin,OU=EasySSL,O=ValhallaCorp,DC=easyssl.com"
               ],
               "nodes_dn": [
-                "emailAddress=central-back-1-server@easyssl.com,CN=central-back-1-server,OU=EasySSL,O=ValhallaCorp,DC=easyssl.com"
+                "emailAddress=central-back-2-server@easyssl.com,CN=central-back-2-server,OU=EasySSL,O=ValhallaCorp,DC=easyssl.com"
               ],
               "kibana_index": ".kibana",
               "admin_pemcert_name": "admin.crt",
@@ -294,12 +293,12 @@
             "authcz_admin_dn": [
                 "emailAddress=central-front-1-admin@easyssl.com,CN=central-front-1-admin,OU=EasySSL,O=ValhallaCorp,DC=easyssl.com",
                 "emailAddress=central-front-2-admin@easyssl.com,CN=central-front-2-admin,OU=EasySSL,O=ValhallaCorp,DC=easyssl.com",
-                "emailAddress=central-back-2-admin@easyssl.com,CN=central-back-2-admin,OU=EasySSL,O=ValhallaCorp,DC=easyssl.com"
+                "emailAddress=central-back-1-admin@easyssl.com,CN=central-back-1-admin,OU=EasySSL,O=ValhallaCorp,DC=easyssl.com"
               ],
               "nodes_dn": [
                 "emailAddress=central-front-1-server@easyssl.com,CN=central-front-1-server,OU=EasySSL,O=ValhallaCorp,DC=easyssl.com",
                 "emailAddress=central-front-2-server@easyssl.com,CN=central-front-2-server,OU=EasySSL,O=ValhallaCorp,DC=easyssl.com",
-                "emailAddress=central-back-2-server@easyssl.com,CN=central-back-2-server,OU=EasySSL,O=ValhallaCorp,DC=easyssl.com"
+                "emailAddress=central-back-1-server@easyssl.com,CN=central-back-1-server,OU=EasySSL,O=ValhallaCorp,DC=easyssl.com"
               ],
               "kibana_index": ".kibana",
               "admin_pemcert_name": "admin.crt",
@@ -312,7 +311,7 @@
     }
   },
   "gateway": {
-    "gateway_version": "6.3.3",
+    "gateway_version": "6.3.4-SNAPSHOT",
     "clusters": {
       "gateway_central": {
         "tenant": "onesky",
@@ -335,7 +334,8 @@
             "cluster_id": "es_data",
             "hosts": [
               "central-front-1:9200",
-              "central-front-2:9200"
+              "central-front-2:9200",
+              "central-back-1:9200"
             ],
             "settings": [
               "es.index.read.missing.as.empty: yes",
@@ -349,7 +349,6 @@
           "metric_cluster": {
             "cluster_id": "es_metric",
             "hosts": [
-              "central-back-1:9200",
               "central-back-2:9200"
             ],
             "index_name": "onesky-gateway-logs",
@@ -374,7 +373,7 @@
         "resources": {
           "doc_dir": "/data/doc",
           "archives_dir": "/data/archives",
-          "punchlines_dir": "/data/punchlines",
+          "punchlines_dir": "punchlines",
           "manager": {
             "metadata": [
               {
@@ -412,9 +411,6 @@
         "kibana_port": 5601,
         "type": "administration",
         "index": ".kibana",
-        "servers": [
-          "central-front-1"
-          ],
           "server_ssl_enabled": true,
           "server_ssl_key_name": "server.p8",
           "server_ssl_certificate_name": "server.crt",
@@ -430,9 +426,6 @@
         "kibana_port": 5602,
         "type": "administration",
         "index": ".kibana",
-        "servers": [
-          "central-front-1"
-          ],
           "server_ssl_enabled": true,
           "server_ssl_key_name": "server.p8",
           "server_ssl_certificate_name": "server.crt",
@@ -441,23 +434,6 @@
           "elasticsearch_ssl_certificateAuthorities_names": [
             "ca_file.crt"
           ]
-      },
-      "onesky-admin": {
-        "gateway_cluster_target": "gateway_central",
-        "kibana_port": 5603,
-        "type": "administration",
-        "index": ".kibana",
-        "servers": [
-          "central-front-1"
-        ],
-        "server_ssl_enabled": true,
-        "server_ssl_key_name": "server.p8",
-        "server_ssl_certificate_name": "server.crt",
-        "elasticsearch_ssl_enabled": true,
-        "elasticsearch_ssl_verificationMode": "full",
-        "elasticsearch_ssl_certificateAuthorities_names": [
-          "ca_file.crt"
-        ]
       }
     },
     "plugins": {
@@ -465,7 +441,7 @@
         "opendistro_security_version": "1.9.0.0"
       },
       "punchplatform": {
-        "punchplatform_version": "6.3.3",
+        "punchplatform_version": "6.3.4-SNAPSHOT",
         "rest_api": {
           "hosts": [
             "https://central-back-2:4242"
@@ -483,7 +459,7 @@
     }
   },
   "shiva": {
-    "shiva_version": "punch-shiva-6.3.3",
+    "shiva_version": "punch-shiva-6.3.4-SNAPSHOT",
     "clusters": {
       "shiva_central": {
         "reporters": [

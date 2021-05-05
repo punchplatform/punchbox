@@ -7,17 +7,20 @@ You could update existing ones or create a new one with your specific configurat
 This file is composed as follow : 
 
   - `targets`: details about targets machines
-      - `info`: list of targets 
-          - `server_name`: string to identify a box
-              - `disksize`: size of disk box
-              - `memory`: memory size of box
-              - `cpu`: number of cpu for box
-      - `meta`: common details for all boxes
-          - `os`: os for all boxes
-
+        `os`: os to install on vagrant machines. Accepted values are `centos/7`, `centos/8`, `rhel/7` or any ubuntu vagrant box name.
+        `production_interface`: the interface to install on vagrant machines. The punch components will communicate through it.
+        `servers`:
+            - `<server_name>` : name of the host to mount with vagrant
+                `memory`: RAM usage of the mounted host. Default is `4096`.
+                `cpu`: number of cpu for box. Default is `2`.
   - `punch`: list of punch component
-      - `installation_directory` : path where the punch components binaries will be installed
-      - `data_storage_directory` : path where the punch components data will be stored
+      `tls`: If `true`, enable TLS for all supported components. Default is `false`.
+      `setups_root` : path where the punch components binaries will be installed
+      `data_root` : path where the punch components data will be stored
+    
+
+
+
       - `elasticsearch`:
           - `servers`: list of elasticsearch hosts
           - `cluster_production_transport_address`: elasticsearch transport address

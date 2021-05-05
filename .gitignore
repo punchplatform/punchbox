@@ -46,7 +46,11 @@ vagrant/Vagrantfile
 ansible/punchbox.*
 .idea
 .idea/**
+
+
 punch/build
+punch/vagrant/Vagrantfile
+
 venv
 .deployer
 .deployed_configuration
