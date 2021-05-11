@@ -6,7 +6,7 @@ But is very useful should you have VMs or physical servers as well.
 
 This repository follows the punch branch naming convention. 
 
-For instance, this repository 5.7 branch should be used to deploy the same version of punch (5.7), the 6.0 to deploy a 6.0 etc. If you do not plan to install punch but only kube or vagrant boxes, stick to the latest stable branch !
+
 
 **Behind the scene**
 
@@ -14,104 +14,69 @@ We use `pyenv` to install the exact python version we depend on ~ **3.6.8**.
 
 A virualenv directory is created at the root of this repository on your local filesystem, containing required python modules for the punchbox to be functional.
 
-Some python module, such as ansible, are generated as PEX by our `Makefile` install rule. They are then added to your $PATH upon sourcing a generated `activate.sh` script.
-
 ## Requirements
 
 ### RSA Key for ssh
 
-The use of ssh to deploy software inside VMs relies on having generated a RSA key in the user environment (~/.ssh/id_rsa.pub).
-If it does not exist, you can create one :
+You MUST have ssh keys inside *~/.ssh/id_rsa.pub*.  
+if not, generate one with:
+
 ```sh
-ssh-keygen  ### When prompted, use the provided default values (just press Return key)
+### When prompted, use the provided default values (just press Return key)
+ssh-keygen  
 ```
 
-### Python and PEX
-This repository leverages python pex. We recommand the use of [pyenv](https://github.com/pyenv/pyenv). 
+### Python
+
+Install [pyenv](https://github.com/pyenv/pyenv).   
+
 If not familiar with python installation and best practices refer to 
-[Setup Python](https://doc.punchplatform.com/Contribution_Guide/Setup_Python.html). 
+[Setup Python](https://doc.punchplatform.com/Contribution_Guide/Setup_Python.html).
 
-Here is a safe and clean procedure to setup your python environment: first 
-create and activates a new virtualenv and call it (say) punchbox
-```sh
-pyenv virtualenv 3.6.8 punchbox
-pyenv activate punchbox
-```
+### Environment
 
-Next install pex, to do that use the provided requirements.txt
-
-```sh
-# in your python environment
-pip install -U pip
-pip install -r requirements.txt
-```
-
-If you plan to use vagrant install [vagrant](https://www.vagrantup.com/downloads.html) and [virtualbox](https://www.virtualbox.org/). 
-
-```sh
-# once vagrant is installed, run the rule below
-make vagrant-dependencies
-```
-
-## Installation 
-
-Install the punchbox tool by simply typing :
-
-```sh
-make install
-source activate.sh
-```
-
-Check everything is correctly setup by executing the punchbox command:
-```sh
-punchbox -h
-```
-
-## File Organisation
-
-Here is the punchbox folder layout. 
+Clone the `pp-punch` repo next to `punchbox` :
 
 ```sh
 .
-├── Makefile
-├── README.md
-├── bin
-│   └── the punchbox utility plus a few extra commands including ansible
-├── configurations
-│   └── some ready to use boxes with or without punch layout models
-├── ansible
-│   └── some ready to use ansible roles to create reference servers
-├── kast
-│   └── the kubernetes resources to deploy a production-ready punch, or simply play with kast.
-├── punch
-│   └── the punch resources to deploy a production-ready punch in minutes
-├── requirements.txt
-└── vagrant
-    └── vagrant resource to create the server infrastructure
+├── pp-punch
+└── punchbox
 ```
+
+If you already have a `pp-punch` folder elsewhere, store its location in `PUNCH_DIR`:
+
+```sh
+echo "export PUNCH_DIR=/path/to/pp-punch >> ~/.bashrc"
+source ~/.bashrc
+```
+
+### Punch
+
+You MUST have compiled a punch version in `pp-punch`.
+
+## Installation 
+
+Install your punchbox environment and the deployer with :
+
+```sh
+make install
+```
+
+Now you are ready to get started !
 
 ## Generate Bare Linux Vagrant Boxes
 
-A first basic requirement is to generate one or several linux boxes. You will find some
-simple models in the configurations folder. For example to generate 
-three ubuntu servers for testing things on a 16Gb laptop use the following:
+Use the default vagrant configuration provided by punchbox :
 
 ```sh
-punchbox --platform-config-file configurations/empty_16G.json --generate-vagrantfile
-```
-
-You then have you Vagrantfile generated. To also start these servers you can type in:
-
-```sh
-punchbox --platform-config-file configurations/empty_16G.json \
-        --generate-vagrantfile \
-        --start-vagrant
+source activate.sh
+punchbox --config configurations/vagrant_config.json
 ```
 
 or simply go to the vagrant directory and type in:
 
 ```sh
-vagrant up
+make start-vagrant
 ```
 
 The way it works is to start with some very simple model files for you to specify what you need. 

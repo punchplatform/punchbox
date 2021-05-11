@@ -16,11 +16,10 @@ Vagrant.configure("2") do |config|
    config.vm.define "central-front-1" do |server|
       server.vm.box = "generic/centos8"
       server.vm.box_check_update = false
-      config.disksize.size = ''
+      config.disksize.size = '20G'
 
       # Share only sample_confs
       server.vm.synced_folder '.', '/vagrant', disabled: true
-      server.vm.synced_folder '/tmp/archive-log/storage', '/tmp/archive-logs/storage', create: true
       ## Configuration
       server.vm.hostname = "central-front-1"
       server.vm.network "private_network", ip: "172.28.128.21"
@@ -33,7 +32,7 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "sed -i '5,10d' /home/vagrant/.bashrc"
 
       server.vm.provision "shell", inline: "sed -i '/central-front-1/d' /etc/hosts"
-      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
+#       server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
       server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
       server.vm.provision "shell", inline: "echo '172.28.128.21 central-front-1' >> /etc/hosts"
       server.vm.provision "shell", inline: "echo '172.28.128.22 central-front-2' >> /etc/hosts"
@@ -53,11 +52,10 @@ Vagrant.configure("2") do |config|
    config.vm.define "central-front-2" do |server|
       server.vm.box = "generic/centos8"
       server.vm.box_check_update = false
-      config.disksize.size = ''
+      config.disksize.size = '20G'
 
       # Share only sample_confs
       server.vm.synced_folder '.', '/vagrant', disabled: true
-      server.vm.synced_folder '/tmp/archive-log/storage', '/tmp/archive-logs/storage', create: true
       ## Configuration
       server.vm.hostname = "central-front-2"
       server.vm.network "private_network", ip: "172.28.128.22"
@@ -70,7 +68,7 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "sed -i '5,10d' /home/vagrant/.bashrc"
 
       server.vm.provision "shell", inline: "sed -i '/central-front-2/d' /etc/hosts"
-      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
+#       server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
       server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
       server.vm.provision "shell", inline: "echo '172.28.128.21 central-front-1' >> /etc/hosts"
       server.vm.provision "shell", inline: "echo '172.28.128.22 central-front-2' >> /etc/hosts"
@@ -90,11 +88,10 @@ Vagrant.configure("2") do |config|
    config.vm.define "central-back-1" do |server|
       server.vm.box = "generic/centos8"
       server.vm.box_check_update = false
-      config.disksize.size = ''
+      config.disksize.size = '20G'
 
       # Share only sample_confs
       server.vm.synced_folder '.', '/vagrant', disabled: true
-      server.vm.synced_folder '/tmp/archive-log/storage', '/tmp/archive-logs/storage', create: true
       ## Configuration
       server.vm.hostname = "central-back-1"
       server.vm.network "private_network", ip: "172.28.128.23"
@@ -107,7 +104,7 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "sed -i '5,10d' /home/vagrant/.bashrc"
 
       server.vm.provision "shell", inline: "sed -i '/central-back-1/d' /etc/hosts"
-      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
+#       server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
       server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
       server.vm.provision "shell", inline: "echo '172.28.128.21 central-front-1' >> /etc/hosts"
       server.vm.provision "shell", inline: "echo '172.28.128.22 central-front-2' >> /etc/hosts"
@@ -127,11 +124,10 @@ Vagrant.configure("2") do |config|
    config.vm.define "central-back-2" do |server|
       server.vm.box = "generic/centos8"
       server.vm.box_check_update = false
-      config.disksize.size = ''
+      config.disksize.size = '20G'
 
       # Share only sample_confs
       server.vm.synced_folder '.', '/vagrant', disabled: true
-      server.vm.synced_folder '/tmp/archive-log/storage', '/tmp/archive-logs/storage', create: true
       ## Configuration
       server.vm.hostname = "central-back-2"
       server.vm.network "private_network", ip: "172.28.128.24"
@@ -144,7 +140,7 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "sed -i '5,10d' /home/vagrant/.bashrc"
 
       server.vm.provision "shell", inline: "sed -i '/central-back-2/d' /etc/hosts"
-      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
+#       server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
       server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
       server.vm.provision "shell", inline: "echo '172.28.128.21 central-front-1' >> /etc/hosts"
       server.vm.provision "shell", inline: "echo '172.28.128.22 central-front-2' >> /etc/hosts"

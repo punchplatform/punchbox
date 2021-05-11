@@ -1,0 +1,20 @@
+{
+  "targets": {
+    "os": "centos/8",
+    "production_interface": "eth1",
+    "servers": {
+      "server1": {
+        "memory": 6144
+      },
+      "server2": {
+        "memory": 6144
+      },
+      "server3": {
+        "memory": 6144
+      },
+      "server4": {
+        "memory": 6144
+      }
+    }
+  }
+}

@@ -80,7 +80,6 @@ Vagrant.configure("2") do |config|
       {%- endif %}
 
       server.vm.provision "shell", inline: "sed -i '/{{ server }}/d' /etc/hosts"
-      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
       server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
 
       {%- if vagrant_os == 'rhel/7' %}

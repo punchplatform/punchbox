@@ -17,5 +17,5 @@ if [ "${PUNCH_DIR}" = ""  ] ; then
 fi
 
 # punchbox path
-export PATH="${PUNCHBOX_DIR}/bin:${PUNCHBOX_DEPLOYER}/bin:$PATH"
+export PATH="${PUNCHBOX_DIR}/bin:$PATH"
 #export PS1='\[[1;32m\]punchbox:\[[0m\][\W]$ '

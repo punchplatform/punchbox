@@ -129,7 +129,7 @@ start-vagrant: ${ENV_INSTALLED_MARKERFILE}  ## Start vagrant boxes
 
 .PHONY: deploy
 
-default-tls: default-tls-config start-vagrant
+default-tls-deploy: default-tls-config start-vagrant
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh deploy -u vagrant -e @$${PUNCHPLATFORM_CONF_DIR}/security/deployment_secrets.json
 
 deploy: ${ENV_INSTALLED_MARKERFILE}
