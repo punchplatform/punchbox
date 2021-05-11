@@ -16,7 +16,7 @@ A virualenv directory is created at the root of this repository on your local fi
 
 ## Requirements
 
-### RSA Key for ssh
+### SSH
 
 You MUST have ssh keys inside *~/.ssh/id_rsa.pub*.  
 if not, generate one with:
@@ -33,83 +33,23 @@ Install [pyenv](https://github.com/pyenv/pyenv).
 If not familiar with python installation and best practices refer to 
 [Setup Python](https://doc.punchplatform.com/Contribution_Guide/Setup_Python.html).
 
-### Environment
-
-Clone the `pp-punch` repo next to `punchbox` :
-
-```sh
-.
-├── pp-punch
-└── punchbox
-```
-
-If you already have a `pp-punch` folder elsewhere, store its location in `PUNCH_DIR`:
-
-```sh
-echo "export PUNCH_DIR=/path/to/pp-punch >> ~/.bashrc"
-source ~/.bashrc
-```
-
-### Punch
-
-You MUST have compiled a punch version in `pp-punch`.
-
-## Installation 
-
-Install your punchbox environment and the deployer with :
-
-```sh
-make install
-```
-
-Now you are ready to get started !
-
 ## Generate Bare Linux Vagrant Boxes
 
-Use the default vagrant configuration provided by punchbox :
+Generate Vagrantfiles and start Vagrant boxes in one command using `punchbox`.
 
-```sh
-source activate.sh
-punchbox --config configurations/vagrant_config.json
-```
+Learn more in [Vagrant with Punchbox documentation](./punch/vagrant/README.md).
 
-or simply go to the vagrant directory and type in:
+## Deploy a Complete Punch
 
-```sh
-make start-vagrant
-```
+The punch deployment is performed in a way similar than what is just explained to deploy empty servers.
+You simply use layout configuration file with the punch components you need. This repository provides
+three ready-to-use complete punch configurations to accomodate 16Gb, 32Gb laptops and security settings.
 
-The way it works is to start with some very simple model files for you to specify what you need. 
-Here the configurations/empty_16G.json example:
+Also provided is a great tool to perform an end-to-end validation of the punch.
 
-```json
-{
-  "targets": {
-    "info": {
-      "server1": {
-        "disksize": "20GB",
-        "memory": 3000,
-        "cpu": 2,
-      },
-      "server2": {
-        "disksize": "20GB",
-        "memory": 5120,
-        "cpu": 2
-      },
-      "server3": {
-        "disksize": "20GB",
-        "memory": 5120,
-        "cpu": 2
-      }
-    },
-    "meta": {
-      "os": "ubuntu/bionic64"
-    }
-  }
-}
-```
+**warning**: this part requires you have an official punch deployer package.
 
-For another os simply update the meta os properties. For example "bento/centos-8". 
+Learn more in [Deploy a Punch with Punchbox documentation](./punch/README.md).
 
 ## Deploy a KAST Kubernetes cluster
 
@@ -130,19 +70,7 @@ Depending on your goal the prerequisites are differnt. A punch deployer server n
 
 The ansible roles defined in this part are free to use and lets you setup these target in minutes. 
 
-Refer to the [ansible](./ansible/README.md) guide.  
-
-## Deploy a Complete Punch
-
-The punch deployment is performed in a way similar than what is just explained to deploy empty servers.
-You simply use layout configuration file with the punch components you need. This repository provides
-three ready-to-use complete punch configurations to accomodate 16Gb, 32Gb laptops and security settings. 
-
-Also provided is a great tool to perform an end-to-end validation of the punch. 
-
-**warning**: this part requires you have an official punch deployer package. 
-
-Refer to the [punch](./punch/README.md) guide.  
+Refer to the [ansible](./ansible/README.md) guide.
 
 ## Contribute
 

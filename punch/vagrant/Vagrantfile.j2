@@ -45,7 +45,7 @@ Vagrant.configure("2") do |config|
       server.vm.box = "{{ vagrant_os }}"
       {%- endif %}
       server.vm.box_check_update = false
-      config.disksize.size = '{{ targets.servers[server].disksize }}'
+      config.disksize.size = '{{ targets.servers[server].disksize | d('20G') }}'
 
       # Share only sample_confs
       server.vm.synced_folder '.', '/vagrant', disabled: true

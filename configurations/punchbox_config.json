@@ -1,0 +1,100 @@
+{
+  "targets": {
+    "os": "centos/8",
+    "production_interface": "eth1",
+    "servers": {
+      "server1": {
+        "memory": 6144
+      },
+      "server2": {
+        "memory": 6144
+      },
+      "server3": {
+        "memory": 6144
+      },
+      "server4": {
+        "memory": 6144
+      }
+    }
+  },
+  "punch": {
+    "zookeeper": {
+      "clusters": {
+        "zk_central": {
+          "servers": [
+            "server1",
+            "server2",
+            "server3",
+            "server4"
+          ]
+        }
+      }
+    },
+    "kafka": {
+      "clusters": {
+        "kafka_data": {
+          "servers": [
+            "server1",
+            "server2",
+            "server3"
+          ]
+        },
+        "kafka_metrics": {
+          "servers": [
+            "server4"
+          ]
+        }
+      }
+    },
+    "shiva": {
+      "clusters": {
+        "shiva_central": {
+          "servers": [
+            "server3",
+            "server4"
+          ]
+        }
+      }
+    },
+    "elasticsearch": {
+      "clusters": {
+        "es_data": {
+          "servers": [
+            "server1",
+            "server2",
+            "server3"
+          ]
+        },
+        "es_metric": {
+          "servers": [
+            "server4"
+          ]
+        }
+      }
+    },
+    "gateway": {
+      "clusters": {
+        "onesky": {
+          "servers": [
+            "server2"
+          ],
+          "es_data_cluster": "es_data",
+          "es_metric_cluster": "es_metric"
+        }
+      }
+    },
+    "kibana": {
+      "servers": [
+        "server1"
+      ]
+    },
+    "operator": {
+      "servers": [
+        "server1"
+      ],
+      "usernames": [
+        "punch-operator"
+      ]
+    }
+  }
+}

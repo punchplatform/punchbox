@@ -17,8 +17,34 @@ All in all this makes it easy to test the punch deployment role using a unit tes
 
 - [official version](https://doc.punchplatform.com/Operations/Platform_Deployment/Before_You_Start.html#deployer_installation_guide).
 
+## Vagrant with Punchbox
 
-## Disable SSH host key checking
+Using the default vagrant configuration provided by punchbox :
+
+```sh
+source activate.sh
+punchbox --config configurations/vagrant_config.json
+```
+
+Then simply mount your machines with :
+
+```sh
+make start-vagrant
+```
+
+## Configuration
+
+The vagrant boxes are configured in the section `targets` of the punchbox config file :
+
+| Configuration | Default | Description |
+| --- | --- | --- |
+| targets.os | None | Vagrant box installed on all machines. Supported values are `centos/7`, `centos/8`, `rhel/7` and any vagran box name for debian. |
+| targets.servers.<hostname>.memory | 4096 | RAM usage for this host
+| targets.servers.<hostname>.cpu | 2 | Amount of VCPU for this host
+
+## TIPS
+
+### Disable SSH host key checking
 
 This method tricks SSH by configuring it to use an empty known_hosts file, and NOT to ask you to confirm the remote host identity key.
 
@@ -32,7 +58,7 @@ StrictHostKeyChecking no
 UserKnownHostsFile=/dev/null
 ```
 
-## Format and mount additional disk
+### Format and mount additional disk
 
 Get disks list:
 
@@ -83,7 +109,7 @@ Update /etc/fstab file
 /dev/sdb               /disk1           ext3    defaults        1 2
 ```
 
-## Vim syntax highlighting for Vagrantfile 
+### Vim syntax highlighting for Vagrantfile 
 
 Create `~/.vim/plugin/vagrant.vim` and drop content bellow:
 

@@ -49,7 +49,6 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "sudo systemctl mask --now firewalld"
 
       server.vm.provision "shell", inline: "sed -i '/server1/d' /etc/hosts"
-      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
       server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
       server.vm.provision "shell", inline: "echo '172.28.128.21 server1' >> /etc/hosts"
       server.vm.provision "shell", inline: "echo '172.28.128.22 server2' >> /etc/hosts"
@@ -97,7 +96,6 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "sudo systemctl mask --now firewalld"
 
       server.vm.provision "shell", inline: "sed -i '/server2/d' /etc/hosts"
-      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
       server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
       server.vm.provision "shell", inline: "echo '172.28.128.21 server1' >> /etc/hosts"
       server.vm.provision "shell", inline: "echo '172.28.128.22 server2' >> /etc/hosts"
@@ -145,7 +143,6 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "sudo systemctl mask --now firewalld"
 
       server.vm.provision "shell", inline: "sed -i '/server3/d' /etc/hosts"
-      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
       server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
       server.vm.provision "shell", inline: "echo '172.28.128.21 server1' >> /etc/hosts"
       server.vm.provision "shell", inline: "echo '172.28.128.22 server2' >> /etc/hosts"
@@ -193,7 +190,6 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "sudo systemctl mask --now firewalld"
 
       server.vm.provision "shell", inline: "sed -i '/server4/d' /etc/hosts"
-      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
       server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
       server.vm.provision "shell", inline: "echo '172.28.128.21 server1' >> /etc/hosts"
       server.vm.provision "shell", inline: "echo '172.28.128.22 server2' >> /etc/hosts"
@@ -241,7 +237,6 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "sudo systemctl mask --now firewalld"
 
       server.vm.provision "shell", inline: "sed -i '/server5/d' /etc/hosts"
-      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
       server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
       server.vm.provision "shell", inline: "echo '172.28.128.21 server1' >> /etc/hosts"
       server.vm.provision "shell", inline: "echo '172.28.128.22 server2' >> /etc/hosts"
