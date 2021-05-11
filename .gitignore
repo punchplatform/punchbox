@@ -50,9 +50,9 @@ ansible/punchbox.*
 
 punch/build
 punch/vagrant/Vagrantfile
-
 venv
-.deployer
+.deployer*
+.env*
 .deployed_configuration
 bin/pex/.all_pex_generated
 build

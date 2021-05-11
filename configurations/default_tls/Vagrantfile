@@ -1,0 +1,163 @@
+
+
+Vagrant.configure("2") do |config|
+
+  # Auto install required Vagrant plugins
+  config.vagrant.plugins = ["vagrant-disksize", "vagrant-vbguest"]
+  
+  # Get your local SSH public key
+  PUBLIC_KEY = File.read("#{Dir.home}/.ssh/id_rsa.pub")
+
+  # Speed up VM creation using a precompiled '.vdi'
+  config.vm.provider "virtualbox" do |vb|
+    vb.linked_clone = true
+  end
+
+   config.vm.define "central-front-1" do |server|
+      server.vm.box = "generic/centos8"
+      server.vm.box_check_update = false
+      config.disksize.size = ''
+
+      # Share only sample_confs
+      server.vm.synced_folder '.', '/vagrant', disabled: true
+      server.vm.synced_folder '/tmp/archive-log/storage', '/tmp/archive-logs/storage', create: true
+      ## Configuration
+      server.vm.hostname = "central-front-1"
+      server.vm.network "private_network", ip: "172.28.128.21"
+
+      ## Provisionning
+      server.vm.provision "shell", inline: <<-EOF
+        echo 'export LC_ALL=C' >> ~/.bashrc
+        echo '#{PUBLIC_KEY}' >> /home/vagrant/.ssh/authorized_keys
+      EOF
+      server.vm.provision "shell", inline: "sed -i '5,10d' /home/vagrant/.bashrc"
+
+      server.vm.provision "shell", inline: "sed -i '/central-front-1/d' /etc/hosts"
+      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
+      server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
+      server.vm.provision "shell", inline: "echo '172.28.128.21 central-front-1' >> /etc/hosts"
+      server.vm.provision "shell", inline: "echo '172.28.128.22 central-front-2' >> /etc/hosts"
+      server.vm.provision "shell", inline: "echo '172.28.128.23 central-back-1' >> /etc/hosts"
+      server.vm.provision "shell", inline: "echo '172.28.128.24 central-back-2' >> /etc/hosts"
+
+      server.vm.provider :virtualbox do |v|
+        v.gui = false
+        v.memory = 6144
+        v.cpus = 2
+      end
+
+      #To unregister the VM from the redhat developer account
+
+   end
+
+   config.vm.define "central-front-2" do |server|
+      server.vm.box = "generic/centos8"
+      server.vm.box_check_update = false
+      config.disksize.size = ''
+
+      # Share only sample_confs
+      server.vm.synced_folder '.', '/vagrant', disabled: true
+      server.vm.synced_folder '/tmp/archive-log/storage', '/tmp/archive-logs/storage', create: true
+      ## Configuration
+      server.vm.hostname = "central-front-2"
+      server.vm.network "private_network", ip: "172.28.128.22"
+
+      ## Provisionning
+      server.vm.provision "shell", inline: <<-EOF
+        echo 'export LC_ALL=C' >> ~/.bashrc
+        echo '#{PUBLIC_KEY}' >> /home/vagrant/.ssh/authorized_keys
+      EOF
+      server.vm.provision "shell", inline: "sed -i '5,10d' /home/vagrant/.bashrc"
+
+      server.vm.provision "shell", inline: "sed -i '/central-front-2/d' /etc/hosts"
+      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
+      server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
+      server.vm.provision "shell", inline: "echo '172.28.128.21 central-front-1' >> /etc/hosts"
+      server.vm.provision "shell", inline: "echo '172.28.128.22 central-front-2' >> /etc/hosts"
+      server.vm.provision "shell", inline: "echo '172.28.128.23 central-back-1' >> /etc/hosts"
+      server.vm.provision "shell", inline: "echo '172.28.128.24 central-back-2' >> /etc/hosts"
+
+      server.vm.provider :virtualbox do |v|
+        v.gui = false
+        v.memory = 6144
+        v.cpus = 2
+      end
+
+      #To unregister the VM from the redhat developer account
+
+   end
+
+   config.vm.define "central-back-1" do |server|
+      server.vm.box = "generic/centos8"
+      server.vm.box_check_update = false
+      config.disksize.size = ''
+
+      # Share only sample_confs
+      server.vm.synced_folder '.', '/vagrant', disabled: true
+      server.vm.synced_folder '/tmp/archive-log/storage', '/tmp/archive-logs/storage', create: true
+      ## Configuration
+      server.vm.hostname = "central-back-1"
+      server.vm.network "private_network", ip: "172.28.128.23"
+
+      ## Provisionning
+      server.vm.provision "shell", inline: <<-EOF
+        echo 'export LC_ALL=C' >> ~/.bashrc
+        echo '#{PUBLIC_KEY}' >> /home/vagrant/.ssh/authorized_keys
+      EOF
+      server.vm.provision "shell", inline: "sed -i '5,10d' /home/vagrant/.bashrc"
+
+      server.vm.provision "shell", inline: "sed -i '/central-back-1/d' /etc/hosts"
+      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
+      server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
+      server.vm.provision "shell", inline: "echo '172.28.128.21 central-front-1' >> /etc/hosts"
+      server.vm.provision "shell", inline: "echo '172.28.128.22 central-front-2' >> /etc/hosts"
+      server.vm.provision "shell", inline: "echo '172.28.128.23 central-back-1' >> /etc/hosts"
+      server.vm.provision "shell", inline: "echo '172.28.128.24 central-back-2' >> /etc/hosts"
+
+      server.vm.provider :virtualbox do |v|
+        v.gui = false
+        v.memory = 6144
+        v.cpus = 2
+      end
+
+      #To unregister the VM from the redhat developer account
+
+    end
+
+   config.vm.define "central-back-2" do |server|
+      server.vm.box = "generic/centos8"
+      server.vm.box_check_update = false
+      config.disksize.size = ''
+
+      # Share only sample_confs
+      server.vm.synced_folder '.', '/vagrant', disabled: true
+      server.vm.synced_folder '/tmp/archive-log/storage', '/tmp/archive-logs/storage', create: true
+      ## Configuration
+      server.vm.hostname = "central-back-2"
+      server.vm.network "private_network", ip: "172.28.128.24"
+
+      ## Provisionning
+      server.vm.provision "shell", inline: <<-EOF
+        echo 'export LC_ALL=C' >> ~/.bashrc
+        echo '#{PUBLIC_KEY}' >> /home/vagrant/.ssh/authorized_keys
+      EOF
+      server.vm.provision "shell", inline: "sed -i '5,10d' /home/vagrant/.bashrc"
+
+      server.vm.provision "shell", inline: "sed -i '/central-back-2/d' /etc/hosts"
+      server.vm.provision "shell", inline: "sudo timedatectl set-timezone Europe/Paris"
+      server.vm.provision :shell, :inline => "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime", run: "always"
+      server.vm.provision "shell", inline: "echo '172.28.128.21 central-front-1' >> /etc/hosts"
+      server.vm.provision "shell", inline: "echo '172.28.128.22 central-front-2' >> /etc/hosts"
+      server.vm.provision "shell", inline: "echo '172.28.128.23 central-back-1' >> /etc/hosts"
+      server.vm.provision "shell", inline: "echo '172.28.128.24 central-back-2' >> /etc/hosts"
+
+      server.vm.provider :virtualbox do |v|
+        v.gui = false
+        v.memory = 6144
+        v.cpus = 2
+      end
+
+      #To unregister the VM from the redhat developer account
+
+    end
+end

@@ -1,17 +1,19 @@
 # punchbox env
 export PUNCHBOX_DIR=/tmp
-export PUNCHBOX_DEPLOYERS_DIR="${PUNCHBOX_DIR}/deployers"
 export PUNCHBOX_VAGRANT_DIR="${PUNCHBOX_DIR}/punch/vagrant"
 export PUNCHBOX_BUILD_DIR="${PUNCHBOX_DIR}/punch/build"
 export PUNCHBOX_TEMPLATES_DIR="${PUNCHBOX_DIR}/punch/templates"
 export PUNCHPLATFORM_CONF_DIR="${PUNCHBOX_BUILD_DIR}/pp-conf"
 
-# punchbox deployer
-if [ "${PUNCHBOX_DEPLOYER}" = ""  ] ; then
-	echo "FATAL: Missing PUNCHBOX_DEPLOYER environment variable"
-	exit 1
-else
-	echo "Using deployer '${PUNCHBOX_DEPLOYER}'"
+# pp-punch local dir
+if [ "${PUNCH_DIR}" = ""  ] ; then
+	# check for pp-punch dir next to punchbox_dir
+	if [ -d "${PUNCHBOX_DIR}/../pp-punch" ]; then
+		export PUNCH_DIR="${PUNCHBOX_DIR}/../pp-punch"
+	else
+		echo "FATAL: Missing PUNCH_DIR. Git clone 'pp-punch' next to punchbox dir, or set PUNCH_DIR"
+		exit 1
+	fi
 fi
 
 # punchbox path

@@ -14,23 +14,23 @@ PUNCH_DEPLOYER_NAME=punch-deployer-*
 PUNCH_EXAMPLES_NAME=punch-examples-*
 
 # PUNCHBOX DIRS
-PUNCHBOX_DEPLOYER_DIR=${DIR}/punch/deployers
 PUNCHBOX_CONF_DIR=${DIR}/configurations
-PUNCHBOX_LOG_MANAGEMENT_RESOURCES_DIR=${PUNCHBOX_BUILD_DIR}/${PUNCH_EXAMPLES_NAME}/conf/platforms/log_management_platform/resources
-PUNCHBOX_LOG_MANAGEMENT_TENANTS_DIR=${PUNCHBOX_BUILD_DIR}/${PUNCH_EXAMPLES_NAME}/conf/platforms/log_management_platform/tenants
+PUNCHBOX_LOG_MANAGEMENT_RESOURCES_DIR=$${PUNCHBOX_BUILD_DIR}/${PUNCH_EXAMPLES_NAME}/conf/platforms/log_management_platform/resources
+PUNCHBOX_LOG_MANAGEMENT_TENANTS_DIR=$${PUNCHBOX_BUILD_DIR}/${PUNCH_EXAMPLES_NAME}/conf/platforms/log_management_platform/tenants
 
 # PUNCHBOX ENVIRONMENT
 ACTIVATE_SH=${DIR}/activate.sh
 ACTIVATE_TEMPLATE=${DIR}/.activate.template
-VENV_MARKERFILE=${DIR}/.venv/.installed
-ALLTOOLS_INSTALLED_MARKERFILE=${DIR}/.alltools_installed
+VENV_INSTALLED_MARKERFILE=${DIR}/.venv/.installed
+DEPLOYER_INSTALLED_MARKERFILE=${DIR}/.deployer_installed
+ENV_INSTALLED_MARKERFILE=${DIR}/.env_installed
 
 # PUNCHBOX CONFIGURATIONS
-LEGACY_TLS_CONFIG_DIR=${PUNCHBOX_CONF_DIR}/legacy/tls_24G
+DEFAULT_TLS_CONFIG_DIR=${PUNCHBOX_CONF_DIR}/default_tls
 
 # PUNCH SOURCES
-DEFAULT_DEPLOYER_ZIP_PATH=${DIR}/../pp-punch/packagings/punch-deployer/target/${PUNCH_DEPLOYER_NAME}.zip
-DEFAULT_PUNCH_EXAMPLES_PATH=${DIR}/../pp-punch/examples/target/${PUNCH_EXAMPLES_NAME}.zip
+DEFAULT_DEPLOYER_ZIP_PATH=$${PUNCH_DIR}/packagings/punch-deployer/target/${PUNCH_DEPLOYER_NAME}.zip
+DEFAULT_EXAMPLES_PATH=$${PUNCH_DIR}/examples/target/${PUNCH_EXAMPLES_NAME}.zip
 
 
 
@@ -65,99 +65,116 @@ endif
 
 ## Environment
 
-.PHONY: install-env install-deployer install check-env test
+.PHONY: install install-env check-env install-python
 
-${VENV_MARKERFILE}:
-	@$(call green, "Install python3 virtualenv")
+${VENV_INSTALLED_MARKERFILE}:
+	@$(call green, "Check python3 virtualenv")
 	@if [ ! -e "${DIR}/.venv/bin/activate" ] ; then python3 -m venv ${DIR}/.venv ; fi
 	@. ${DIR}/.venv/bin/activate && pip install -U pip wheel setuptools -q && pip install -r ${DIR}/requirements.txt --quiet
 	@touch $@
 
+
 ${ACTIVATE_SH}: ${ACTIVATE_TEMPLATE} Makefile
-	@$(call green, "Install shell environment")
+	@$(call green, "Check shell environment")
 	@sed 's#.*PUNCHBOX_DIR=.*#export PUNCHBOX_DIR='${DIR}'#g' "${ACTIVATE_TEMPLATE}" > "${ACTIVATE_SH}"
 
-${ALLTOOLS_INSTALLED_MARKERFILE}: ${VENV_MARKERFILE} ${ACTIVATE_SH}
+${ENV_INSTALLED_MARKERFILE}: ${VENV_INSTALLED_MARKERFILE} ${ACTIVATE_SH}
 	@touch $@
 
-install: ${ALLTOOLS_INSTALLED_MARKERFILE}
+${DEPLOYER_INSTALLED_MARKERFILE}: ${ENV_INSTALLED_MARKERFILE}
+	@$(call green, "Check deployer")
+	@. ${DIR}/activate.sh && unzip -n -qq $${PUNCH_DIR}/packagings/punch-deployer/target/punch-deployer-*.zip -d $${PUNCHBOX_BUILD_DIR}
+	@touch $@
+
+install-env: ${ENV_INSTALLED_MARKERFILE}
 	@[ -e "${HOME}/.ssh/id_rsa.pub" ] || { echo ".ssh/id_rsa.pub not found in user home directory. Maybe try running 'ssh-keygen' without specific option." 2>&1 && exit 42 ; }
 	@which jq 1>/dev/null || { echo "jq command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 	@which curl 1>/dev/null || { echo "curl command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 	@which unzip 1>/dev/null || { echo "unzip command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 	@which python 1>/dev/null || { echo "python (>3.6.8) must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
+
+install: install-env ${DEPLOYER_INSTALLED_MARKERFILE}
 	@. ${DIR}/activate.sh && if [ ! -d "$&{PUNCHPLATFORM_CONF_DIR}" ]; then mkdir -p "$${PUNCHPLATFORM_CONF_DIR}"; fi
 
-check-env: ${ALLTOOLS_INSTALLED_MARKERFILE}
-	source ${DIR}/.venv/bin/activate && source ${ACTIVATE_SH} && env | grep PUNCH && pip freeze
+check-env: ${ENV_INSTALLED_MARKERFILE}
+	@$(call blue, "Python environment")
+	@source ${DIR}/.venv/bin/activate && pip freeze
+	@$(call blue, "Shell environment")
+	@source ${ACTIVATE_SH} && env | grep PUNCH
 
 ## Configuration
 
 .PHONY: legacy-tls-config test-config test
 
-legacy-tls-config: install
+default-tls-config: install
 	@$(call green, "Install deployment configuration")
-	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && python3 bin/punchbox.py --config ${LEGACY_TLS_CONFIG_DIR}/legacy_tls_centos_24G.json
-	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && cp -r "${LEGACY_TLS_CONFIG_DIR}/resolv.yaml" "${LEGACY_TLS_CONFIG_DIR}/security" "$${PUNCHPLATFORM_CONF_DIR}/"
+	@. ${ACTIVATE_SH} && cp -r "${DEFAULT_TLS_CONFIG_DIR}/resolv.yaml" \
+		"${DEFAULT_TLS_CONFIG_DIR}/security" \
+		"${DEFAULT_TLS_CONFIG_DIR}/punchplatform-deployment.settings" \
+		"$${PUNCHPLATFORM_CONF_DIR}/" && \
+		cp "${DEFAULT_TLS_CONFIG_DIR}/Vagrantfile" $${PUNCHBOX_VAGRANT_DIR}
 	@$(call green, "Install resources configuration")
-# 	@unzip -n -qq "${DEFAULT_PUNCH_EXAMPLES_PATH}" -d "$${PUNCHBOX_BUILD_DIR}"
-# 	@cp -r ${PUNCHBOX_LOG_MANAGEMENT_RESOURCES_DIR} "$${PUNCHPLATFORM_CONF_DIR}"
-# 	@cp -r ${PUNCHBOX_LOG_MANAGEMENT_TENANTS_DIR} "$${PUNCHPLATFORM_CONF_DIR}"
+	@. ${ACTIVATE_SH} && unzip -n -qq "${DEFAULT_EXAMPLES_PATH}" -d "$${PUNCHBOX_BUILD_DIR}" && \
+		cp -r ${PUNCHBOX_LOG_MANAGEMENT_RESOURCES_DIR} "$${PUNCHPLATFORM_CONF_DIR}" && \
+		cp -r ${PUNCHBOX_LOG_MANAGEMENT_TENANTS_DIR} "$${PUNCHPLATFORM_CONF_DIR}"
 
 ##@ Step 4
 
 .PHONY: start-vagrant
 
-start-vagrant: ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Start vagrant boxes
-	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && cd ${PUNCHBOX_VAGRANT_DIR} && vagrant up
+start-vagrant: ${ENV_INSTALLED_MARKERFILE}  ## Start vagrant boxes
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && cd $${PUNCHBOX_VAGRANT_DIR} && vagrant up
 
 ##@ Step 5
 
 .PHONY: deploy
 
+default-tls: default-tls-config start-vagrant
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh deploy -u vagrant -e @$${PUNCHPLATFORM_CONF_DIR}/security/deployment_secrets.json
 
-deploy: ${ALLTOOLS_INSTALLED_MARKERFILE}
-	deploy_cmd="punchplatform-deployer.sh deploy -u vagrant"
-# 	if [ -d "$${PUNCHPLATFORM_CONF_DIR}/security" ]; then CMD="${CMD} -e @$${PUNCHPLATFORM_CONF_DIR}/security/deployment_secrets.json"; fi
-	echo $$deploy_cmd
-# 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh deploy -u vagrant
+deploy: ${ENV_INSTALLED_MARKERFILE}
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh deploy -u vagrant
 
 ##@ Step 6
 
 .PHONY: deploy-config local-integration-vagrant update-deployer-configuration
 
-deploy-config:  ${ALLTOOLS_INSTALLED_MARKERFILE}
+deploy-config:  ${ENV_INSTALLED_MARKERFILE}
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh -cp -u vagrant
  
-update-deployer-configuration: ${ALLTOOLS_INSTALLED_MARKERFILE}
+update-deployer-configuration: ${ENV_INSTALLED_MARKERFILE}
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
 								--punch-user-config ${DIR}/punch/configurations/validation
 
 ##@ All in one
 
-.PHONY: legacy-tls
+.PHONY: default-tls
 
-legacy-tls:	legacy-tls-configure make-start-vagrant-2 legacy-tls-deploy deploy-config
+default-tls: default-tls-deploy
 
 ##@ Cleanup
 
-.PHONY: clean clean-env clean-vagrant clean-all
+.PHONY: clean-config clean-deployer clean-env clean
 
-clean:
-	@$(call red, "Clean configuration: ")
-	@rm -rf ${DIR}/punch/build
+clean: ${ENV_INSTALLED_MARKERFILE}
+	@$(call red, "Clean configuration")
+	@source ${ACTIVATE_SH} && rm -rf $${PUNCHPLATFORM_CONF_DIR}
 
-clean-vagrant: ${ALLTOOLS_INSTALLED_MARKERFILE}
+clean-deployer:
+	@$(call red, "Clean deployer and examples")
+	@source ${ACTIVATE_SH} && rm -rf $${PUNCHBOX_BUILD_DIR}/${PUNCH_DEPLOYER_NAME} && rm -rf $${PUNCHBOX_BUILD_DIR}/${PUNCH_EXAMPLES_NAME}
+
+clean-vagrant: ${ENV_INSTALLED_MARKERFILE}
 	@$(call red, "Destroy vagrant machines")
-	@source ${DIR}/.venv/bin/activate && source ${ACTIVATE_SH} && cd ${PUNCHBOX_VAGRANT_DIR} && ${VAGRANT} destroy -f
+	@source ${DIR}/.venv/bin/activate && source ${ACTIVATE_SH} && cd $${PUNCHBOX_VAGRANT_DIR} && ${VAGRANT} destroy -f
 
 clean-env:
 	@$(call red, "Clean environment and dependencies")
 	@rm -rf ${DIR}/.venv
 	@rm -rf ${DIR}/activate.sh
 
-clean-all: clean-vagrant clean clean-env
+clean-all: clean-config clean-deployer clean-env
 
 ##@ Helpers
 
