@@ -338,7 +338,7 @@
         "domains" : {
             {% for domain_name,domain_section in kibana.domains.items() %}
             "{{domain_name}}": {
-                "es_cluster_target": "{{domain_section.es_cluster_target}}",
+                "es_cluster_target": "{{domain_section.es_cluster}}",
                 "es_type_of_nodes_targeted": "data_node",
                 {% if all_servers.append(domain_section.server) %}{% endif %}
                 "servers": ["{{domain_section.server}}"],
@@ -353,10 +353,10 @@
                 "elasticsearch_ssl_verificationMode": "full",
                 "elasticsearch_ssl_certificateAuthorities_names": ["ca.pem"]
                 {% endif %}
-                {% if domain_section.plugin_gateway_target_cluster is defined %}
+                {% if domain_section.plugin_gateway_cluster is defined %}
                 {% set server_ip = [] %}
                 {% if tls | d(false) %}{% set scheme = "https" %}{% else %}{% set scheme = "http" %}{% endif %}
-                {% for server in gateway.clusters.get(domain_section.plugin_gateway_target_cluster).servers  %}
+                {% for server in gateway.clusters.get(domain_section.plugin_gateway).servers  %}
                 {% set server_ip = server_ip.append( scheme + "://"+server+":4242" ) %}
                 {% endfor %}
                 ,
@@ -407,7 +407,7 @@
                 "reporters" : ["myreporter"],
                 "storage": {
                   "type" : "kafka",
-                  "kafka_cluster": "{{cluster_section.kafka_cluster_storage}}"
+                  "kafka_cluster": "{{cluster_section.kafka_cluster}}"
                 },
                 {% if tls | d(false) %}
                 "ssl_enabled": true,
@@ -533,6 +533,7 @@
     {% endif %}
 
 
+	{% if metricbeat is defined %}
 	,
     "metricbeat" : {
         "metricbeat_version" : "{{ version.metricbeat }}",
@@ -553,7 +554,7 @@
             }
         },
         "elasticsearch" : {
-          "cluster_id" : "{{metricbeat.es_cluster_target}}"
+          "cluster_id" : "{{metricbeat.es_cluster}}"
           {% if tls | d(false) %}
           ,
           "ssl_enabled": true
@@ -567,4 +568,5 @@
         "elasticsearch_password": "admin"
         {% endif %}
     }
+    {% endif %}
 }

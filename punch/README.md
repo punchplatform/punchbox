@@ -71,21 +71,13 @@ make help
 
 ### Punchbox configuration
 
-Considering you already have a punchbox config file : 
+Using the default platform configuration provided by punchbox :
 
 ```sh
 source activate.sh
-punchbox --config myconfig.json
+punchbox --config configurations/punchbox_config.json
 make start-vagrant
 make deploy
 ```
 
-Custom configuration :
-
-
-
-## Punchplatform validation  
-
-Once you have deployed your Punchplatform, you may be wondering how to check your platform health
-
-Refer to the [validation](./configurations/validation/README.md) guide. 
+Learn more about custom configurations in [Punchbox configuration documentation](../configurations/README.md)

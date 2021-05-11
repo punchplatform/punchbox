@@ -1,4 +1,4 @@
-# User config 
+# Punchbox configuration 
 
 From a user point of view only files under this folder can be modified (the file provide with --config option)
 
@@ -6,63 +6,53 @@ You could update existing ones or create a new one with your specific configurat
 
 To configure vagrant boxes, read the [Vagran with Punchbox documentation](../punch/vagrant/README.md).
 
-To configure a Punch Deployment :
+To configure a Punch Deployment, follow :
 
-  - `punch`: list of punch component  
-      `tls`: If `true`, enable TLS for all supported components. Default is `false`.
-      `setups_root` : path where the punch components binaries will be installed
-      `data_root` : path where the punch components data will be stored
-      - `elasticsearch`:
-          - `servers`: list of elasticsearch hosts
-          - `cluster_production_transport_address`: elasticsearch transport address
-          - `memory`: maximum size of each elasticsearch nodes Jvm memory
-          - `security` : if true, enable Opendistro Security plugin and Opendistro alerting plugin. It will generate 
-          configuration for SSL, authentication and security management. The security resource folder will be used to
-          deploy default certificates
-      - `kibana`: 
-          - `servers`: list of kibana hosts
-          - `security` : if true, enable Opendistro Security plugin and Opendistro alerting plugin. It will generate 
-          configuration for SSL, authentication and security management. The security resource folder will be used to
-          deploy default certificates
-      - `zookeeper`: 
-          - `servers`: list of zookeeper hosts
-          - `childopts`: JVM options for zookeeper
-      - `gateway`: 
-          - `servers`: list of gateway hosts 
-          - `inet_address`: inet address for gateway (will be remove soon)
-          - `security` : if true, enable ssl connections to, and from, gateway's rest api. It will generate 
-          configuration for SSL. The security resource will be used to deploy a  default keystore.
-      - `storm`: 
-          - `master`: 
-              - `servers`: list of storm master hosts
-              - `cluster_production_address`: cluster address for storm master
-          - `ui`:
-              - `servers`: list of storm ui hosts
-              - `cluster_admin_url`: cluster address for storm ui
-          - `slaves` : list of storm slave hosts
-          - `workers_childopts`: storm worker jvm options
-          - `supervisor_memory_mb`: size of RAM for supervisor
-      - `kafka`:
-          - `brokers`: list of kafka brokers
-          - `jvm_xmx`: max JVM size for each kafka broker 
-      - `shiva`: 
-          - `servers`: list of shiva hosts
-      -  `spark`:
-          - `masters`: list of spark master hosts
-          - `slaves`: list of spark slave hosts
-          - `slaves_memory`: allocation of memory for each slaves
-      - `pyspark`:
-          - `servers`: list of pyspark hosts
-      - `minio`:
-          - `servers`: list of minio hosts
-      - `clickhouse`:
-          - `servers`: list of clickhouse hosts
-      - `operator`: 
-          - `servers`: list of operator hosts
-          - `username`: operator username
-
-      
-
-**Note** : All parameters under `targets` key are mandatory. For those under `punch`, they are optional
-
-**Note** : do **never** add or change things in the platform_template or vagrant without a first review with the core punch team leaders
+- `punch`: Optional, list of punch component  
+    - `tls`: Optional, default `false`. If `true`, enable TLS for all supported components.
+    - `setups_root` : Optional, default `/data/opt`. Path where the punch components binaries will be installed.
+    - `data_root` : Optional, default `/data/opt`. Path where the punch components data will be stored.
+    - `zookeeper`:
+        - `max_memory`: Optional, default `512m`. Max RAM usage for each zookeeper server.
+        - `clusters.<clustername>.servers`: **Mandatory**, list of zookeeper hosts.
+    - `kafka`:
+        - `clusters.<clustername>.servers`:  **Mandatory**, list of kakfa hosts.
+    - `elasticsearch`:
+        - `max_memory`: Optional, default `512M`. Max RAM usage for each elasticsearch node.
+        - `clusters.<clustername>.servers`: **Mandatory**, list of elasticsearch hosts.
+    - `gateway`:
+        - `clusters.<clustername>`:
+            - `servers`: **Mandatory**, list of gateway hosts.
+            - `es_data_cluster`: **Mandatory**, name of the ES data cluster for Gateway.
+            - `es_metric_cluster`: **Mandatory**, name of the ES metric cluster for Gateway.              
+            - `tenant`: Optional, default `<cluster_name>`. Name of the Gateway's tenant.
+    - `kibana`: 
+        - `domains.<domain_name>`:
+            - `server`: **Mandatory**, kibana host.
+            - `es_cluster`: **Mandatory**, name of the ES cluster to target for domain.
+            - `plugin_gateway`: Optional, default none. Name of the gateway to target for domain. Enable the punch plugin.
+    - `shiva`:
+        - `clusters.<clustername>`:
+            - `servers`: **Mandatory**, list of shiva hosts.
+            - `kafka_cluster`: **Mandatory**, name of the Kafka cluster to store shiva metadata for cluster.
+    - `storm`:
+        - `max_memory`: Optional, default `128m`. Max RAM usage for each storm node.
+        - `clusters.<clustername>`:
+            - `master_servers`: **Mandatory**, list of storm master hosts.
+            - `ui_servers`: **Mandatory**, list of storm ui hosts.
+            - `slave_servers` : **Mandatory**, list of storm slave hosts.
+            - `zk_cluster`: **Mandatory**, name of the Zookeeper cluster to target.
+    -  `spark`:
+        - `max_memory`: Optional, default `512M`. Max RAM usage for each spark node.
+        - `clusters.<clustername>`:
+            - `master_servers`: **Mandatory**, list of spark master hosts.
+            - `slave_servers` : **Mandatory**, list of spark slave hosts.
+            - `zk_cluster`: **Mandatory**, name of the Zookeeper cluster to target.
+    - `metricbeat`:
+        - `es_cluster`: **Mandatory**, name of the ES cluster to target.
+    - `minio`:
+        - `clusters.<clustername>.servers`: **Mandatory**, list of minio hosts.
+    - `clickhouse`:
+        - `clusters.<clustername>`:
+            - `servers`: **Mandatory**, list of clickhouse hosts.
+            - `zk_cluster`: **Mandatory**, name of the Zookeeper cluster to target.

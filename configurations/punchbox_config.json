@@ -74,7 +74,7 @@
     },
     "gateway": {
       "clusters": {
-        "onesky": {
+        "skyblue": {
           "servers": [
             "server2"
           ],
@@ -84,17 +84,18 @@
       }
     },
     "kibana": {
-      "servers": [
-        "server1"
-      ]
-    },
-    "operator": {
-      "servers": [
-        "server1"
-      ],
-      "usernames": [
-        "punch-operator"
-      ]
+      "domains": {
+        "data-admin": {
+          "server": "server1",
+          "es_cluster": "es_data",
+          "plugin_gateway": "skyblue"
+        },
+        "metric-admin": {
+          "server": "server1",
+          "es_cluster_target": "es_metric",
+          "plugin_gateway": "skyblue"
+        }
+      }
     }
   }
 }
