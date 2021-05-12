@@ -350,6 +350,25 @@
     },
    {% endif %}
 
+   {% if mlflow is defined %}
+    "mlflow" : {
+     "version" : "{{ version.mlflow }}",
+     "servers" : {
+    {% for server_id, server_section in mlflow.servers.items() %}
+      "{{ server_id }}" : {
+        "bind_address" : "{{ server_section.bind_address }}",
+        "port" : "{{ server_section.port }}",
+        "logs_path" : "{{ server_section.logs_path }}",
+        "artifacts_path" : "{{ server_section.artifacts_path }}"
+      }
+      {% if not loop.last %}
+      ,
+      {% endif %}
+    {% endfor %}
+    }
+    },
+   {% endif %}
+
    {% if clickhouse is defined %}
   "clickhouse": {
     "clickhouse_version": "20.4.6.53",

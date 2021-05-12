@@ -38,7 +38,7 @@ platform_shell_target = build_conf_dir + "/check_platform.sh"
 vagrantfile_target = vagrant_dir + '/Vagrantfile'
 generated_model = build_dir + '/model.json'
     
-cots = ["punch", "minio", "zookeeper", "spark", "elastic", "opendistro_security", "operator", "binaries",
+cots = ["punch", "minio", "mlflow", "zookeeper", "spark", "elastic", "opendistro_security", "operator", "binaries",
         "analytics-deployment",
         "analytics-client", "shiva", "gateway", "storm", "kafka", "logstash", "metricbeat", "filebeat", "packetbeat",
         "auditbeat"]
@@ -95,7 +95,7 @@ def create_vagrantfile(platform_config, vagrant_os: str=None):
   file_loader = jinja2.FileSystemLoader(vagrant_dir)
   env = jinja2.Environment(loader=file_loader)
   vagrantfile_template = env.get_template(vagrant_template_file)
-  vagrantfile_render = vagrantfile_template.render(targets=platform_config["targets"], os=vagrant_os)
+  vagrantfile_render = vagrantfile_template.render(targets=platform_config["targets"], os=vagrant_os, punch=platform_config["punch"])
   vagrantfile = open(vagrantfile_target, "w+")
   vagrantfile.write(vagrantfile_render)
   vagrantfile.close()

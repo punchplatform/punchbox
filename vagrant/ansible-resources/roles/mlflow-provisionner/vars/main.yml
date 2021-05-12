@@ -1,0 +1,55 @@
+mlflow_s3_server: "{{ punch.minio.servers[0] }}"
+mlflow_s3_port: 9000
+mlflow_s3_url: "http://{{mlflow_s3_server}}:{{mlflow_s3_port}}/"
+mlflow_s3_access_key: "admin"
+mlflow_s3_secret_key: "punchplatform"
+mlflow_server: "{{punch.mlflow.servers | first}}"
+mlflow_s3_bucket:  '{{ punch.mlflow.servers[mlflow_server].artifacts_path | replace( "S3://", "")}}'
+mlflow_provisionner_src_dir: "{{ punch.mlflow.provisioning_src_path }}"
+mlflow_provisionner_venv: "{{ mlflow_provisionner_src_dir }}/venv"
+
+mlflow_port: "{{ punch.mlflow.servers[mlflow_server].port }}"
+
+mlflow_minio_client: "{{ mlflow_provisionner_src_dir }}/mc"
+
+mlflow_python_provisionner: "{{ mlflow_provisionner_src_dir }}/Data_Access_Protected_Demo_ENF.py"
+
+mlflow_daemon_user: "{{ punchbox_daemon_user }}"
+os_distrib_python2_max_versions:
+  RedHat: 7
+  Debian: 18
+
+
+#Vars listing python 3 packages to use.
+#for Debian 20 & 16 python 3.6 is not available. Python 3.6 must be install manually
+python3_package_by_os:
+  "RedHat":
+    "7":
+      packages:
+        - python-virtualenv
+        - python3-pip
+    "8":
+      packages:
+        - python-virtualenv
+        - python3-pip
+  "Debian":
+    "16":
+      packages:
+        - python3-pip
+        - python3-virtualenv
+        - python3-venv
+    "18":
+      packages:
+        - python3-pip
+        - python3-virtualenv
+        - python3-venv
+    "20":
+      packages:
+        - python3-pip
+        - python3-virtualenv
+        - python3-venv
+
+
+
+os_python3_package: '{{   python3_package_by_os[ansible_os_family][ansible_distribution_major_version]["packages"] }}'
+

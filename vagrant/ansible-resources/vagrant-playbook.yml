@@ -1,0 +1,8 @@
+#This playbook is designed to be launched during vagrant provisioning.
+#vagrant passes the following vars to this playbook : 
+#     - punchbox_daemon_user
+#     - the json field punch of the punchbox configuration file (eg: complete_punch_16G.json) 
+- hosts: all
+  roles:
+    - mlflow-provisionner
+ 

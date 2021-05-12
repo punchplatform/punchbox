@@ -19,6 +19,8 @@ VALIDATION_SERVICE_NAME=punch-validation.service
 VALIDATION_TIMER_NAME=punch-validation.timer
 VALIDATION_SERVICE_SCRIPT=${PUNCHBOX_SCRIPT_DIR}/${VALIDATION_SERVICE_NAME}
 VALIDATION_TIMER_SCRIPT=${PUNCHBOX_SCRIPT_DIR}/${VALIDATION_TIMER_NAME}
+MLFLOW_SERVER=$(shell jq -r ".mlflow.servers | to_entries[0].key" punch/build/pp-conf/punchplatform-deployment.settings)
+
 
 VENV_MARKERFILE=${DIR}/.venv/.installed
 DEPENDENCIES_INSTALLED_MARKERFILE=${DIR}/vagrant/.dependencies_installed
@@ -286,6 +288,7 @@ local-integration-vagrant:  ## Use this rule instead of deploy-config if you are
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
 	@$(call green, "Check if vagrant boxes are up", "")
 	@cd ${DIR}/vagrant && ${VAGRANT} up
+	@cd ${DIR}/vagrant &&  ${VAGRANT} ssh ${MLFLOW_SERVER} -c "/data/mlflow_provisionner_src/provision-mlflow.sh; exit"
 	@$(call green, "Executing on server1", "/home/vagrant/pp-conf/check_platform.sh")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		cd ${DIR}/vagrant && \

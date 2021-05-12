@@ -1,0 +1,98 @@
+
+
+- name: add mlflow variables create vagrant file
+  lineinfile:
+    path: "~{{mlflow_daemon_user}}/.bashrc"
+    regexp: "{{item.key}}="
+    line: "export {{item.key}}={{item.value}}"
+  with_items:
+    - {key: "MLFLOW_S3_ENDPOINT_URL", value: "{{ mlflow_s3_url }}"}
+    - {key: "AWS_ACCESS_KEY_ID", value: "{{mlflow_s3_access_key}}"}
+    - {key: "AWS_SECRET_ACCESS_KEY", value: "{{mlflow_s3_secret_key}}"}
+
+
+
+- name: create mlflow dir
+  file:
+    path: "{{mlflow_provisionner_src_dir}}"
+    owner: "{{ mlflow_daemon_user }}"
+    group: "{{ mlflow_daemon_user }}"
+    state: directory
+
+
+
+- name: copy packages
+  copy:
+    src: "{{ item }}"
+    dest: "{{mlflow_provisionner_src_dir}}/{{ item }}"
+    owner: "{{ mlflow_daemon_user }}"
+    group: "{{ mlflow_daemon_user }}"
+  with_items:
+    - requirements.txt
+    - dataScienceTracker-0.0.3-py3-none-any.whl
+
+
+
+- name: ensure python-virtualenv is installed
+  package:
+    name: "{{item}}"
+    state: latest
+  with_items: "{{os_python3_package}}" 
+
+
+
+- name: upgrade pip 
+  become: false
+  pip:
+    name: pip
+    state: latest
+    virtualenv: "{{mlflow_provisionner_venv}}"
+    virtualenv_command: "/usr/bin/python3 -m venv"
+    #virtualenv_python: python3
+    
+
+- name: install python requirement in virtualenv 
+  become: false
+  pip:
+    requirements: "{{mlflow_provisionner_src_dir}}/requirements.txt"
+    state: present
+    virtualenv: "{{mlflow_provisionner_venv}}"
+    virtualenv_command: "/usr/bin/python3 -m venv"
+    #virtualenv_python: python3
+
+
+- name: install dataScienceTracker in virtualenv 
+  become: false
+  pip:
+    name: "{{mlflow_provisionner_src_dir}}/dataScienceTracker-0.0.3-py3-none-any.whl"
+    state: present
+    virtualenv: "{{mlflow_provisionner_venv}}"
+    virtualenv_command: "/usr/bin/python3 -m venv"
+    #virtualenv_python: python3
+
+
+
+- name: Download minio client
+  get_url:
+    dest: "{{mlflow_provisionner_src_dir}}/mc"
+    url: https://dl.min.io/client/mc/release/linux-amd64/mc
+    owner: "{{ mlflow_daemon_user }}"
+    group: "{{ mlflow_daemon_user }}"
+    mode: u=rx,g=rx,o=rx
+
+
+
+- name: generage mlflow sh provisionning file 
+  template:
+    dest: "{{mlflow_provisionner_src_dir}}/{{ item }}"
+    src: "{{ item }}.j2"
+    owner: "{{ mlflow_daemon_user }}"
+    group: "{{ mlflow_daemon_user }}"
+    mode: "0750"
+  with_items: 
+    - Data_Access_Protected_Demo_ENF.py
+    - provision-mlflow.sh
+
+
+
+

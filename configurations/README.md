@@ -66,6 +66,12 @@ This file is composed as follow :
       - `operator`: 
           - `servers`: list of operator hosts
           - `username`: operator username
+      - `mlflow`: 
+	  - `servers`: list of mlflow servers
+	     - `servers_name` : name of the current server
+	       - `bind_adress` : Binding adress 
+	       - `logs_path `: Path where to store mlflow logs (must be reachable by server side)
+	       - `artifacts_path` : Path where to store mlflow artifacts (must be reachable by server and client side)
 
       
 

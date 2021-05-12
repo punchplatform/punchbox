@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+{{mlflow_minio_client}} alias set punchMinio {{mlflow_s3_url}} {{mlflow_s3_access_key}} {{mlflow_s3_secret_key}} --api S3v4
+{{mlflow_minio_client}} mb -p punchMinio/{{ mlflow_s3_bucket }}
+source {{mlflow_provisionner_venv}}/bin/activate
+{{ mlflow_python_provisionner }}
+deactivate
