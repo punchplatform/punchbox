@@ -15,6 +15,7 @@ PUNCH_EXAMPLES_NAME=punch-examples-*
 
 # PUNCHBOX DIRS
 PUNCHBOX_CONF_DIR=${DIR}/configurations
+PUNCHBOX_DEPLOYER_DIR=$(shell find $$PUNCHBOX_BUILD_DIR -name "${PUNCH_DEPLOYER_NAME}" -type d | xargs realpath)
 PUNCHBOX_LOG_MANAGEMENT_RESOURCES_DIR=$${PUNCHBOX_BUILD_DIR}/${PUNCH_EXAMPLES_NAME}/conf/platforms/log_management_platform/resources
 PUNCHBOX_LOG_MANAGEMENT_TENANTS_DIR=$${PUNCHBOX_BUILD_DIR}/${PUNCH_EXAMPLES_NAME}/conf/platforms/log_management_platform/tenants
 
@@ -32,6 +33,7 @@ DEFAULT_TLS_CONFIG_DIR=${PUNCHBOX_CONF_DIR}/default_tls
 # PUNCH SOURCES
 DEFAULT_DEPLOYER_ZIP_PATH=$${PUNCH_DIR}/packagings/punch-deployer/target/${PUNCH_DEPLOYER_NAME}.zip
 DEFAULT_EXAMPLES_PATH=$${PUNCH_DIR}/examples/target/${PUNCH_EXAMPLES_NAME}.zip
+PUNCH_DEPLOYMENT_RESOURCES=$${PUNCH_DIR}/packagings/punch-deployment/resources
 
 # Color Functions
 ECHO=$(shell which echo)
@@ -160,12 +162,30 @@ clean: ${ENV_INSTALLED_MARKERFILE} ## Clean configuration in $PUNCHPLATFORM_CONF
 	@$(call red, "Clean configuration")
 	@source ${ACTIVATE_SH} && rm -rf $${PUNCHPLATFORM_CONF_DIR}
 
-clean-hard: ## Clean configuration in $PUNCHPLATFORM_CONF_DIR, the installed deployer and the environment
-	@$(call red, "Clean deployer and examples")
-	@source ${ACTIVATE_SH} && rm -rf $${PUNCHBOX_BUILD_DIR}/${PUNCH_DEPLOYER_NAME} && rm -rf $${PUNCHBOX_BUILD_DIR}/${PUNCH_EXAMPLES_NAME}
+clean-build: ${ENV_INSTALLED_MARKERFILE} ## Clean the configuration, the deployer and the examples
+	@$(call red, "Clean the all configurations and deployer sources")
+	@source ${ACTIVATE_SH} && rm -rf $${PUNCHBOX_BUILD_DIR}
+
+clean-hard: clean-build ## Clean the configuration, the deployer and the environment
 	@$(call red, "Clean environment and dependencies")
 	@rm -rf ${DIR}/.venv
 	@rm -rf ${DIR}/activate.sh
+
+##@ Developer mode
+
+dev: ${ENV_INSTALLED_MARKERFILE} ## Create symbolic links from pp-punch's deployment sources
+	@$(call green, "Create links from pp-punch sources")
+	. ${ACTIVATE_SH} && \
+		if [ -d ${PUNCHBOX_DEPLOYER_DIR}/roles ]; then mv ${PUNCHBOX_DEPLOYER_DIR}/roles ${PUNCHBOX_DEPLOYER_DIR}/.roles.bak; fi && \
+		if [ -d ${PUNCHBOX_DEPLOYER_DIR}/inventory_templates ]; then mv ${PUNCHBOX_DEPLOYER_DIR}/inventory_templates ${PUNCHBOX_DEPLOYER_DIR}/.inventory_templates.bak; fi && \
+		if [ -f ${PUNCHBOX_DEPLOYER_DIR}/deploy-punchplatform-production-cluster.yml ]; then mv ${PUNCHBOX_DEPLOYER_DIR}/deploy-punchplatform-production-cluster.yml ${PUNCHBOX_DEPLOYER_DIR}/.deploy-punchplatform-production-cluster.yml.bak; fi && \
+		if [ -f ${PUNCHBOX_DEPLOYER_DIR}/bin/punchplatform-deployer.sh ]; then mv ${PUNCHBOX_DEPLOYER_DIR}/bin/punchplatform-deployer.sh ${PUNCHBOX_DEPLOYER_DIR}/bin/.punchplatform-deployer.sh.bak; fi
+	. ${ACTIVATE_SH} && \
+		ln -s ${PUNCH_DEPLOYMENT_RESOURCES}/roles ${PUNCHBOX_DEPLOYER_DIR}/roles && \
+		ln -s ${PUNCH_DEPLOYMENT_RESOURCES}/inventory_templates ${PUNCHBOX_DEPLOYER_DIR}/inventory_templates && \
+		ln -s ${PUNCH_DEPLOYMENT_RESOURCES}/deploy-punchplatform-production-cluster.yml ${PUNCHBOX_DEPLOYER_DIR}/deploy-punchplatform-production-cluster.yml && \
+		ln -s ${PUNCH_DEPLOYMENT_RESOURCES}/bin/punchplatform-deployer.sh ${PUNCHBOX_DEPLOYER_DIR}/bin/punchplatform-deployer.sh
+
 
 ##@ Helpers
 
