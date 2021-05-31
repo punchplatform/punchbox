@@ -47,21 +47,83 @@ ifeq (, $(shell which python3))
 endif
 
 ##@ Welcome to PunchBox Makefile
-##@ Make sure to compile a punch version and set PUNCH_DIR to its folder location !
+##@ Make sure to compile a punch version and set PUNCHBOX_DIR to its folder location !
 
-##@ All in one
+##@ All in one procedure :
 
 .PHONY: default-punch default-tls
 
-default-punch: install default-punch-config start-vagrant deploy ## Install environment, configure a basic deployment, start vagrant boxes and deploy
+default: config start-vagrant deploy ## Install a basic deployment configuration, start vagrant boxes and deploy
 
-default-tls: install default-tls-config start-vagrant deploy-secured ## Install environment, configure a TLS deployment, start vagrant boxes and deploy
+default-tls: config-tls start-vagrant deploy-secured ## Install a TLS deployment configuration, start vagrant boxes and deploy
+
+##@ Step-by-step procedure :
+
+##@ 1. Configuration
+
+.PHONY: config config-tls
+
+config: install ## Install a basic deployment environment, deployer, configuration and vagrant file
+	@$(call green, "Install default deployment configuration")
+	@. ${ACTIVATE_SH} && cp -r "${DEFAULT_PUNCH_CONFIG_DIR}/resolv.hjson" \
+		"${DEFAULT_PUNCH_CONFIG_DIR}/punchplatform-deployment.settings" \
+		"$${PUNCHPLATFORM_CONF_DIR}/" && \
+		cp "${DEFAULT_PUNCH_CONFIG_DIR}/Vagrantfile" $${PUNCHBOX_VAGRANT_DIR}
+
+config-tls: install ## Install a TLS deployment environment, deployer, configuration and vagrant file
+	@$(call green, "Install default TLS deployment configuration")
+	@. ${ACTIVATE_SH} && cp -r "${DEFAULT_TLS_CONFIG_DIR}/resolv.yaml" \
+		"${DEFAULT_TLS_CONFIG_DIR}/security" \
+		"${DEFAULT_TLS_CONFIG_DIR}/punchplatform-deployment.settings" \
+		"$${PUNCHPLATFORM_CONF_DIR}/" && \
+		cp "${DEFAULT_TLS_CONFIG_DIR}/Vagrantfile" $${PUNCHBOX_VAGRANT_DIR}
+	@$(call green, "Install default TLS resources configuration")
+	@. ${ACTIVATE_SH} && unzip -n -qq "${DEFAULT_EXAMPLES_PATH}" -d "$${PUNCHBOX_BUILD_DIR}" && \
+		cp -r ${PUNCHBOX_LOG_MANAGEMENT_RESOURCES_DIR} "$${PUNCHPLATFORM_CONF_DIR}" && \
+		cp -r ${PUNCHBOX_LOG_MANAGEMENT_TENANTS_DIR} "$${PUNCHPLATFORM_CONF_DIR}"
+
+##@ 2. Vagrant
+
+.PHONY: start-vagrant clean-vagrant
+
+start-vagrant: ${ENV_INSTALLED_MARKERFILE} ## Start vagrant boxes
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && cd $${PUNCHBOX_VAGRANT_DIR} && vagrant up
+
+reload-vagrant: ${ENV_INSTALLED_MARKERFILE} ## Reload vagrant boxes
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && cd $${PUNCHBOX_VAGRANT_DIR} && vagrant reload
+
+clean-vagrant: ${ENV_INSTALLED_MARKERFILE} ## Destroy vagrant boxes
+	@$(call red, "Destroy vagrant machines")
+	@source ${DIR}/.venv/bin/activate && source ${ACTIVATE_SH} && cd $${PUNCHBOX_VAGRANT_DIR} && ${VAGRANT} destroy -f
+
+##@ 3. Deployment
+
+.PHONY: deploy deploy-secured
+
+deploy: ${ENV_INSTALLED_MARKERFILE} ## Launch a deployment
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh deploy -u vagrant
+
+deploy-secured: ## Launch a deployment using secrets in $PUNCHPLATFORM_CONF_DIR/security/deployment_secrets.json
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh deploy -u vagrant -e @$${PUNCHPLATFORM_CONF_DIR}/security/deployment_secrets.json
+
+# User configuration
+
+.PHONY: deploy-config local-integration-vagrant update-deployer-configuration
+
+deploy-config:  ${ENV_INSTALLED_MARKERFILE}
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh -cp -u vagrant
+ 
+update-deployer-configuration: ${ENV_INSTALLED_MARKERFILE}
+	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
+								--punch-user-config ${DIR}/punch/configurations/validation
 
 
+##@ Developer usage :
 
-##@ Environment
+# Environment
 
-.PHONY: install install-env check-env
+.PHONY: install-dependencies install print-env
 
 ${VENV_INSTALLED_MARKERFILE}:
 	@$(call green, "Check python3 virtualenv")
@@ -82,110 +144,49 @@ ${DEPLOYER_INSTALLED_MARKERFILE}: ${ENV_INSTALLED_MARKERFILE}
 	@. ${DIR}/activate.sh && unzip -n -qq ${DEFAULT_DEPLOYER_ZIP_PATH} -d $${PUNCHBOX_BUILD_DIR}
 	@touch $@
 
-install-env: ${ENV_INSTALLED_MARKERFILE}
+install-dependencies: ${ENV_INSTALLED_MARKERFILE}
 	@[ -e "${HOME}/.ssh/id_rsa.pub" ] || { echo ".ssh/id_rsa.pub not found in user home directory. Maybe try running 'ssh-keygen' without specific option." 2>&1 && exit 42 ; }
 	@which jq 1>/dev/null || { echo "jq command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 	@which curl 1>/dev/null || { echo "curl command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 	@which unzip 1>/dev/null || { echo "unzip command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 	@which python 1>/dev/null || { echo "python (>3.6.8) must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 
-install: install-env ${DEPLOYER_INSTALLED_MARKERFILE} ## Install shell/python environment and the deployer
-	@. ${DIR}/activate.sh && if [ ! -d "$&{PUNCHPLATFORM_CONF_DIR}" ]; then mkdir -p "$${PUNCHPLATFORM_CONF_DIR}"; fi
+install: install-dependencies ${DEPLOYER_INSTALLED_MARKERFILE} ## Install the environment, the deployer and create empty $PUNCHPLATFORM_CONF_DIR
+	@. ${ACTIVATE_SH} && if [ ! -d "$&{PUNCHPLATFORM_CONF_DIR}" ]; then mkdir -p "$${PUNCHPLATFORM_CONF_DIR}"; fi
 
-check-env: ${ENV_INSTALLED_MARKERFILE} ## Print out the installed environment
-	@$(call blue, "Python environment")
+print-env: ${ENV_INSTALLED_MARKERFILE} ## Print the python/shell user environment for debug purpose
+	@$(call blue, "Python dependencies")
 	@source ${DIR}/.venv/bin/activate && pip freeze
 	@$(call blue, "Shell environment")
 	@source ${ACTIVATE_SH} && env | grep PUNCH
 
-##@ Configuration
-
-.PHONY: default-tls-config default-punch-config
-
-default-punch-config: ## Install a configuration for a basic punch deployment
-	@$(call green, "Install default deployment configuration")
-	@. ${ACTIVATE_SH} && cp -r "${DEFAULT_PUNCH_CONFIG_DIR}/resolv.hjson" \
-		"${DEFAULT_PUNCH_CONFIG_DIR}/punchplatform-deployment.settings" \
-		"$${PUNCHPLATFORM_CONF_DIR}/" && \
-		cp "${DEFAULT_PUNCH_CONFIG_DIR}/Vagrantfile" $${PUNCHBOX_VAGRANT_DIR}
-
-default-tls-config: ## Install TLS configurations and resources for a secured deployment
-	@$(call green, "Install default TLS deployment configuration")
-	@. ${ACTIVATE_SH} && cp -r "${DEFAULT_TLS_CONFIG_DIR}/resolv.yaml" \
-		"${DEFAULT_TLS_CONFIG_DIR}/security" \
-		"${DEFAULT_TLS_CONFIG_DIR}/punchplatform-deployment.settings" \
-		"$${PUNCHPLATFORM_CONF_DIR}/" && \
-		cp "${DEFAULT_TLS_CONFIG_DIR}/Vagrantfile" $${PUNCHBOX_VAGRANT_DIR}
-	@$(call green, "Install default TLS resources configuration")
-	@. ${ACTIVATE_SH} && unzip -n -qq "${DEFAULT_EXAMPLES_PATH}" -d "$${PUNCHBOX_BUILD_DIR}" && \
-		cp -r ${PUNCHBOX_LOG_MANAGEMENT_RESOURCES_DIR} "$${PUNCHPLATFORM_CONF_DIR}" && \
-		cp -r ${PUNCHBOX_LOG_MANAGEMENT_TENANTS_DIR} "$${PUNCHPLATFORM_CONF_DIR}"
-
-##@ Vagrant
-
-.PHONY: start-vagrant
-
-start-vagrant: ${ENV_INSTALLED_MARKERFILE}  ## Start vagrant boxes
-	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && cd $${PUNCHBOX_VAGRANT_DIR} && vagrant up
-
-clean-vagrant: ${ENV_INSTALLED_MARKERFILE} ## Destroy vagrant boxes
-	@$(call red, "Destroy vagrant machines")
-	@source ${DIR}/.venv/bin/activate && source ${ACTIVATE_SH} && cd $${PUNCHBOX_VAGRANT_DIR} && ${VAGRANT} destroy -f
-
-##@ Deployment
-
-.PHONY: deploy
-
-deploy-secured: ## Launch a deployment using secrets in $PUNCHPLATFORM_CONF_DIR/security/deployment_secrets.json
-	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh deploy -u vagrant -e @$${PUNCHPLATFORM_CONF_DIR}/security/deployment_secrets.json
-
-deploy: ${ENV_INSTALLED_MARKERFILE} ## Launch a deployment
-	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh deploy -u vagrant
-
-# User configuration
-
-.PHONY: deploy-config local-integration-vagrant update-deployer-configuration
-
-deploy-config:  ${ENV_INSTALLED_MARKERFILE}
-	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
-		punchplatform-deployer.sh -cp -u vagrant
- 
-update-deployer-configuration: ${ENV_INSTALLED_MARKERFILE}
-	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
-								--punch-user-config ${DIR}/punch/configurations/validation
-
-##@ Clean
-
-.PHONY: clean clean-hard
-
-clean: ${ENV_INSTALLED_MARKERFILE} ## Clean configuration in $PUNCHPLATFORM_CONF_DIR
-	@$(call red, "Clean configuration")
-	@source ${ACTIVATE_SH} && rm -rf $${PUNCHPLATFORM_CONF_DIR}
-
-clean-build: ${ENV_INSTALLED_MARKERFILE} ## Clean the configuration, the deployer and the examples
-	@$(call red, "Clean the all configurations and deployer sources")
-	@source ${ACTIVATE_SH} && rm -rf $${PUNCHBOX_BUILD_DIR}
-
-clean-hard: clean-build ## Clean the configuration, the deployer and the environment
-	@$(call red, "Clean environment and dependencies")
-	@rm -rf ${DIR}/.venv
-	@rm -rf ${DIR}/activate.sh
-
-##@ Developer mode
-
-dev: ${ENV_INSTALLED_MARKERFILE} ## Create symbolic links from pp-punch's deployment sources
+dev: ${ENV_INSTALLED_MARKERFILE} ## Create symbolic links from $PUNCH_DIR's deployment sources
 	@$(call green, "Create links from pp-punch sources")
-	. ${ACTIVATE_SH} && \
+	@. ${ACTIVATE_SH} && \
 		if [ -d ${PUNCHBOX_DEPLOYER_DIR}/roles ]; then mv ${PUNCHBOX_DEPLOYER_DIR}/roles ${PUNCHBOX_DEPLOYER_DIR}/.roles.bak; fi && \
 		if [ -d ${PUNCHBOX_DEPLOYER_DIR}/inventory_templates ]; then mv ${PUNCHBOX_DEPLOYER_DIR}/inventory_templates ${PUNCHBOX_DEPLOYER_DIR}/.inventory_templates.bak; fi && \
 		if [ -f ${PUNCHBOX_DEPLOYER_DIR}/deploy-punchplatform-production-cluster.yml ]; then mv ${PUNCHBOX_DEPLOYER_DIR}/deploy-punchplatform-production-cluster.yml ${PUNCHBOX_DEPLOYER_DIR}/.deploy-punchplatform-production-cluster.yml.bak; fi && \
 		if [ -f ${PUNCHBOX_DEPLOYER_DIR}/bin/punchplatform-deployer.sh ]; then mv ${PUNCHBOX_DEPLOYER_DIR}/bin/punchplatform-deployer.sh ${PUNCHBOX_DEPLOYER_DIR}/bin/.punchplatform-deployer.sh.bak; fi
-	. ${ACTIVATE_SH} && \
+	@. ${ACTIVATE_SH} && \
 		ln -s ${PUNCH_DEPLOYMENT_RESOURCES}/roles ${PUNCHBOX_DEPLOYER_DIR}/roles && \
 		ln -s ${PUNCH_DEPLOYMENT_RESOURCES}/inventory_templates ${PUNCHBOX_DEPLOYER_DIR}/inventory_templates && \
 		ln -s ${PUNCH_DEPLOYMENT_RESOURCES}/deploy-punchplatform-production-cluster.yml ${PUNCHBOX_DEPLOYER_DIR}/deploy-punchplatform-production-cluster.yml && \
 		ln -s ${PUNCH_DEPLOYMENT_RESOURCES}/bin/punchplatform-deployer.sh ${PUNCHBOX_DEPLOYER_DIR}/bin/punchplatform-deployer.sh
 
+##@ Cleaning :
+
+.PHONY: clean clean-all
+
+clean: ${ENV_INSTALLED_MARKERFILE} ## Clean configuration in $PUNCHPLATFORM_CONF_DIR
+	@$(call red, "Clean configuration")
+	@source ${ACTIVATE_SH} && rm -rf $${PUNCHPLATFORM_CONF_DIR}
+
+clean-all: ## Clean the configuration, the deployer and the environment
+	@$(call red, "Clean the all configurations and deployer sources")
+	@source ${ACTIVATE_SH} && rm -rf $${PUNCHBOX_BUILD_DIR}
+	@$(call red, "Clean environment and dependencies")
+	@rm -rf ${DIR}/.venv
+	@rm -rf ${DIR}/activate.sh
 
 ##@ Helpers
 

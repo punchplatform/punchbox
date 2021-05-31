@@ -6,7 +6,7 @@
     "remote_logs_root_directory": "/var/log/punchplatform",
     "punchplatform_daemons_user": "vagrant",
     "punchplatform_group": "vagrant",
-    "binaries_version": "punch-binaries-6.3.3-SNAPSHOT"
+    "binaries_version": "punch-binaries-6.3.4-SNAPSHOT"
   },
   "reporters": {
     "myreporter": {
@@ -18,7 +18,7 @@
     }
   },
   "shiva": {
-    "shiva_version": "punch-shiva-6.3.3-SNAPSHOT",
+    "shiva_version": "punch-shiva-6.3.4-SNAPSHOT",
     "clusters": {
       "local": {
         "reporters": [
@@ -48,7 +48,7 @@
     }
   },
   "punchplatform_operator": {
-    "punchplatform_operator_environment_version": "punch-operator-6.3.3-SNAPSHOT",
+    "punchplatform_operator_environment_version": "punch-operator-6.3.4-SNAPSHOT",
     "configuration_name_dir_from_home": "pp-conf",
     "reporters": [
       "myreporter"
@@ -66,7 +66,7 @@
   },
   "spark": {
     "spark_version": "spark-2.4.3-bin-hadoop2.7",
-    "punchplatform_analytics_deployment_version": "punch-spark-deployment-6.3.3-SNAPSHOT",
+    "punchplatform_analytics_deployment_version": "punch-spark-deployment-6.3.4-SNAPSHOT",
     "clusters": {
       "local": {
         "master": {
@@ -108,7 +108,7 @@
     }
   },
   "gateway": {
-    "gateway_version": "6.3.3-SNAPSHOT",
+    "gateway_version": "6.3.4-SNAPSHOT",
     "clusters": {
       "gateway_32g": {
         "tenant": "mytenant",
@@ -153,7 +153,7 @@
           }
         },
         "resources": {
-          "doc_dir": "/data/opt/punchplatform-documentation-6.3.3-SNAPSHOT/doc/html",
+          "doc_dir": "/data/opt/punchplatform-documentation-6.3.4-SNAPSHOT/doc/html",
           "punchlines_dir": "punchlines/mytenant",
           "archives_dir": "/tmp",
           "manager": {
@@ -320,10 +320,10 @@
     },
     "plugins": {
       "punchplatform": {
-        "punchplatform_version": "6.3.3-SNAPSHOT"
+        "punchplatform_version": "6.3.4-SNAPSHOT"
       },
       "punchplatform_feedback": {
-        "punchplatform_feedback_version": "6.3.3-SNAPSHOT"
+        "punchplatform_feedback_version": "6.3.4-SNAPSHOT"
       }
     }
   },

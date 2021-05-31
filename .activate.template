@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # punchbox env
 export PUNCHBOX_DIR=/tmp
 export PUNCHBOX_VAGRANT_DIR="${PUNCHBOX_DIR}/punch/vagrant"
