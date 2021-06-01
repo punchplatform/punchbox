@@ -33,6 +33,7 @@
     "kafka": {
       "clusters": {
         "kafka_data": {
+          "zk_cluster": "zk_central",
           "servers": [
             "server1",
             "server2",
@@ -40,6 +41,7 @@
           ]
         },
         "kafka_metrics": {
+          "zk_cluster": "zk_central",
           "servers": [
             "server4"
           ]
@@ -75,7 +77,7 @@
     },
     "gateway": {
       "clusters": {
-        "skyblue": {
+        "mytenant": {
           "servers": [
             "server2"
           ],
@@ -89,14 +91,49 @@
         "data-admin": {
           "server": "server1",
           "es_cluster": "es_data",
-          "plugin_gateway": "skyblue"
+          "plugin_gateway": "mytenant"
         },
         "metric-admin": {
           "server": "server1",
-          "es_cluster_target": "es_metric",
-          "plugin_gateway": "skyblue"
+          "es_cluster": "es_metric",
+          "plugin_gateway": "mytenant"
         }
       }
+    },
+    "storm": {
+      "clusters": {
+        "storm_central": {
+          "zk_cluster": "zk_central",
+          "master_servers": [
+            "server3"
+          ],
+          "slave_servers": [
+            "server4"
+          ],
+          "ui_servers": [
+            "server1"
+          ]
+        }
+      }
+    },
+    "spark": {
+      "clusters": {
+        "spark_central": {
+          "zk_cluster": "zk_central",
+          "master_servers": [
+            "server3"
+          ],
+          "slave_servers": [
+            "server4"
+          ]
+        }
+      }
+    },
+    "metricbeat": {
+      "es_cluster": "es_metric"
+    },
+    "reporters": {
+      "kafka_cluster": "kafka_metrics"
     }
   }
 }

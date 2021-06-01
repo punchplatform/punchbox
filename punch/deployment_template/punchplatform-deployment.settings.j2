@@ -60,12 +60,14 @@
             }
         }
     {% endif %}
-    },
+    }
 
+	{% if reporters is defined %}
+	,
     "reporters": {
         "myreporter" : {
             "type": "kafka",
-            "brokers": "local",
+            "brokers": "{{reporters.kafka_cluster}}",
             "topic": "platform-events",
             "reporting_interval": 30,
             "encoding": "json"
@@ -78,8 +80,10 @@
             "ssl.keystore.password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
             {% endif %}
         }
-    },
+    }
+    {% endif %}
 
+    ,
 	"punchplatform_operator" : {
   		"punchplatform_operator_environment_version": "{{ version.operator }}",
   		"configuration_name_dir_from_home" : "pp-conf",
@@ -443,9 +447,9 @@
                   "servers" : {{ cluster_section.master_servers | tojson }}
                 },
                 "ui" : {
-                  "servers" : {{ cluster_section.ui_servers | tojson }}
+                  "servers" : {{ cluster_section.ui_servers | d(cluster_section.master_servers) | tojson }}
                 },
-                "slaves" : {{ cluster_section.slave_servers | tojson }},
+                "slaves" : {{ cluster_section.slave_servers| d(cluster_section.master_servers) | tojson }},
                 "zk_cluster" : "{{cluster_section.zk_cluster}}",
                 "zk_root" : "{{cluster_name}}",
                 "storm_workers_by_punchplatform_supervisor" : 10,

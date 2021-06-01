@@ -39,24 +39,13 @@ source ~/.bashrc
 
 **You MUST have compiled a punch version in `pp-punch`!**
 
-## Quick start 
-
-This example shows how to deploy a complete punch quickly. We provided a Makefile to reduce 
-verbosity of punchbox commands. 
-
-However, if you want to go further, please read next section which offers you more possibilities in terms of configuration
-(i.e create your punchbox config, select a specific user config ..)
-
-If you want to deploy on Redhat platform, you need a Redhat licence or a free [RHEL developer subscription](https://developers.redhat.com) that are limited to 20 VMs per account. During the installation the Makefile will ask you your credentials to register VMs on account. When you delete yours VMs, they will automatically unregister from your account. 
-
-Here it is a punch deployment on a set of ubuntu virtual machines (32gb of RAM in total). Other configurations
-are available trought in the Makefile, type `make` to see all of them
+## Quick start
 
 Basic usage :
 
 ```sh
 # This command install a deployer, generate a configuration, start the vagrant boxes and deploy
-make default-punch
+make default
 # This command install a deployer, generate a TLS configuration, start the vagrant boxes and deploy
 make default-tls
 ```
@@ -67,13 +56,35 @@ More information about the make usage :
 make help
 ```
 
+This example shows how to deploy a complete punch quickly. We provided a Makefile to reduce
+verbosity of punchbox commands.
+
+However, if you want to go further, please read next section which offers you more possibilities in terms of configuration
+(i.e create your punchbox config, select a specific user config ..)
+
+If you want to deploy on Redhat platform, you need a Redhat licence or a free [RHEL developer subscription](https://developers.redhat.com) that are limited to 20 VMs per account. During the installation the Makefile will ask you your credentials to register VMs on account. When you delete yours VMs, they will automatically unregister from your account.
+
+Here it is a punch deployment on a set of ubuntu virtual machines (32gb of RAM in total). Other configurations
+are available trought in the Makefile, type `make` to see all of them
+
 ## Custom Usage
+
+### Existing punchplatform-deployment.settings
+
+Using an existing punch configuration in your home directory :
+
+```sh
+make install
+cp ~/punchplatform-deployment.settings punch/build/pp-conf/
+make deploy
+```
 
 ### Punchbox configuration
 
 Using the default platform configuration provided by punchbox :
 
 ```sh
+make install
 source activate.sh
 punchbox --config configurations/punchbox_config.json
 make start-vagrant

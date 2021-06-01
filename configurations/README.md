@@ -39,17 +39,19 @@ To configure a Punch Deployment, follow :
         - `max_memory`: Optional, default `128m`. Max RAM usage for each storm node.
         - `clusters.<clustername>`:
             - `master_servers`: **Mandatory**, list of storm master hosts.
-            - `ui_servers`: **Mandatory**, list of storm ui hosts.
-            - `slave_servers` : **Mandatory**, list of storm slave hosts.
             - `zk_cluster`: **Mandatory**, name of the Zookeeper cluster to target.
+            - `ui_servers`: Optional, default `master_servers`. List of storm ui hosts.
+            - `slave_servers` : Optional, default `master_servers`, List of storm slave hosts.
     -  `spark`:
         - `max_memory`: Optional, default `512M`. Max RAM usage for each spark node.
         - `clusters.<clustername>`:
             - `master_servers`: **Mandatory**, list of spark master hosts.
-            - `slave_servers` : **Mandatory**, list of spark slave hosts.
             - `zk_cluster`: **Mandatory**, name of the Zookeeper cluster to target.
+            - `slave_servers` : Optional, default `master_servers`. List of spark slave hosts.
     - `metricbeat`:
         - `es_cluster`: **Mandatory**, name of the ES cluster to target.
+    - `reporters` :
+        - `kafka_cluster`: **Mandatory**, name of the kafka cluster to target.
     - `minio`:
         - `clusters.<clustername>.servers`: **Mandatory**, list of minio hosts.
     - `clickhouse`:

@@ -9,12 +9,12 @@ BASH=$(shell which bash)
 SH=$(shell which sh)
 VAGRANT=$(shell which vagrant)
 
-# PUNCH NAMES
-PUNCH_DEPLOYER_NAME=punch-deployer-*
-PUNCH_EXAMPLES_NAME=punch-examples-*
+# PUNCHBOX NAMES
+PUNCHBOX_PY=punchbox.py
 
 # PUNCHBOX DIRS
 PUNCHBOX_CONF_DIR=${DIR}/configurations
+PUNCHBOX_BIN_DIR=${DIR}/bin
 PUNCHBOX_DEPLOYER_DIR=$(shell find $$PUNCHBOX_BUILD_DIR -name "${PUNCH_DEPLOYER_NAME}" -type d | xargs realpath)
 PUNCHBOX_LOG_MANAGEMENT_RESOURCES_DIR=$${PUNCHBOX_BUILD_DIR}/${PUNCH_EXAMPLES_NAME}/conf/platforms/log_management_platform/resources
 PUNCHBOX_LOG_MANAGEMENT_TENANTS_DIR=$${PUNCHBOX_BUILD_DIR}/${PUNCH_EXAMPLES_NAME}/conf/platforms/log_management_platform/tenants
@@ -27,8 +27,12 @@ DEPLOYER_INSTALLED_MARKERFILE=${DIR}/.deployer_installed
 ENV_INSTALLED_MARKERFILE=${DIR}/.env_installed
 
 # PUNCHBOX CONFIGURATIONS
-DEFAULT_PUNCH_CONFIG_DIR=${PUNCHBOX_CONF_DIR}/default_punch
+DEFAULT_PUNCH_CONFIG_DIR=${PUNCHBOX_CONF_DIR}/default
 DEFAULT_TLS_CONFIG_DIR=${PUNCHBOX_CONF_DIR}/default_tls
+
+# PUNCH NAMES
+PUNCH_DEPLOYER_NAME=punch-deployer-*
+PUNCH_EXAMPLES_NAME=punch-examples-*
 
 # PUNCH SOURCES
 DEFAULT_DEPLOYER_ZIP_PATH=$${PUNCH_DIR}/packagings/punch-deployer/target/${PUNCH_DEPLOYER_NAME}.zip
@@ -81,6 +85,10 @@ config-tls: install ## Install a TLS deployment environment, deployer, configura
 	@. ${ACTIVATE_SH} && unzip -n -qq "${DEFAULT_EXAMPLES_PATH}" -d "$${PUNCHBOX_BUILD_DIR}" && \
 		cp -r ${PUNCHBOX_LOG_MANAGEMENT_RESOURCES_DIR} "$${PUNCHPLATFORM_CONF_DIR}" && \
 		cp -r ${PUNCHBOX_LOG_MANAGEMENT_TENANTS_DIR} "$${PUNCHPLATFORM_CONF_DIR}"
+
+config-dev: install
+	@$(call green, "Install default deployment configuration")
+	. ${ACTIVATE_SH} && python3 ${PUNCHBOX_BIN_DIR}/${PUNCHBOX_PY} --config ${PUNCHBOX_CONF_DIR}/default/default_config.json
 
 ##@ 2. Vagrant
 

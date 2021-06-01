@@ -10,18 +10,13 @@ Simply follow the punchbox vagrant guide to deploy a linux cluster.
 Make sure you have a ssh key. You can disable the ssh host key checking
 as explained [here](../vagrant/README.md). 
 
-As an example select the 16G template, make sure you use a
-supported os (for example "bento/centos-8") amd generate your vagrantfile using :
+As an example, select the provided punchbox configuration for vagrant :
 
 ```sh
-punchbox --platform-config-file configurations/empty_3nodes_32G.json --generate-vagrantfile
-```
-
-That create a vagrant/Vagrantfile file. Start your servers:
-
-```sh
-cd vagrant
-vagrant up
+make install
+source activate.sh
+punchbox --config configurations/vagrant_config.json
+make start-vagrant
 ```
 
 Check you can reach your boxes without passwords.

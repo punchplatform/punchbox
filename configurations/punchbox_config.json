@@ -33,6 +33,7 @@
     "kafka": {
       "clusters": {
         "kafka_data": {
+          "zk_cluster": "zk_central",
           "servers": [
             "server1",
             "server2",
@@ -40,6 +41,7 @@
           ]
         },
         "kafka_metrics": {
+          "zk_cluster": "zk_central",
           "servers": [
             "server4"
           ]
@@ -49,6 +51,7 @@
     "shiva": {
       "clusters": {
         "shiva_central": {
+          "kafka_cluster": "kafka_metrics",
           "servers": [
             "server3",
             "server4"
@@ -92,10 +95,13 @@
         },
         "metric-admin": {
           "server": "server1",
-          "es_cluster_target": "es_metric",
+          "es_cluster": "es_metric",
           "plugin_gateway": "skyblue"
         }
       }
+    },
+    "reporters": {
+      "kafka_cluster": "kafka_metrics"
     }
   }
 }
