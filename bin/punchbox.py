@@ -90,7 +90,7 @@ def generate_model(platform_config):
     # os
     model['iface'] = platform_config['targets']['production_interface']
     # security
-    if bool(platform_config['punch']['tls']):
+    if 'tls' in platform_config['punch'] and bool(platform_config['punch']['tls']):
         model['security_dir'] = f"{PUNCHBOX_DIR}/../punch/resources/secrets"
 
     model = json.dumps({**model, **platform_config['punch']}, indent=4, sort_keys=True)

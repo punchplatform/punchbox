@@ -1,5 +1,0 @@
-#! /bin/bash
-
-PEX_SCRIPT=ansible-playbook $PUNCHBOX_DIR/bin/pex/ansible_pex/ansible.pex "$@"
-
-exit $?
