@@ -38,6 +38,8 @@ However, if you want to go further, please read next section which offers you mo
 
 If you want to deploy on Redhat platform, you need a Redhat licence or a free [RHEL developer subscription](https://developers.redhat.com) that are limited to 20 VMs per account. During the installation the Makefile will ask you your credentials to register VMs on account. When you delete yours VMs, they will automatically unregister from your account. 
 
+> :warning: If you want to delete Vagrant Vms based on Redhat, you need to use make clean instead of manually delete to also delete the licence associated to your Vms
+
 Here it is a punch deployment on a set of ubuntu virtual machines (32gb of RAM in total). Other configurations
 are available trought in the Makefile, type `make` to see all of them 
 
