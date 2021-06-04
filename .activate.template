@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # punchbox env
-export PUNCHBOX_DIR=/tmp
+export PUNCHBOX_DIR=
 export PUNCHBOX_VAGRANT_DIR="${PUNCHBOX_DIR}/punch/vagrant"
 export PUNCHBOX_BUILD_DIR="${PUNCHBOX_DIR}/punch/build"
 export PUNCHBOX_TEMPLATES_DIR="${PUNCHBOX_DIR}/punch/templates"
@@ -18,6 +18,12 @@ if [ "${PUNCH_DIR}" = ""  ] ; then
 	fi
 fi
 
+# pp-punch local dir
+if [ -z "${PUNCH_DEPLOYER}"  ] ; then
+    echo "FATAL: Missing PUNCH_DEPLOYER environment variable. Set it in your environment to an existing deployer directory."
+    exit 1
+fi
+
 # punchbox path
-export PATH="${PUNCHBOX_DIR}/bin:$PATH"
+export PATH="${PUNCHBOX_DIR}/bin:${PUNCH_DEPLOYER}/bin:$PATH"
 #export PS1='\[[1;32m\]punchbox:\[[0m\][\W]$ '

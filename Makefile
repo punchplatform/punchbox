@@ -27,8 +27,9 @@ DEPLOYER_INSTALLED_MARKERFILE=${DIR}/.deployer_installed
 ENV_INSTALLED_MARKERFILE=${DIR}/.env_installed
 
 # PUNCHBOX CONFIGURATIONS
-DEFAULT_PUNCH_CONFIG_DIR=${PUNCHBOX_CONF_DIR}/default
+DEFAULT_PUNCH_CONFIG_DIR=${PUNCHBOX_CONF_DIR}/default_punch
 DEFAULT_TLS_CONFIG_DIR=${PUNCHBOX_CONF_DIR}/default_tls
+DEFAULT_DEV_CONFIG_DIR=${PUNCHBOX_CONF_DIR}/default
 
 # PUNCH NAMES
 PUNCH_DEPLOYER_NAME=punch-deployer-*
@@ -51,30 +52,30 @@ ifeq (, $(shell which python3))
 endif
 
 ##@ Welcome to PunchBox Makefile
-##@ Make sure to compile a punch version and set PUNCHBOX_DIR to its folder location !
+##@ Make sure to compile a punch version and set PUNCHBOX_DIR to 'pp-punch' location !
 
-##@ All in one procedure :
+##@ I. All in one procedure : Deploy in one command
 
 .PHONY: default-punch default-tls
 
-default: config start-vagrant deploy ## Install a basic deployment configuration, start vagrant boxes and deploy
+default: config start-vagrant deploy ## Install a python/shell environment, the deployer, a default configuration, start vagrant boxes and deploy
 
-default-tls: config-tls start-vagrant deploy-secured ## Install a TLS deployment configuration, start vagrant boxes and deploy
+default-tls: config-tls start-vagrant deploy-secured ## Install a python/shell environment, the deployer, a default TLS configuration, start vagrant boxes and deploy using secrets in $PUNCHPLATFORM_CONF_DIR/security/deployment_secrets.json
 
-##@ Step-by-step procedure :
+##@ II. Step-by-step procedure :  Generate a configuration, start your vagrant boxes or deploy using basic commands
 
 ##@ 1. Configuration
 
 .PHONY: config config-tls
 
-config: install ## Install a basic deployment environment, deployer, configuration and vagrant file
+config: install ## Install a python/shell environment, the deployer, a default configuration and a vagrant file
 	@$(call green, "Install default deployment configuration")
 	@. ${ACTIVATE_SH} && cp -r "${DEFAULT_PUNCH_CONFIG_DIR}/resolv.hjson" \
 		"${DEFAULT_PUNCH_CONFIG_DIR}/punchplatform-deployment.settings" \
 		"$${PUNCHPLATFORM_CONF_DIR}/" && \
 		cp "${DEFAULT_PUNCH_CONFIG_DIR}/Vagrantfile" $${PUNCHBOX_VAGRANT_DIR}
 
-config-tls: install ## Install a TLS deployment environment, deployer, configuration and vagrant file
+config-tls: install ## Install a python/shell environment, the deployer, a default TLS configuration and a vagrant file
 	@$(call green, "Install default TLS deployment configuration")
 	@. ${ACTIVATE_SH} && cp -r "${DEFAULT_TLS_CONFIG_DIR}/resolv.yaml" \
 		"${DEFAULT_TLS_CONFIG_DIR}/security" \
@@ -99,6 +100,9 @@ start-vagrant: ${ENV_INSTALLED_MARKERFILE} ## Start vagrant boxes
 
 reload-vagrant: ${ENV_INSTALLED_MARKERFILE} ## Reload vagrant boxes
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && cd $${PUNCHBOX_VAGRANT_DIR} && vagrant reload
+
+stop-vagrant: ${ENV_INSTALLED_MARKERFILE} ## Reload vagrant boxes
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && cd $${PUNCHBOX_VAGRANT_DIR} && vagrant halt
 
 clean-vagrant: ${ENV_INSTALLED_MARKERFILE} ## Destroy vagrant boxes
 	@$(call red, "Destroy vagrant machines")
@@ -127,7 +131,7 @@ update-deployer-configuration: ${ENV_INSTALLED_MARKERFILE}
 								--punch-user-config ${DIR}/punch/configurations/validation
 
 
-##@ Developer usage :
+##@ III. Developer usage :
 
 # Environment
 
@@ -181,7 +185,7 @@ dev: ${ENV_INSTALLED_MARKERFILE} ## Create symbolic links from $PUNCH_DIR's depl
 		ln -s ${PUNCH_DEPLOYMENT_RESOURCES}/deploy-punchplatform-production-cluster.yml ${PUNCHBOX_DEPLOYER_DIR}/deploy-punchplatform-production-cluster.yml && \
 		ln -s ${PUNCH_DEPLOYMENT_RESOURCES}/bin/punchplatform-deployer.sh ${PUNCHBOX_DEPLOYER_DIR}/bin/punchplatform-deployer.sh
 
-##@ Cleaning :
+##@ IV. Cleaning :
 
 .PHONY: clean clean-all
 

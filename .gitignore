@@ -60,3 +60,4 @@ build
 vagrant/.dependencies_installed
 .alltools_installed
 punch/resolv.hjson
+.python_env_installed

@@ -112,6 +112,11 @@ def generate_deployment_settings():
     logging.info(' Deployment settings successfully generated in %s', VAGRANT_FILE)
 
 
+def generate_resolv_file():
+    with open(f"{PUNCHPLATFORM_CONF_DIR}/resolv.yaml", "w") as f:
+        f.write("")
+
+
 def main():
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
@@ -128,6 +133,7 @@ def main():
     if "punch" in platform_config:
         generate_model(platform_config)
         generate_deployment_settings()
+        generate_resolv_file()
 
 
 if __name__ == "__main__":
