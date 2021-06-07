@@ -30,30 +30,33 @@ In the rest of this chapter we go through a complete deployment, assuming you ha
 
 ## Requirements
 
-Clone the `pp-punch` repository and save its location in `PUNCH_DIR`:
+Check [Punchbox](../README.md) requirements first !
+
+Install a `punch-deployer` and save its location in your environment `PUNCH_DEPLOYER`:
 
 ```sh
-echo "export PUNCH_DIR=/path/to/pp-punch >> ~/.bashrc"
+cd pp-punch
+mvn clean install
+unzip packagings/punch-deployer/target/punch-deployer-<version>.zip -d ~
+echo "export PUNCH_DEPLOYER=$HOME/punch-deployer-<version>.zip >> ~/.bashrc"
 source ~/.bashrc
 ```
-
-**You MUST have compiled a punch version in `pp-punch`!**
 
 ## Quick start
 
 Basic usage :
 
 ```sh
-# This command install a deployer, generate a configuration, start the vagrant boxes and deploy
-make default
-# This command install a deployer, generate a TLS configuration, start the vagrant boxes and deploy
-make default-tls
+# This command generate a configuration, start the vagrant boxes and deploy
+punchbox run default
+# This command generate a TLS configuration, start the vagrant boxes and deploy
+unchbox run tls
 ```
 
-More information about the make usage :
+More information about the punchbox usage :
 
 ```sh
-make help
+punchbox help
 ```
 
 This example shows how to deploy a complete punch quickly. We provided a Makefile to reduce
@@ -69,26 +72,25 @@ are available trought in the Makefile, type `make` to see all of them
 
 ## Custom Usage
 
-### Existing punchplatform-deployment.settings
-
-Using an existing punch configuration in your home directory :
-
-```sh
-make install
-cp ~/punchplatform-deployment.settings punch/build/pp-conf/
-make deploy
-```
-
-### Punchbox configuration
+### Custom Punchbox configuration
 
 Using the default platform configuration provided by punchbox :
 
 ```sh
-make install
-source activate.sh
-punchbox --config configurations/punchbox_config.json
-make start-vagrant
-make deploy
+punchbox config /path/to/punchbox_conf.json
+punchbox vagrant start
+punchbox deploy
 ```
 
 Learn more about custom configurations in [Punchbox configuration documentation](../configurations/README.md)
+
+### Custom punchplatform-deployment.settings
+
+Using an existing punch configuration in your home directory :
+
+```sh
+punchbox config default
+cp ~/punchplatform-deployment.settings punch/build/pp-conf/
+punchbox vagrant start
+punchbox deploy
+```

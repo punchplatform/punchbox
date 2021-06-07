@@ -9,54 +9,76 @@
         "punchplatform_daemons_user": "punchplatform",
         "punchplatform_group": "punchplatform",
         "binaries_version": "{{ version.binaries }}"
-        {% if security is defined %}
+        {% if tls | d(false) %}
         ,
-        "platform_local_credentials_dir": "{{security_dir}}/platform_certs",
+        "platform_local_credentials_dir": "{{security_dir}}/platform",
         "platform_local_common_secrets_filename": "platform_common_secrets.json",
-        "platform_ca_name": "ca.pem",
+        "platform_ca_name": "ca.crt",
         "platform_truststore_name": "truststore.jks",
-        "platform_truststore_password": "@{DEPLOYMENT_SECRETS.platform.platform_truststore_pass}",
+        "platform_truststore_password": "@{DEPLOYMENT_SECRETS.store_pwd}",
         "punch_commands": {
             "security": {
+            	{% if zookeeper is defined %}
+				"zookeeper_clients": {
+					{% for cluster_name,cluster_section in zookeeper.clusters.items() %}
+					"{{cluster_name}}": {
+						"ssl_enabled": true,
+						"ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
+						"ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
+						"ssl_keystore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/keystore.jks",
+						"ssl_keystore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+					}{% if not loop.last %},{% endif %}
+					{% endfor %}
+				}
+				{% endif %}
+
+                {% if kafka is defined %}
+                ,
                 "kafka_clients": {
-                    "local": {
+                	{% for cluster_name,cluster_section in kafka.clusters.items() %}
+                    "{{cluster_name}}": {
                         "ssl_enabled": true,
                         "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                         "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
-                        "ssl_keystore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks",
+                        "ssl_keystore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/keystore.jks",
                         "ssl_keystore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
-                    }
-                },
+                    }{% if not loop.last %},{% endif %}
+					{% endfor %}
+                }
+                {% endif %}
+
+				{% if elasticsearch is defined %}
+				,
                 "elasticsearch_clients": {
-                    "es_search": {
+                	{% for cluster_name,cluster_section in elasticsearch.clusters.items() %}
+                    "{{cluster_name}}": {
                         "ssl_enabled": true,
-                        "ssl_client_certificate_authority": "@{PUNCHPLATFORM_SECRETS_DIR}/ca.pem",
-                        "ssl_client_certificate": "@{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem",
-                        "ssl_client_private_key": "@{PUNCHPLATFORM_SECRETS_DIR}/server-key.pem",
+                        "ssl_client_certificate_authority": "@{PUNCHPLATFORM_SECRETS_DIR}/ca.crt",
+                        "ssl_client_certificate": "@{PUNCHPLATFORM_SECRETS_DIR}/server.crt",
+                        "ssl_client_private_key": "@{PUNCHPLATFORM_SECRETS_DIR}/server.p8",
                         "credentials": {
                             "username": "@{PUNCHPLATFORM_RUNTIME_SECRETS.es.user}",
                             "password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.es.pass}"
                         }
-                    }
-                },
-                "gateway_clients": {
-                    "gateway_32g": {
-                        "ssl_enabled": true,
-                        "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
-                        "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
-                        "ssl_keystore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks",
-                        "ssl_keystore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
-                    }
-                },
-                "zookeeper_clients": {
-                    "local": {
-                        "ssl_enabled": true,
-                        "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
-                        "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
-                        "ssl_keystore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks",
-                        "ssl_keystore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
-                    }
+                    }{% if not loop.last %},{% endif %}
+                    {% endfor %}
                 }
+                {% endif %}
+
+                {% if elasticsearch is defined %}
+                ,
+                "gateway_clients": {
+                	{% for cluster_name,cluster_section in gateway.clusters.items() %}
+                    "{{cluster_name}}": {
+                        "ssl_enabled": true,
+                        "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
+                        "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
+                        "ssl_keystore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/keystore.jks",
+                        "ssl_keystore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
+                    }{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                }
+                {% endif %}
             }
         }
     {% endif %}
@@ -65,7 +87,7 @@
 	{% if reporters is defined %}
 	,
     "reporters": {
-        "myreporter" : {
+        "central_reporter" : {
             "type": "kafka",
             "brokers": "{{reporters.kafka_cluster}}",
             "topic": "platform-events",
@@ -76,7 +98,7 @@
             "security.protocol": "SSL",
             "ssl.truststore.location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
             "ssl.truststore.password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
-            "ssl.keystore.location": "@{PUNCHPLATFORM_SECRETS_DIR}/server-keystore.jks",
+            "ssl.keystore.location": "@{PUNCHPLATFORM_SECRETS_DIR}/keystore.jks",
             "ssl.keystore.password": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
             {% endif %}
         }
@@ -98,7 +120,7 @@
 				"custom_additional_credentials_files": [
 					"server.p8",
 					"server.crt",
-					"server-keystore.jks"
+					"keystore.jks"
 				]
 			},
 		  	"guest-operator": {
@@ -109,10 +131,10 @@
 		"custom_secrets_file": "operator_secrets.json",
 		"storage": {
 			"type": "kafka",
-			"kafka_cluster": "kafka_front"
+			"kafka_cluster": "{{operators.kafka_cluster}}"
 		},
 		"reporters": [
-	  		"central_back_reporter"
+	  		"central_reporter"
 		]
 	}
 
@@ -131,8 +153,8 @@
                 {% if tls | d(false) %}
                 ,
                 "ssl_enabled": true,
-                "keystore_name": "server-keystore.jks",
-                "keystore_password": "@{DEPLOYMENT_SECRETS.zookeeper.keystore_pass}"
+                "keystore_name": "keystore.jks",
+                "keystore_password": "@{DEPLOYMENT_SECRETS.store_pwd}"
                 {% endif %}
             }{% if not loop.last %},{% endif %}
 	        {% endfor %}
@@ -163,8 +185,8 @@
                 {%- if tls | d(false) %}
                 ,
                 "ssl_enabled": true,
-                "keystore_name": "server-keystore.jks",
-                "keystore_password": "@{DEPLOYMENT_SECRETS.kafka.keystore_pass}"
+                "keystore_name": "keystore.jks",
+                "keystore_password": "@{DEPLOYMENT_SECRETS.store_pwd}"
                 {% endif %}
             }{% if not loop.last %},{% endif %}
             {% endfor %}
@@ -202,24 +224,26 @@
                         "readonly" : true
                     }
                 }
-                {% if security is defined %}
+                {% if tls | d(false) %}
                 ,
                 "plugins":{
                     "opendistro_security": {
                         "opendistro_security_version": "{{ version.opendistro_security }}",
                         "ssl_http_enabled": true,
                         "ssl_http_clientauth_mode": "REQUIRE",
-                        "admin_pemkey_name": "admin-server-key.pem",
-                        "admin_pemcert_name": "admin-server-cert.pem",
-                        "ssl_pemkey_name": "server-key.pem",
-                        "ssl_pemcert_name": "server-cert.pem",
+                        "admin_pemkey_name": "server-admin.p8",
+                        "admin_pemcert_name": "server-admin.crt",
+                        "ssl_pemkey_name": "server.p8",
+                        "ssl_pemcert_name": "server.crt",
                         "authcz_admin_dn": [
-                          "emailAddress=admin-server2-super-1@easyssl.com,CN=server2,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR",
-                          "emailAddress=admin-server3-super-1@easyssl.com,CN=server3,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR"
+                          {% for server in cluster_section.servers %}
+                          "emailAddress={{server}}-admin@easyssl.com,CN={{server}}-admin,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR"{% if not loop.last %},{% endif %}
+                          {% endfor %}
                         ],
                         "nodes_dn": [
-                          "emailAddress=server2-super-1@easyssl.com,CN=server2,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR",
-                          "emailAddress=server3-super-1@easyssl.com,CN=server3,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR"
+                          {% for server in cluster_section.servers %}
+						  "emailAddress={{server}}-server@easyssl.com,CN={{server}}-server,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR"{% if not loop.last %},{% endif %}
+					      {% endfor %}
                         ],
                         "kibana_index": ".kibana-admin"
                     }
@@ -240,13 +264,13 @@
             "{{cluster_name}}": {
                 {% set tenant = cluster_section.tenant | d(cluster_name) %}
                 "tenant": "{{tenant}}",
-                {% if security is defined %}
+                {% if tls | d(false) %}
                 "ssl_enabled": true,
-                "custom_secrets_file": "gateway_user_secrets.json",
-                "key_store_name": "server-keystore.jks",
-                "key_store_password" : "@{DEPLOYMENT_SECRETS.gateway.keystore_pass}",
-                "client_private_key_name": "server-key.pem",
-                "client_certificate_name": "server-cert.pem",
+                "custom_secrets_file": "gateway_secrets.json",
+                "key_store_name": "keystore.jks",
+                "key_store_password" : "@{DEPLOYMENT_SECRETS.store_pwd}",
+                "client_private_key_name": "server.p8",
+                "client_certificate_name": "server.crt",
                 {% endif %}
                 "servers":{
                     {% for server in cluster_section.servers %}
@@ -268,8 +292,8 @@
                         {% if tls | d(false) %}
                         ,
                         "metrics_credentials": {
-                           "user": "@{DEPLOYMENT_SECRETS.user}",
-                           "password" : "@{DEPLOYMENT_SECRETS.password}"
+                           "user": "@{DEPLOYMENT_SECRETS.es.user}",
+                           "password" : "@{DEPLOYMENT_SECRETS.es.pass}"
 					 	}
 						{% endif %}
                     },
@@ -282,11 +306,11 @@
                         "hosts": {{ server_ip | tojson }},
                         "index_name": "{{tenant}}-gateway-logs",
                         "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
-                        {% if security is defined %}
+                        {% if tls | d(false) %}
                         ,
                         "credentials": {
-                            "user": "@{DEPLOYMENT_SECRETS.user}",
-                            "password" : "@{DEPLOYMENT_SECRETS.password}"
+                            "user": "@{DEPLOYMENT_SECRETS.es.user}",
+                            "password" : "@{DEPLOYMENT_SECRETS.es.pass}"
                         }
                         {% endif %}
                     }
@@ -310,11 +334,11 @@
                                 {% endfor %}
                                 "hosts": {{ server_ip | tojson }},
                                 "index": "{{tenant}}-resources-metadata"
-                                {% if security is defined %}
+                                {% if tls | d(false) %}
                                 ,
                                 "credentials": {
-                                    "user": "@{DEPLOYMENT_SECRETS.user}",
-                                    "password" : "@{DEPLOYMENT_SECRETS.password}"
+                                    "user": "@{DEPLOYMENT_SECRETS.es.user}",
+                                    "password" : "@{DEPLOYMENT_SECRETS.es.pass}"
                                 }
                                 {% endif %}
                             }
@@ -327,7 +351,7 @@
                         ]
                     }
                },
-               "reporters": ["myreporter"]
+               "reporters": ["central_reporter"]
             }{% if not loop.last %},{% endif %}
             {% endfor %}
         }
@@ -351,11 +375,11 @@
                 {% if tsl | d(false) %}
                 ,
                 "server_ssl_enabled": true,
-                "server_ssl_key_name": "server-key.pem",
-                "server_ssl_certificate_name": "server-cert.pem",
+                "server_ssl_key_name": "server.p8",
+                "server_ssl_certificate_name": "server.crt",
                 "elasticsearch_ssl_enabled": true,
                 "elasticsearch_ssl_verificationMode": "full",
-                "elasticsearch_ssl_certificateAuthorities_names": ["ca.pem"]
+                "elasticsearch_ssl_certificateAuthorities_names": ["ca.crt"]
                 {% endif %}
                 {% if domain_section.plugin_gateway_cluster is defined %}
                 {% set server_ip = [] %}
@@ -368,7 +392,7 @@
                     "punchplatform": {
                         "rest_api": {
                             "hosts": {{ server_ip | tojson }}
-                            {% if security is defined %}
+                            {% if tls | d(false) %}
                             ,
                             "ssl_enabled": true
                             {% endif %}
@@ -383,7 +407,7 @@
             "punchplatform_feedback": {
                 "punchplatform_feedback_version": "{{ version.punch }}"
             }
-            {% if security is defined %}
+            {% if tls | d(false) %}
             ,
             "opendistro_security": {
                 "opendistro_security_version": "{{ version.opendistro_security }}"
@@ -408,16 +432,16 @@
         "clusters": {
             {% for cluster_name,cluster_section in shiva.clusters.items() %}
             "{{cluster_name}}": {
-                "reporters" : ["myreporter"],
+                "reporters" : ["central_reporter"],
                 "storage": {
                   "type" : "kafka",
                   "kafka_cluster": "{{cluster_section.kafka_cluster}}"
                 },
                 {% if tls | d(false) %}
                 "ssl_enabled": true,
-                "keystore_name": "server-keystore.jks",
-                "keystore_password": "@{DEPLOYMENT_SECRETS.shiva.keystore_pass}",
-                "custom_additional_credentials_files": ["server-keystore.jks", "truststore.jks", "server-key.pem", "server-cert.pem", "ca.pem"],
+                "keystore_name": "keystore.jks",
+                "keystore_password": "@{DEPLOYMENT_SECRETS.store_pwd}",
+                "custom_additional_credentials_files": ["keystore.jks", "truststore.jks", "server.p8", "server.crt", "ca.crt"],
                 "custom_secrets_file": "shiva_secrets.json",
                 {% endif %}
                 "servers": {
@@ -435,7 +459,7 @@
     }
     {% endif %}
 
-    {% if storm is defined or (not tls | d(false) ) %}
+    {% if storm is defined %}
     ,
     "storm" : {
         "storm_version" : "{{ version.storm }}",
@@ -566,8 +590,8 @@
         }
         {% if tls | d(false) %}
         ,
-        "elasticsearch_private_key_name": "server-key.pem",
-        "elasticsearch_certificate_name": "server-cert.pem",
+        "elasticsearch_private_key_name": "server.p8",
+        "elasticsearch_certificate_name": "server.crt",
         "elasticsearch_user": "admin",
         "elasticsearch_password": "admin"
         {% endif %}

@@ -1,8 +1,13 @@
-# Punchbox configuration 
-
-From a user point of view only files under this folder can be modified (the file provide with --config option)
+# Punchbox configuration
 
 You could update existing ones or create a new one with your specific configuration.
+
+Check this Punchbox config file as an example : [punchbox_config.json](../configurations/punchbox_config.json)
+
+Update the Json sections :
+
+* `targets` to configure vagrant boxes
+* `punch` to configure a Punch deployment
 
 To configure vagrant boxes, read the [Vagran with Punchbox documentation](../punch/vagrant/README.md).
 
@@ -12,6 +17,10 @@ To configure a Punch Deployment, follow :
     - `tls`: Optional, default `false`. If `true`, enable TLS for all supported components.
     - `setups_root` : Optional, default `/data/opt`. Path where the punch components binaries will be installed.
     - `data_root` : Optional, default `/data/opt`. Path where the punch components data will be stored.
+    - `reporters` : **Mandatory**
+        - `kafka_cluster`: **Mandatory**, name of the kafka cluster to target.
+    - `operators` : **Mandatory**
+        - `kafka_cluster`: **Mandatory**, name of the kafka cluster to target.
     - `zookeeper`:
         - `max_memory`: Optional, default `512m`. Max RAM usage for each zookeeper server.
         - `clusters.<clustername>.servers`: **Mandatory**, list of zookeeper hosts.
@@ -50,8 +59,6 @@ To configure a Punch Deployment, follow :
             - `slave_servers` : Optional, default `master_servers`. List of spark slave hosts.
     - `metricbeat`:
         - `es_cluster`: **Mandatory**, name of the ES cluster to target.
-    - `reporters` :
-        - `kafka_cluster`: **Mandatory**, name of the kafka cluster to target.
     - `minio`:
         - `clusters.<clustername>.servers`: **Mandatory**, list of minio hosts.
     - `clickhouse`:

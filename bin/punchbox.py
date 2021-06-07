@@ -10,18 +10,17 @@ import jinja2
 # PUNCHBOX NAMES
 VAGRANT_TEMPLATE_NAME = "Vagrantfile.j2"
 SETTINGS_TEMPLATE_NAME = "punchplatform-deployment.settings.j2"
-MODEL_NAME = "model.json"
 
 # PUNCHBOX DIRS
 PUNCHBOX_DIR = os.environ.get('PUNCHBOX_DIR')
 PUNCHBOX_BUILD_DIR = os.environ.get('PUNCHBOX_BUILD_DIR')
-PUNCHBOX_VAGRANT_DIR = os.environ.get('PUNCHBOX_VAGRANT_DIR')
 PUNCHPLATFORM_CONF_DIR = os.environ.get('PUNCHPLATFORM_CONF_DIR')
-PUNCHBOX_DEPLOYMENT_TEMPLATE_DIR = f"{PUNCHBOX_DIR}/punch/deployment_template"
+PUNCHBOX_TEMPLATES_DIR = os.environ.get('PUNCHBOX_TEMPLATES_DIR')
 
 # PUNCHBOX FILES
-VAGRANT_FILE = PUNCHBOX_VAGRANT_DIR + '/Vagrantfile'
-MODEL_FILE = f"{PUNCHBOX_BUILD_DIR}/{MODEL_NAME}"
+VAGRANT_FILE = f"{PUNCHBOX_BUILD_DIR}/Vagrantfile"
+MODEL_FILE = f"{PUNCHBOX_BUILD_DIR}/model.json"
+SETTINGS_FILE = f"{PUNCHBOX_BUILD_DIR}/punchplatform-deployment.settings"
 
 components = ["punch", "minio", "zookeeper", "spark", "elastic", "opendistro_security", "operator", "binaries",
               "analytics-deployment", "analytics-client", "shiva", "gateway", "storm", "kafka", "logstash",
@@ -36,7 +35,7 @@ def load_platform_config(platform_config_file: str):
     :return: the json object generated from the config file
     """
     with open(platform_config_file) as f:
-        logging.info(' loading platform configuration from file %s', platform_config_file)
+        logging.info('Loading platform configuration from file %s', platform_config_file)
         return json.load(f)
 
 
@@ -76,9 +75,9 @@ def generate_vagrantfile(platform_config):
     The vagrant file is generated inside $PUNCHBOX_BUILD_DIR/vagrant
     :param platform_config: the platform configuration
     """
-    render_and_write(PUNCHBOX_VAGRANT_DIR, VAGRANT_TEMPLATE_NAME, VAGRANT_FILE,
+    render_and_write(PUNCHBOX_TEMPLATES_DIR, VAGRANT_TEMPLATE_NAME, VAGRANT_FILE,
                      targets=platform_config["targets"])
-    logging.info(' Vagrantfile successfully generated in %s', VAGRANT_FILE)
+    logging.info('Vagrantfile successfully generated in %s', VAGRANT_FILE)
 
 
 def generate_model(platform_config):
@@ -91,13 +90,14 @@ def generate_model(platform_config):
     model['iface'] = platform_config['targets']['production_interface']
     # security
     if 'tls' in platform_config['punch'] and bool(platform_config['punch']['tls']):
-        model['security_dir'] = f"{PUNCHBOX_DIR}/../punch/resources/secrets"
+        model['security_dir'] = f"{PUNCHPLATFORM_CONF_DIR}/security"
 
     model = json.dumps({**model, **platform_config['punch']}, indent=4, sort_keys=True)
     model_file = open(MODEL_FILE, "w+")
     model_file.write(model)
     model_file.close()
-    logging.info(' platform model file successfully generated in %s', MODEL_FILE)
+    logging.info('Platform model file successfully generated in %s', MODEL_FILE)
+    return model
 
 
 def generate_deployment_settings():
@@ -106,8 +106,8 @@ def generate_deployment_settings():
     This file is generated using the model file for input values, according to the jinja template in the deployment
     template directory.
     """
-    cmd = f"punchplatform-deployer.sh --generate-platform-config --templates-dir {PUNCHBOX_DEPLOYMENT_TEMPLATE_DIR} " \
-          f"--model {MODEL_FILE}"
+    cmd = f"punchplatform-deployer.sh --generate-platform-config --templates-dir {PUNCHBOX_TEMPLATES_DIR}/settings" \
+          f" --model {MODEL_FILE}"
     subprocess.check_output(cmd, shell=True)
     logging.info(' Deployment settings successfully generated in %s', VAGRANT_FILE)
 
@@ -121,7 +121,7 @@ def main():
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
     if "PUNCHBOX_DIR" not in os.environ:
-        logging.fatal(' PUNCHBOX_DIR environment variable is not set')
+        logging.fatal('PUNCHBOX_DIR environment variable is not set')
         exit(1)
 
     parser = argparse.ArgumentParser()

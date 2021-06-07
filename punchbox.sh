@@ -3,14 +3,17 @@
 # CONSTANTS
 red=$'\e[1;31m'
 grn=$'\e[1;32m'
-blu=$'\e[1;34m'
 cyn=$'\e[1;36m'
+wht=$'\e[1;37m'
 end=$'\e[0m'
 
+# filesystem
 SCRIPT_PATH="$(realpath "$0")"
 DIR="$(dirname "${SCRIPT_PATH}")"
 LOGFILE="/tmp/punchbox.log"
 PUNCHBOX_CONF_DIR="${DIR}/configurations"
+
+# installation
 ACTIVATE_SH="${DIR}/activate.sh"
 ACTIVATE_TEMPLATE="${DIR}/.activate.template"
 PUNCHBOX_PY="${DIR}/bin/punchbox.py"
@@ -19,6 +22,7 @@ PYTHON_ENV_INSTALLED_MARKER="${DIR}/.python_env_installed"
 # VARIABLES
 conf_mode=""
 vagrant_mode=""
+deploy_mode=""
 
 # FUNCTIONS
 function usage() {
@@ -27,19 +31,33 @@ function usage() {
     Syntax: punchbox [options]
 
     options:
-    ${grn}run${end} [default|tls|<path>]      If 'default' or 'tls', generate default deployment settings, start vagrant and deploy.
-                                  Else generate deployment settings, start vagrant and deploy using the provided punchbox config file.
 
-    ${cyn}config${end} [default|tls|<path>]         If 'default' or 'tls', only generate default deployment settings and Vagrantfile.
-                                        Else only generate deployment settings and Vagrantfile with the provided punchbox config path.
-    ${cyn}vagrant${end} [start|stop|clean|reload]   Execute the provided action on your vagrant boxes.
-    ${cyn}deploy${end}                              Deploy the current settings on the running vagrant boxes.
+    ${grn}help${end}
+    Print this.
 
-    ${red}clean${end}                               Clean all generated files. Do not destroy vagrant boxes.
+    ${grn}run${end} [default|tls|<path>]
+    If 'default' or 'tls', generate default deployment settings, start vagrant and deploy.
+    Else use the provided punchbox config path to generate deployment settings, start vagrant and deploy.
 
-    help    Print this.
-    env     Print the installed python dependencies in punchbox virtualenv and the punchbox shell environment .
-    dev     Create symbolic links to \$PUNCH_DIR sources (i.e pp-punch). Set \$PUNCH_DIR first.
+    ${cyn}config${end} [default|tls|<path>]
+    If 'default' or 'tls', simply generate default deployment settings and Vagrantfile.
+    Else use the provided punchbox config path to simply generate deployment settings and Vagrantfile.
+
+    ${cyn}vagrant${end} [start|stop|clean|reload]
+    Execute the provided action on your vagrant boxes.
+
+    ${cyn}deploy${end}
+    Deploy the current settings on the running vagrant boxes.
+
+    ${red}clean${end}
+    Delete \$PUNCHPLATFORM_CONF_DIR content.
+    Do not clean vagrant boxes.
+
+    ${wht}env${end}
+    Print the installed python dependencies in punchbox virtualenv and the punchbox shell environment .
+
+    ${wht}dev${end}
+    Create symbolic links to \$PUNCH_DIR sources (i.e pp-punch). Set \$PUNCH_DIR first.
     "
 }
 
@@ -53,7 +71,7 @@ function install_env() {
 
     # python env
     if [ ! -f "${PYTHON_ENV_INSTALLED_MARKER}" ]; then
-        printf "Install python environment"
+        echo "Install python environment"
         if [ ! -e "${DIR}/.venv/bin/activate" ] ; then
             python3 -m venv ${DIR}/.venv
         fi
@@ -67,7 +85,11 @@ function install_env() {
     sed 's#.*PUNCHBOX_DIR=.*#export PUNCHBOX_DIR='${DIR}'#g' "${ACTIVATE_TEMPLATE}" > "${ACTIVATE_SH}"
 }
 
+# arg 1 : configuration mode ('default' or  'tls') or a path to a punchbox config file
 function configure() {
+    echo "Log inside ${LOGFILE}"
+    punchbox_default_confs_dir="${PUNCH_DEPLOYER}/resources/punchbox"
+
     # pp-conf
     if [ ! -d "${PUNCHPLATFORM_CONF_DIR}" ]; then
         mkdir -p "${PUNCHPLATFORM_CONF_DIR}"
@@ -76,41 +98,50 @@ function configure() {
     # parse the configuration
     # it may be a supported mode like 'default' or 'tls'
     # else it is a configuration path provided by the user
-    if [ "$conf_mode" == "default" ]; then
+    if [ "$1" == "default" ]; then
         # default conf
-        config_file="${PUNCHBOX_CONF_DIR}/default/default_config.json"
-    elif [ "$conf_mode" == "tls" ]; then
+        config_file="${punchbox_default_confs_dir}/default/default_config.json"
+    elif [ "$1" == "tls" ]; then
         # default tls conf
-        config_file="${PUNCHBOX_CONF_DIR}/default/default_config.json"
+        config_file="${punchbox_default_confs_dir}/tls/tls_config.json"
+        # security dir with credentials and secrets
+        cp -r "${punchbox_default_confs_dir}/tls/security" "${PUNCHPLATFORM_CONF_DIR}"
+        echo "${grn}Security resources${end} moved to ${PUNCHPLATFORM_CONF_DIR}/security"
     else
         # the conf_mode (i.e the argument is a path given by the user)
-        config_file="${conf_mode}"
+        config_file="$1"
     fi
 
     # generate deployment settings
-    echo "Generate deployment settings from ${config_file}"
-    echo "Log inside ${LOGFILE}"
     python3 ${PUNCHBOX_PY} --config "${config_file}" >> "${LOGFILE}" 2>&1
 
     if [ ! $? -eq 0 ]; then
-        printf "${red}FAIL: check ${LOGFILE} for error message"
+        echo "${red}FAIL: check ${LOGFILE} for error message"
+        exit 1
     fi
+
+    echo "${grn}Vagrantfile${end} generated in ${PUNCHBOX_BUILD_DIR}"
+    echo "${grn}Deployment settings${end} generated in ${PUNCHPLATFORM_CONF_DIR}"
 }
 
-function vagrant(){
-    if [ -f "${PUNCHBOX_VAGRANT_DIR}/Vagrantfile" ]; then
-        cd "${PUNCHBOX_VAGRANT_DIR}"
-        if [ "${vagrant_mode}" == "start" ]; then
-            vagrant start
-        elif [ "${vagrant_mode}" == "stop" ]; then
+# arg 1 : vagrant mode
+function do_vagrant(){
+    if [ -f "${PUNCHBOX_BUILD_DIR}/Vagrantfile" ]; then
+        cd "${PUNCHBOX_BUILD_DIR}"
+        if [ "$1" == "start" ]; then
+            vagrant up
+        elif [ "$1" == "stop" ]; then
             vagrant halt
-        elif [ "${vagrant_mode}" == "reload" ]; then
+        elif [ "$1" == "reload" ]; then
             vagrant reload
-        elif [ "${vagrant_mode}" == "clean" ]; then
+        elif [ "$1" == "clean" ]; then
             vagrant destroy -f
+        else
+            echo "${red}Unsupported vagrant option !${end}"
         fi
     else
         echo "${red}FAIL: Missing Vagrantfile"
+        exit 1
     fi
 
     cd "${DIR}"
@@ -119,6 +150,11 @@ function vagrant(){
 function deploy() {
     echo "Deploy using ${PUNCH_DEPLOYER}"
     punchplatform-deployer.sh deploy -u vagrant
+}
+
+function clean_conf() {
+    echo "${red}Delete ${PUNCHPLATFORM_CONF_DIR}"
+    rm -rf "${PUNCHPLATFORM_CONF_DIR}"
 }
 
 function development(){
@@ -144,6 +180,8 @@ function development(){
     ln -s "${punch_deployment_sources}/inventory_templates" "${PUNCH_DEPLOYER}/inventory_templates"
     ln -s "${punch_deployment_sources}/deploy-punchplatform-production-cluster.yml" "${PUNCH_DEPLOYER}/deploy-punchplatform-production-cluster.yml"
     ln -s "${punch_deployment_sources}/bin/punchplatform-deployer.sh" "${PUNCH_DEPLOYER}/bin/punchplatform-deployer.sh"
+
+    echo "Created links to pp-punch in ${PUNCH_DEPLOYER}"
 }
 
 function environment() {
@@ -151,11 +189,6 @@ function environment() {
 	pip freeze
 	echo "${cyn}Punchbox shell environment${end}"
 	env | grep PUNCH
-}
-
-function clean_all() {
-#    echo "${PUNCHBOX_BUILD_DIR}"
-    rm -rf "${PUNCHBOX_BUILD_DIR}"
 }
 
 # PARSE OPTIONS
@@ -183,8 +216,8 @@ while [[ $# -gt 0 ]]; do
         deploy_mode=$2
         shift 2
         ;;
-    --clean | clean)
-        clean_all
+    -c | --clean | clean)
+        clean_conf
         exit 0
         ;;
     --dev | dev)
@@ -196,8 +229,9 @@ while [[ $# -gt 0 ]]; do
         exit 0
         ;;
     *) # unknown option
-        POSITIONAL+=("$1") # save it in an array for later
-        shift              # past argument
+        echo "${red}Unknown option:${end} $1 !"
+        echo "${wht}punchbox help${end} to read usage."
+        exit 1
         ;;
     esac
 done
@@ -205,13 +239,12 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 # PROGRAM
 if [ ! -z "${deploy_mode}" ]; then
-    configure deploy_mode
-    vagrant_mode="start"
-    vagrant
-    deploy
+    configure ${deploy_mode}
+    do_vagrant "start"
+    deploy ${deploy_mode}
 elif [ ! -z "${conf_mode}" ]; then
-    configure
+    configure "${conf_mode}"
 elif [ ! -z "${vagrant_mode}" ]; then
-    vagrant
+    do_vagrant "${vagrant_mode}"
 fi
 

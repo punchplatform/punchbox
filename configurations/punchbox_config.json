@@ -18,69 +18,42 @@
     }
   },
   "punch": {
+    "tls": false,
+    "reporters": {
+      "kafka_cluster": "kafka_central"
+    },
+    "operators": {
+      "kafka_cluster": "kafka_central"
+    },
     "zookeeper": {
       "clusters": {
         "zk_central": {
-          "servers": [
-            "server1",
-            "server2",
-            "server3",
-            "server4"
-          ]
+          "servers": ["server3"]
         }
       }
     },
     "kafka": {
       "clusters": {
-        "kafka_data": {
+        "kafka_central": {
           "zk_cluster": "zk_central",
-          "servers": [
-            "server1",
-            "server2",
-            "server3"
-          ]
-        },
-        "kafka_metrics": {
-          "zk_cluster": "zk_central",
-          "servers": [
-            "server4"
-          ]
-        }
-      }
-    },
-    "shiva": {
-      "clusters": {
-        "shiva_central": {
-          "kafka_cluster": "kafka_metrics",
-          "servers": [
-            "server3",
-            "server4"
-          ]
+          "servers": ["server3"]
         }
       }
     },
     "elasticsearch": {
       "clusters": {
         "es_data": {
-          "servers": [
-            "server1",
-            "server2",
-            "server3"
-          ]
+          "servers": ["server1"]
         },
         "es_metric": {
-          "servers": [
-            "server4"
-          ]
+          "servers": ["server2"]
         }
       }
     },
     "gateway": {
       "clusters": {
-        "skyblue": {
-          "servers": [
-            "server2"
-          ],
+        "mytenant": {
+          "servers": ["server2"],
           "es_data_cluster": "es_data",
           "es_metric_cluster": "es_metric"
         }
@@ -88,20 +61,20 @@
     },
     "kibana": {
       "domains": {
-        "data-admin": {
+        "admin": {
           "server": "server1",
           "es_cluster": "es_data",
-          "plugin_gateway": "skyblue"
-        },
-        "metric-admin": {
-          "server": "server1",
-          "es_cluster": "es_metric",
-          "plugin_gateway": "skyblue"
+          "plugin_gateway": "mytenant"
         }
       }
     },
-    "reporters": {
-      "kafka_cluster": "kafka_metrics"
+    "shiva": {
+      "clusters": {
+        "shiva_central": {
+          "kafka_cluster": "kafka_central",
+          "servers": ["server3"]
+        }
+      }
     }
   }
 }

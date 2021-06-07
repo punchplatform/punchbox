@@ -37,7 +37,7 @@ If not familiar with python installation and best practices refer to
 
 Generate Vagrantfiles and start Vagrant boxes in one command using `punchbox`.
 
-Learn more in [Vagrant with Punchbox documentation](./punch/vagrant/README.md).
+Learn more in [Vagrant with Punchbox documentation](./punch/Vagrant.md).
 
 ## Deploy a Complete Punch
 
