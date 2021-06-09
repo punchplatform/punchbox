@@ -112,7 +112,7 @@ function do_install() {
 
 # arg 1 : configuration mode ('default' or  'tls') or a path to a punchbox config file
 function do_configure() {
-    punchbox_default_confs_dir="${PUNCH_DEPLOYER}/resources/punchbox"
+    punchbox_default_confs_dir="${PUNCH_DEPLOYER}/resources/log_central/punchbox"
 
     # pp-conf
     if [ ! -d "${PUNCHPLATFORM_CONF_DIR}" ]; then
