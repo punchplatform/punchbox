@@ -50,7 +50,7 @@ Basic usage :
 # This command generate a configuration, start the vagrant boxes and deploy
 punchbox run default
 # This command generate a TLS configuration, start the vagrant boxes and deploy
-unchbox run tls
+punchbox run tls
 ```
 
 More information about the punchbox usage :

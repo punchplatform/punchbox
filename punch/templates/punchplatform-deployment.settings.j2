@@ -231,7 +231,9 @@
                 },
                 "http_api_port" : 9200,
                 "transport_port" : 9300,
-                "minimum_master_nodes": {{ cluster_section.servers|length }},
+                {% set nb_master = (cluster_section.servers | length) - 1 %}
+                {% if nb_master == 0 %}{% set nb_master = 1 %}{% endif %}
+                "minimum_master_nodes": {{ nb_master }},
                 "settings_by_type" : {
                     "data_node": {
                         "max_memory": "{{ elasticsearch.max_memory | d('512M') }}",
@@ -388,7 +390,7 @@
                 "es_type_of_nodes_targeted": "data_node",
                 {% set all_servers = all_servers + domain_section.servers %}
                 "servers": {{ domain_section.servers | tojson }},
-                "kibana_port" : 5601,
+                "kibana_port" : 560{{loop.index}},
                 "type" : "administration"
                 {% if tsl | d(false) %}
                 ,
