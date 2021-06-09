@@ -23,7 +23,8 @@
       "kafka_cluster": "kafka_central"
     },
     "operators": {
-      "kafka_cluster": "kafka_central"
+      "kafka_cluster": "kafka_central",
+      "servers": ["server1"]
     },
     "zookeeper": {
       "clusters": {

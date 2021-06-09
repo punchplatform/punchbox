@@ -111,12 +111,13 @@
   		"configuration_name_dir_from_home" : "pp-conf",
 		"operators_username": ["punch-operator", "guest-operator"],
 		"servers": {
-			"server1": {}
+            {% for server in operators.servers%}
+                "{{ server }}": {}{% if not loop.last %},{% endif %}
+            {% endfor %}
 		},
 	  	{% if tls | d(false) %}
 	  	"users": {
 			"punch-operator": {
-				"local_credentials_dir": "{{security_dir}}/server1/punch_operator",
 				"custom_additional_credentials_files": [
 					"server.p8",
 					"server.crt",
@@ -124,7 +125,6 @@
 				]
 			},
 		  	"guest-operator": {
-				"local_credentials_dir": "{{security_dir}}/server1/guest_operator"
 		  	}
 		},
 		{% endif %}
