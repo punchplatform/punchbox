@@ -8,9 +8,9 @@ wht=$'\e[1;37m'
 end=$'\e[0m'
 
 # filesystem
+TIME=$(date +%s)
 SCRIPT_PATH="$(realpath "$0")"
 DIR="$(dirname "${SCRIPT_PATH}")"
-LOGFILE="/tmp/punchbox.log"
 PUNCHBOX_CONF_DIR="${DIR}/configurations"
 
 # installation
@@ -23,14 +23,14 @@ PYTHON_ENV_INSTALLED_MARKER="${DIR}/.python_env_installed"
 conf_mode=""
 vagrant_mode=""
 deploy_mode=""
+deploy_component=""
+run_mode=""
 
 # FUNCTIONS
 function usage() {
-    printf "Description
+    printf "Syntax: punchbox [options]
 
-    Syntax: punchbox [options]
-
-    options:
+    Options:
 
     ${grn}help${end}
     Print this.
@@ -46,8 +46,10 @@ function usage() {
     ${cyn}vagrant${end} [start|stop|clean|reload]
     Execute the provided action on your vagrant boxes.
 
-    ${cyn}deploy${end}
-    Deploy the current settings on the running vagrant boxes.
+    ${cyn}deploy${end} [all|<component>] [--secured]
+    If 'all', deploy all punch components with the current settings on the running vagrant boxes.
+    Else deploy the provided component with the current settings on the running vagrant boxes.
+    If '--secured', also use the deployment secrets file with '-e @\$PUNCHPLATFORM_CONF_DIR/security/deployment_secrets.json'
 
     ${red}clean${end}
     Delete \$PUNCHPLATFORM_CONF_DIR content.
@@ -58,10 +60,33 @@ function usage() {
 
     ${wht}dev${end}
     Create symbolic links to \$PUNCH_DIR sources (i.e pp-punch). Set \$PUNCH_DIR first.
+
+
+${wht}Examples:${end}
+1. All in one - default TLS deployment
+punchbox run tls
+
+2. All in one - custom deployment
+punchbox run /tmp/my_conf.json
+
+3. Step by step - default configuration
+punchbox config default
+punchbox vagrant start
+punchbox deploy all
+
+4. Step by step - default TLS configuration
+punchbox config tls
+punchbox vagrant start
+punchbox deploy all --secured
+
+5. Step by step - custom configuration
+punchbox config /tmp/my_conf.json
+punchbox vagrant start
+punchbox deploy zookeeper,kafka
     "
 }
 
-function install_env() {
+function do_install() {
     # check dependencies
     [ -e "${HOME}/.ssh/id_rsa.pub" ] || { echo ".ssh/id_rsa.pub not found in user home directory. Maybe try running 'ssh-keygen' without specific option." 2>&1 && exit 42 ; }
 	which jq 1>/dev/null || { echo "jq command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
@@ -86,8 +111,7 @@ function install_env() {
 }
 
 # arg 1 : configuration mode ('default' or  'tls') or a path to a punchbox config file
-function configure() {
-    echo "Log inside ${LOGFILE}"
+function do_configure() {
     punchbox_default_confs_dir="${PUNCH_DEPLOYER}/resources/punchbox"
 
     # pp-conf
@@ -95,30 +119,25 @@ function configure() {
         mkdir -p "${PUNCHPLATFORM_CONF_DIR}"
     fi
 
-    # parse the configuration
-    # it may be a supported mode like 'default' or 'tls'
+    # The configuration may be a default name like 'default', 'tls' or 'modsecurity' packaged inside the deployer dir
     # else it is a configuration path provided by the user
     if [ "$1" == "default" ]; then
-        # default conf
         config_file="${punchbox_default_confs_dir}/default/default_config.json"
     elif [ "$1" == "tls" ]; then
-        # default tls conf
         config_file="${punchbox_default_confs_dir}/tls/tls_config.json"
         # security dir with credentials and secrets
         cp -r "${punchbox_default_confs_dir}/tls/security" "${PUNCHPLATFORM_CONF_DIR}"
         echo "${grn}Security resources${end} moved to ${PUNCHPLATFORM_CONF_DIR}/security"
+    elif [ "$1" == "modsecurity" ]; then
+        config_file="${punchbox_default_confs_dir}/modsecurity/modsecurity_config.json"
     else
         # the conf_mode (i.e the argument is a path given by the user)
         config_file="$1"
     fi
 
     # generate deployment settings
-    python3 ${PUNCHBOX_PY} --config "${config_file}" >> "${LOGFILE}" 2>&1
-
-    if [ ! $? -eq 0 ]; then
-        echo "${red}FAIL: check ${LOGFILE} for error message"
-        exit 1
-    fi
+    python3 ${PUNCHBOX_PY} --config "${config_file}"
+    if [ ! $? -eq 0 ]; then exit 1; fi
 
     echo "${grn}Vagrantfile${end} generated in ${PUNCHBOX_BUILD_DIR}"
     echo "${grn}Deployment settings${end} generated in ${PUNCHPLATFORM_CONF_DIR}"
@@ -136,6 +155,7 @@ function do_vagrant(){
             vagrant reload
         elif [ "$1" == "clean" ]; then
             vagrant destroy -f
+            rm -rf "${PUNCHBOX_BUILD_DIR}/.vagrant" "${PUNCHBOX_BUILD_DIR}/Vagrantfile"
         else
             echo "${red}Unsupported vagrant option !${end}"
         fi
@@ -147,17 +167,31 @@ function do_vagrant(){
     cd "${DIR}"
 }
 
-function deploy() {
-    echo "Deploy using ${PUNCH_DEPLOYER}"
-    punchplatform-deployer.sh deploy -u vagrant
+# arg1 : 'all', or the punch component name to deploy (eg: kafka)
+# arg2 : '--secured' or "" (empty string)
+function do_deploy() {
+    deployment_secrets_file="${PUNCHPLATFORM_CONF_DIR}/security/deployment_secrets.json"
+    if [ "$1" == "all" ] && [ "$2" == "--secured" ]; then
+        echo "all secured"
+        punchplatform-deployer.sh --deploy -u vagrant -e @${deployment_secrets_file}
+    elif [ "$1" != all ] && [ "$2" == "--secured" ]; then
+        echo "not all secured"
+        punchplatform-deployer.sh --deploy -u vagrant -e @${deployment_secrets_file} -t "$1"
+    elif [ "$1" == all ] && [ "$2" != "--secured" ]; then
+        echo "all not secured"
+        punchplatform-deployer.sh --deploy -u vagrant
+    else
+        echo "not all not secured"
+        punchplatform-deployer.sh --deploy -u vagrant -t "$1"
+    fi
 }
 
-function clean_conf() {
+function do_clean() {
     echo "${red}Delete ${PUNCHPLATFORM_CONF_DIR}"
     rm -rf "${PUNCHPLATFORM_CONF_DIR}"
 }
 
-function development(){
+function do_dev_links(){
 
     if [ -z "${PUNCH_DIR}" ]; then
         # check for pp-punch dir next to punchbox_dir
@@ -184,7 +218,7 @@ function development(){
     echo "Created links to pp-punch in ${PUNCH_DEPLOYER}"
 }
 
-function environment() {
+function print_env() {
     echo "${cyn}Punchbox python dependencies${end}"
 	pip freeze
 	echo "${cyn}Punchbox shell environment${end}"
@@ -192,7 +226,7 @@ function environment() {
 }
 
 # PARSE OPTIONS
-install_env
+do_install
 source "${DIR}/.venv/bin/activate"
 source "${ACTIVATE_SH}"
 
@@ -204,6 +238,10 @@ while [[ $# -gt 0 ]]; do
         usage
         exit 0
         ;;
+    -r | --run | run)
+        run_mode=$2
+        shift 2
+        ;;
     -c | --config | config)
         conf_mode=$2
         shift 2
@@ -213,19 +251,25 @@ while [[ $# -gt 0 ]]; do
         shift 2
         ;;
     -d | --deploy | deploy)
-        deploy_mode=$2
-        shift 2
+        # args may be from 'deploy [all|<component>]' or 'deploy [all|<component>] --secured'
+        deploy_component="$2"
+        if [ ! -z "$3" ]; then
+            deploy_mode="$3"
+            shift 3
+        else
+            shift 2
+        fi
         ;;
     -c | --clean | clean)
-        clean_conf
+        do_clean
         exit 0
         ;;
     --dev | dev)
-        development
+        do_dev_links
         exit 0
         ;;
     --env | env)
-        environment
+        print_env
         exit 0
         ;;
     *) # unknown option
@@ -238,13 +282,19 @@ done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
 # PROGRAM
-if [ ! -z "${deploy_mode}" ]; then
-    configure ${deploy_mode}
+if [ ! -z "${run_mode}" ]; then
+    do_configure ${run_mode}
     do_vagrant "start"
-    deploy ${deploy_mode}
+    secured_arg="none"
+    if [ "${run_mode}" == "tls" ]; then
+        secured_arg="--secured"
+    fi
+    do_deploy "all" "${secured_arg}"
 elif [ ! -z "${conf_mode}" ]; then
-    configure "${conf_mode}"
+    do_configure "${conf_mode}"
 elif [ ! -z "${vagrant_mode}" ]; then
     do_vagrant "${vagrant_mode}"
+elif [ ! -z "${deploy_component}" ]; then
+    do_deploy "${deploy_component}" "${deploy_mode}"
 fi
 

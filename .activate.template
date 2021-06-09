@@ -2,7 +2,6 @@
 
 # punchbox env
 export PUNCHBOX_DIR=
-export PUNCHBOX_VAGRANT_DIR="${PUNCHBOX_DIR}/punch/vagrant"
 export PUNCHBOX_BUILD_DIR="${PUNCHBOX_DIR}/punch/build"
 export PUNCHBOX_TEMPLATES_DIR="${PUNCHBOX_DIR}/punch/templates"
 export PUNCHPLATFORM_CONF_DIR="${PUNCHBOX_BUILD_DIR}/pp-conf"

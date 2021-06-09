@@ -181,6 +181,10 @@
                 "zk_cluster" : "{{cluster_section.zk_cluster}}",
                 "zk_root" : "{{cluster_name}}",
                 "brokers_config" : "punchplatform-local-server.properties",
+				"default_replication_factor" : 1,
+				"default_partitions" : 1,
+				"partition_retention_bytes": 173741824,
+				"partition_retention_hours": 72,
                 "kafka_brokers_jvm_xmx": "{{ cluster_section.max_memory | d('512M') }}"
                 {%- if tls | d(false) %}
                 ,
@@ -203,14 +207,14 @@
 			"modsecurity_production_interface" : "{{iface}}",
 			"port" : 9100,
 			"domains" : {
-				{% for cluster_name in elasticsearch.clusters.keys() %}
-				"{{cluster_name}}": {
-					"elasticsearch_security_aliases_pattern": "events-mytenant-kibana-[-a-zA-Z0-9.*_:]+",
-					"elasticsearch_security_index_pattern": "events-mytenant-[-a-zA-Z0-9.*_:]+"
+				{% for domain_name,domain_section in kibana.domains.items() %}
+				"{{domain_name}}": {
+					"elasticsearch_security_aliases_pattern": "{{domain_section.modsecurity_regex}}",
+					"elasticsearch_security_index_pattern": "{{domain_section.modsecurity_regex}}"
 				}{% if not loop.last %},{% endif %}
 				{% endfor %}
 			}
-		}
+		},
         {% endif %}
         "clusters" : {
             {% for cluster_name,cluster_section in elasticsearch.clusters.items() %}
@@ -231,8 +235,8 @@
                 "settings_by_type" : {
                     "data_node": {
                         "max_memory": "{{ elasticsearch.max_memory | d('512M') }}",
-                        "modsecurity_enabled": false,
-                        "modsecurity_blocking_requests": false,
+                        "modsecurity_enabled": {{ modsecurity | d(false) | tojson }},
+                        "modsecurity_blocking_requests": {{ modsecurity | d(false) | tojson }},
                         "script_execution_authorized": true,
                         "http_cors_enabled" : true,
                         "readonly" : true
@@ -251,12 +255,12 @@
                         "ssl_pemcert_name": "server.crt",
                         "authcz_admin_dn": [
                           {% for server in cluster_section.servers %}
-                          "emailAddress={{server}}-admin@easyssl.com,CN={{server}}-admin,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR"{% if not loop.last %},{% endif %}
+                          "emailAddress={{server}}-admin@easyssl.com,CN={{server}},OU=EasySSL,O=ValhallaCorp,DC=easyssl.com"{% if not loop.last %},{% endif %}
                           {% endfor %}
                         ],
                         "nodes_dn": [
                           {% for server in cluster_section.servers %}
-						  "emailAddress={{server}}-server@easyssl.com,CN={{server}}-server,OU=AC,O=EasySslCorp,L=Paris,ST=IdF,C=FR"{% if not loop.last %},{% endif %}
+						  "emailAddress={{server}}-server@easyssl.com,CN={{server}},OU=EasySSL,O=ValhallaCorp,DC=easyssl.com"{% if not loop.last %},{% endif %}
 					      {% endfor %}
                         ],
                         "kibana_index": ".kibana-admin"
@@ -372,16 +376,18 @@
     }
     {% endif %}
 
-    {% if kibana is defined %}
+	{% if kibana is defined %}
     ,
     "kibana" : {
+        {% set all_servers = [] %}
         "kibana_version" : "{{ version.elastic }}",
         "domains" : {
-            {% for cluster_name,cluster_section in elasticsearch.clusters.items() %}
-            "{{cluster_name}}": {
-                "es_cluster_target": "{{cluster_name}}",
+            {% for domain_name,domain_section in kibana.domains.items() %}
+            "{{domain_name}}": {
+                "es_cluster_target": "{{domain_section.es_cluster}}",
                 "es_type_of_nodes_targeted": "data_node",
-                "servers": {{ kibana.servers | to_json }},
+                {% set all_servers = all_servers + domain_section.servers %}
+                "servers": {{ domain_section.servers | tojson }},
                 "kibana_port" : 5601,
                 "type" : "administration"
                 {% if tsl | d(false) %}
@@ -393,10 +399,10 @@
                 "elasticsearch_ssl_verificationMode": "full",
                 "elasticsearch_ssl_certificateAuthorities_names": ["ca.crt"]
                 {% endif %}
-                {% if kibana.plugin_gateway_cluster is defined %}
+                {% if domain_section.plugin_gateway_cluster is defined %}
                 {% set server_ip = [] %}
                 {% if tls | d(false) %}{% set scheme = "https" %}{% else %}{% set scheme = "http" %}{% endif %}
-                {% for server in gateway.clusters.get(kibana.plugin_gateway_cluster).servers  %}
+                {% for server in gateway.clusters.get(domain_section.plugin_gateway_cluster).servers  %}
                 {% set server_ip = server_ip.append( scheme + "://"+server+":4242" ) %}
                 {% endfor %}
                 ,
@@ -426,8 +432,9 @@
             }
             {% endif %}
         },
+        {% set sorted_servers = all_servers | sort | unique | list %}
         "servers": {
-            {% for server in kibana.servers %}
+            {% for server in sorted_servers %}
             "{{server}}":{
                 "address": "{{server}}"
             }{% if not loop.last %},{% endif %}
