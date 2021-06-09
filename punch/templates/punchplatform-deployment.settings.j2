@@ -198,6 +198,20 @@
     ,
     "elasticsearch" : {
         "elasticsearch_version" : "{{ version.elastic }}",
+        {% if modsecurity | d(false) %}
+        "modsecurity" : {
+			"modsecurity_production_interface" : "{{iface}}",
+			"port" : 9100,
+			"domains" : {
+				{% for cluster_name in elasticsearch.clusters.keys() %}
+				"{{cluster_name}}": {
+					"elasticsearch_security_aliases_pattern": "events-mytenant-kibana-[-a-zA-Z0-9.*_:]+",
+					"elasticsearch_security_index_pattern": "events-mytenant-[-a-zA-Z0-9.*_:]+"
+				}{% if not loop.last %},{% endif %}
+				{% endfor %}
+			}
+		}
+        {% endif %}
         "clusters" : {
             {% for cluster_name,cluster_section in elasticsearch.clusters.items() %}
             "{{cluster_name}}": {
@@ -361,15 +375,13 @@
     {% if kibana is defined %}
     ,
     "kibana" : {
-        {% set all_servers = [] %}
         "kibana_version" : "{{ version.elastic }}",
         "domains" : {
-            {% for domain_name,domain_section in kibana.domains.items() %}
-            "{{domain_name}}": {
-                "es_cluster_target": "{{domain_section.es_cluster}}",
+            {% for cluster_name,cluster_section in elasticsearch.clusters.items() %}
+            "{{cluster_name}}": {
+                "es_cluster_target": "{{cluster_name}}",
                 "es_type_of_nodes_targeted": "data_node",
-                {% if all_servers.append(domain_section.server) %}{% endif %}
-                "servers": ["{{domain_section.server}}"],
+                "servers": {{ kibana.servers | to_json }},
                 "kibana_port" : 5601,
                 "type" : "administration"
                 {% if tsl | d(false) %}
@@ -381,10 +393,10 @@
                 "elasticsearch_ssl_verificationMode": "full",
                 "elasticsearch_ssl_certificateAuthorities_names": ["ca.crt"]
                 {% endif %}
-                {% if domain_section.plugin_gateway_cluster is defined %}
+                {% if kibana.plugin_gateway_cluster is defined %}
                 {% set server_ip = [] %}
                 {% if tls | d(false) %}{% set scheme = "https" %}{% else %}{% set scheme = "http" %}{% endif %}
-                {% for server in gateway.clusters.get(domain_section.plugin_gateway).servers  %}
+                {% for server in gateway.clusters.get(kibana.plugin_gateway_cluster).servers  %}
                 {% set server_ip = server_ip.append( scheme + "://"+server+":4242" ) %}
                 {% endfor %}
                 ,
@@ -414,9 +426,8 @@
             }
             {% endif %}
         },
-        {% set sorted_servers = all_servers | sort | unique | list %}
         "servers": {
-            {% for server in sorted_servers %}
+            {% for server in kibana.servers %}
             "{{server}}":{
                 "address": "{{server}}"
             }{% if not loop.last %},{% endif %}
