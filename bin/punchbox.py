@@ -53,7 +53,7 @@ def check_archive_existence(deployer_folder_name):
         deployer_folder_name = deployers[0]
     elif len(deployers) > 1:
         logging.error(
-            'cannot guess deployer path from directories in \"{}\" because multiple possibilities exist :{}'.format(
+            ' punchbox: cannot guess deployer path from directories in \"{}\" because multiple possibilities exist :{}'.format(
                 build_dir, deployers))
     return deployer_folder_name
 
@@ -67,9 +67,9 @@ def unzip_punch_archive(deployer):
             deployer_folder_name = check_archive_existence(deployer_folder_name)
             with open(build_dir + "/" + deployer_folder_name + "/.unzipped", "w") as activate:
                 activate.write(str(datetime.now()))
-            logging.info(' punchplatform deployer archive successfully unzipped')
+            logging.info(' punchbox: punchplatform deployer archive successfully unzipped')
         else:
-            logging.error("unable to unzip deployer in folder with command '%s'" % cmd)
+            logging.error(" punchbox: unable to unzip deployer in folder with command '%s'" % cmd)
             exit(42)
 
 
@@ -80,7 +80,7 @@ def copy_elastalert_tool(elastalert_tool):
 
 def load_platform_config(platform_config_file):
     with open(platform_config_file) as f:
-        logging.info(' loading platform configuration from file %s', platform_config_file)
+        logging.info(' punchbox: loading platform configuration from file %s', platform_config_file)
         return json.load(f)
 
 
@@ -114,20 +114,20 @@ def create_vagrantfile(platform_config, vagrant_os: str = None):
         vagrant_os = platform_config["targets"]["meta"]["os"]
     render_and_write(vagrant_dir, vagrant_template_file, vagrantfile_target,
                      targets=platform_config["targets"], os=vagrant_os)
-    logging.info(' Vagrantfile successfully generated in %s', vagrantfile_target)
+    logging.info(' punchbox: Vagrantfile successfully generated in %s', vagrantfile_target)
 
 
 def launch_vagrant_boxes():
     v = vagrant.Vagrant(vagrant_dir, quiet_stdout=False, quiet_stderr=False)
     v.up()
-    logging.info(' vagrant boxes successfully started')
+    logging.info(' punchbox: vagrant boxes successfully started')
 
 
 def destroy_vagrant_boxes():
     if os.path.exists(vagrantfile_target):
         v = vagrant.Vagrant(vagrant_dir, quiet_stdout=False, quiet_stderr=False)
         v.destroy()
-        logging.info(' vagrant boxes successfully stopped')
+        logging.info(' punchbox: vagrant boxes successfully stopped')
 
 def patch_security_model(model: Dict):
     security_dir="{}/../punch/resources/security".format(ROOT_DIR)
@@ -167,14 +167,14 @@ def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = No
     model_file = open(generated_model, "w+")
     model_file.write(model)
     model_file.close()
-    logging.info(' platform model file successfully generated in %s', generated_model)
+    logging.info(' punchbox: platform model file successfully generated in %s', generated_model)
     return model
 
 
 # CREATE PP-CONF #
 def create_ppconf():
     if not os.path.exists(build_conf_dir):
-        logging.info(' creating build configuration directory %s', build_conf_dir)
+        logging.info(' punchbox: creating build configuration directory %s', build_conf_dir)
         os.makedirs(build_conf_dir)
 
 
@@ -182,7 +182,7 @@ def create_ppconf():
 def create_resolver(platform_config, deployer, security=False):
     render_and_write(platform_templates, resolv_template_file, resolv_target,
                      punch=platform_config["punch"], security=security, versions=get_versions(deployer))
-    logging.info(' platform resolv.hjson successfully generated in %s', resolv_target)
+    logging.info(' punchbox: platform resolv.hjson successfully generated in %s', resolv_target)
 
 
 # IMPORT CHANNELS AND RESOURCES IN PP-CONF #
@@ -191,7 +191,7 @@ def import_user_resources(punch_user_config, platform_config_file, validation, t
         # No need to import validation tenant
         ignore = ["*.properties", "resolv.*", "validation"]
         my_copy_tree(punch_user_config, build_conf_dir, ignore=ignore)
-        logging.info(' punch user configuration successfully imported in %s', build_conf_dir)
+        logging.info(' punchbox: punch user configuration successfully imported in %s', build_conf_dir)
     else:
         # Need to render and import validation tenant files
         ignore = ["*.properties", "resolv.*", "*.j2"]
@@ -254,9 +254,9 @@ def import_user_resources(punch_user_config, platform_config_file, validation, t
                         commit_date=commit_date
                     )
             except Exception as e:
-                logging.error('Failure while working on template "%s".', template)
+                logging.error(' punchbox: Failure while working on template "%s".', template)
                 raise
-        logging.info(' punch validation configuration successfully imported in %s', build_conf_dir)
+        logging.info(' punchbox: punch validation configuration successfully imported in %s', build_conf_dir)
 
 
 ## CREATE A VALIDATION SHELL ##
@@ -267,9 +267,9 @@ def create_check_platform(platform_config, punch_user_config, security=False):
         render_and_write(platform_templates, check_platform_template, check_platform_target,
                          punch=platform_config['punch'], rules=rules, security=security)
         os.chmod(check_platform_target, 0o775)
-        logging.info(' punchplatform validation shell successfully generated in %s', check_platform_target)
+        logging.info(' punchbox: punchplatform validation shell successfully generated in %s', check_platform_target)
     except UndefinedError as err:
-        logging.error('cannot create \"check_platform\" properly: {}'.format(err))
+        logging.error(' punchbox: cannot create \"check_platform\" properly: {}'.format(err))
 
 
 def render_and_write(template_dir, template_file, target_file, *args, **kwargs):
@@ -286,7 +286,7 @@ def main():
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
     if "PUNCHBOX_DIR" not in os.environ:
-        logging.fatal(' PUNCHBOX_DIR environment variable is not set')
+        logging.fatal(' punchbox: PUNCHBOX_DIR environment variable is not set')
         exit(1)
 
     parser = argparse.ArgumentParser()
@@ -345,7 +345,7 @@ def main():
                 if args.elastalert_tool is not None:
                     copy_elastalert_tool(args.elastalert_tool)
         else:
-            logging.info(" empty configuration detected: skipping \'resolv.hjson\' and \'check_platform\' generation")
+            logging.info(" punchbox: empty configuration detected: skipping \'resolv.hjson\' and \'check_platform\' generation")
 
 
 if __name__ == "__main__":

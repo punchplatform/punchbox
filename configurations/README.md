@@ -1,8 +1,7 @@
 # User config 
 
-From a user point of view only files under this folder can be modified (the file provide with --config option)
-
-You could update existing ones or create a new one with your specific configuration
+From a user point of view only files under this folder can be modified (the file provided with --config option)
+You can update existing ones or create a new one with your specific configuration.
 
 This file is composed as follow : 
 
@@ -15,7 +14,7 @@ This file is composed as follow :
       - `meta`: common details for all boxes
           - `os`: os for all boxes
 
-  - `punch`: list of punch component
+  - `punch`: list of punch component. Do not put any if all you want is an empty cluster.
       - `installation_directory` : path where the punch components binaries will be installed
       - `data_storage_directory` : path where the punch components data will be stored
       - `elasticsearch`:
@@ -68,7 +67,6 @@ This file is composed as follow :
           - `username`: operator username
 
       
-
 **Note** : All parameters under `targets` key are mandatory. For those under `punch`, they are optional
 
 **Note** : do **never** add or change things in the platform_template or vagrant without a first review with the core punch team leaders

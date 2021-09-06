@@ -13,7 +13,7 @@
       },
       "server3": {
         "disksize": "40GB",
-        "memory": 8024,
+        "memory": 6144,
         "cpu": 2
       },
       "server4": {
@@ -111,7 +111,7 @@
       "servers": [
         "server1"
       ],
-      "username": "ppoperator"
+      "username": "vagrant"
     },
     "metricbeat": {
       "servers": [

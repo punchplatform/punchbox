@@ -3,29 +3,28 @@
     "info": {
       "server1": {
         "disksize": "20GB",
-        "memory": 3072,
-        "cpu": 2
+        "memory": 4096,
+        "cpu": 3
       },
       "server2": {
         "disksize": "20GB",
-        "memory": 4096,
-        "cpu": 2
+        "memory": 7168,
+        "cpu": 6
       },
       "server3": {
         "disksize": "20GB",
-        "memory": 3072,
-        "cpu": 2
+        "memory": 7168,
+        "cpu": 6
       },
       "server4": {
         "disksize": "20GB",
-        "memory": 6144,
-        "cpu": 2
+        "memory": 7168,
+        "cpu": 6
       }
     },
     "meta": {
       "os": "ubuntu/bionic64"
     }
   },
-  "punch": {
-  }
+  "punch": {}
 }

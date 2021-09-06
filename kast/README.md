@@ -1,8 +1,8 @@
-﻿#  Kast Deployment
+﻿#  Kast 
 
-This guide helps deploying a kast cluster onto vagrant boxes. Kast requires a cluster of
-centos or redhat servers. We will simply use the punchbox tool to create that cluster, then
-install kast onto it. 
+This guide helps deploying a kast cluster onto your punchbox vagrant boxes. 
+Kast requires a cluster of centos or redhat servers. We will simply use the punchbox tool 
+to create that cluster, then install kast onto it. 
 
 ## Prepare the VMs
 
@@ -10,7 +10,7 @@ Simply follow the punchbox vagrant guide to deploy a linux cluster.
 Make sure you have a ssh key. You can disable the ssh host key checking
 as explained [here](../vagrant/README.md). 
 
-As an example select the 16G template, make sure you use a
+As an example select the 32G template, make sure you use a
 supported os (for example "bento/centos-8") amd generate your vagrantfile using :
 
 ```sh
@@ -20,8 +20,7 @@ punchbox --platform-config-file configurations/empty_3nodes_32G.json --generate-
 That create a vagrant/Vagrantfile file. Start your servers:
 
 ```sh
-cd vagrant
-vagrant up
+make start-vagrant
 ```
 
 Check you can reach your boxes without passwords.

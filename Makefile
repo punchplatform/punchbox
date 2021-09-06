@@ -26,16 +26,15 @@ PEX_GENERATED_MARKERFILE=${DIR}/bin/pex/.all_pex_generated
 ALLTOOLS_INSTALLED_MARKERFILE=${DIR}/.alltools_installed
 
 # Color Functions
-ECHO=$(shell which echo)
-cyan=${ECHO} -e "\x1b[36m $1\x1b[0m$2"
-blue=${ECHO} -e "\x1b[34m $1\x1b[0m$2"
-green=${ECHO} -e "\x1b[32m $1\x1b[0m$2"
-red=${ECHO} -e "\x1b[31m $1\x1b[0m$2"
+blue=echo -e "\033[1;34m $1 \033[0m$2"
+cyan=echo -e "\033[1;36m $1 \033[0m$2"
+green=echo -e "\033[1;32m $1 \033[0m$2"
+red=echo -e "\033[1;31m $1 \033[0m$2"
 
 ifneq ("$(wildcard ${DIR}/vagrant/Vagrantfile)","")
 	CLEANUP_COMMAND="cd ${DIR}/vagrant && ${VAGRANT} destroy -f"
 else
-	CLEANUP_COMMAND="echo '------>  Vagrantfile does not exist yet... Nothing to wipe <------'"
+	CLEANUP_COMMAND="echo '  Vagrantfile does not exist yet... Nothing to wipe.'"
 endif
 
 ifeq ("$(wildcard ${DIR}/.deployer)","")
@@ -45,7 +44,7 @@ ifeq ("$(wildcard ${DIR}/.deployer)","")
 		GENERATE_DEPLOYER_COMMAND="echo ${PUNCH_DIR}/packagings/punch-deployer/target/punch-deployer-*.zip > ${DIR}/.deployer"
 	endif
 else
-	GENERATE_DEPLOYER_COMMAND="echo '------>  .deployer already exists... nothing to do <------'"
+	GENERATE_DEPLOYER_COMMAND="echo '  .deployer already exists.'"
 endif
 
 ifeq (, $(shell which python3))
@@ -53,27 +52,27 @@ ifeq (, $(shell which python3))
 endif
 
 ${VENV_MARKERFILE}:
-	@$(call blue, "************  CREATE PYTHON 3 .venv  VIRTUALENV  ************")
+	@$(call green, "************  Create python3 virtualenv ************")
 	@if [ ! -e "${DIR}/.venv/bin/activate" ] ; then python3 -m venv ${DIR}/.venv ; fi
 	@. ${DIR}/.venv/bin/activate && pip install -U pip wheel setuptools -q
 	@$(call blue, "Python 3 virtualenv installed:", "${DIR}/.venv")
 	@touch $@
 
 ${ACTIVATE_SH}: ${ACTIVATE_TEMPLATE} Makefile
-	@echo "  GENERATING '${ACTIVATE_SH}'..."
+	@$(call green, "************  Generate  activate.sh  ************")
 	@sed 's#.*PUNCHBOX_DIR=.*#export PUNCHBOX_DIR='${DIR}'#g' "${ACTIVATE_TEMPLATE}" > "${ACTIVATE_SH}"
 
 ${PEX_GENERATED_MARKERFILE}: ${VENV_MARKERFILE} ${PUNCHBOX_PEX_REQUIREMENTS} ${ANSIBLE_PEX_REQUIREMENTS} requirements.txt bin/punchbox.py
-	@$(call green, "Installing PunchBox python dependencies virtualenv...")
+	@$(call green, "Installing PunchBox python dependencies virtualenv.")
 	@. ${DIR}/.venv/bin/activate && pip install -r requirements.txt -q
-	@$(call green, "************ BUILDING PEX PACKAGES for punchbox and Ansible ************")
+	@$(call blue, "Build pex packages for punchbox and Ansible")
 	@. ${DIR}/.venv/bin/activate && pex -r ${PUNCHBOX_PEX_REQUIREMENTS} --disable-cache -o ${PUNCHBOX_PEX}
 	@. ${DIR}/.venv/bin/activate && pex -r ${ANSIBLE_PEX_REQUIREMENTS} --disable-cache -o ${ANSIBLE_PEX}
 	@touch $@
 
 ${DIR}/vagrant/.dependencies_installed:
 	@which vagrant 1>/dev/null || { echo "'vagrant' command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
-	@$(call green, "************ ADDING VAGRANT DEPENDENCIES ************")
+	@$(call green, "************ Add vagrant dependencies ************")
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-disksize
 	@cd ${DIR}/vagrant && ${VAGRANT} plugin install vagrant-vbguest
 	@touch $@
@@ -82,34 +81,31 @@ ${DIR}/vagrant/.dependencies_installed:
 ${ALLTOOLS_INSTALLED_MARKERFILE}: ${VENV_MARKERFILE} ${DEPENDENCIES_INSTALLED_MARKERFILE} ${PEX_GENERATED_MARKERFILE} ${ACTIVATE_SH}
 	@touch $@
 
-##@ Welcome to PunchBox CLI
-##@ With this Makefile, you will be able to setup a running PunchPlatform in no time
-##@ Sequences of commands to be made are defined by steps, just follow them and let the magic happen !
+##@ Welcome to punchbox deployer tool. Follow the steps listed below to deploy, run or test a complete punch.
 
-##@ ***************************************************************************************************
-
-##@ Step 1
+##@ Step 1 : build the punchbox tools and prepare the environment.
 
 .PHONY: install
 
-install: ${ALLTOOLS_INSTALLED_MARKERFILE} ## Build Punchbox Prerequisites
-	@$(call blue, "************  INSTALL STATUS ************")
+install: ${ALLTOOLS_INSTALLED_MARKERFILE} ## Build the punchbox tools
+	@$(call green, "************  Install ************")
 	@[ -e "${HOME}/.ssh/id_rsa.pub" ] || { echo ".ssh/id_rsa.pub not found in user home directory. Maybe try running 'ssh-keygen' without specific option." 2>&1 && exit 42 ; }
 	@which jq 1>/dev/null || { echo "jq command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 	@which curl 1>/dev/null || { echo "curl command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 	@which unzip 1>/dev/null || { echo "unzip command must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
 	@which python 1>/dev/null || { echo "python (>3.6.8) must be available on this node (deployer prerequisite)" 2>&1 && exit 11 ; }
-	@$(call green, "PunchBox pex:", "${PUNCHBOX_PEX}")
-	@$(call green, "Ansible pex:", "${ANSIBLE_PEX}")
-	@$(call green, "activate.sh:", "${ACTIVATE_SH}")
-	@$(call green, "install complete", "type 'make' for available targets !")
+	@$(call blue, "PunchBox pex:", "${PUNCHBOX_PEX}")
+	@$(call blue, "Ansible pex:", "${ANSIBLE_PEX}")
+	@$(call blue, "activate.sh:", "${ACTIVATE_SH}")
+	@$(call green, "install complete", "type 'make' for a list of available targets")
 
-##@ Step 2
+##@ Step 2 : add a reference to the punch deployer you want to use.
 
 .PHONY: configure-deployer
 
-configure-deployer:  ## Setup deployer path in .deployer, change it to yours
-	@$(call green, "Deployer zip path in .deployer change it\'s content to match yours:", "${DIR}/.deployer")
+configure-deployer:  ## register your punch deployer
+	@$(call green, "************  Setup punch deployer ************")
+	@$(call blue, "Adding reference to your punch deployer. Check the file:", "${DIR}/.deployer")
 	@eval ${GENERATE_DEPLOYER_COMMAND}
 
 deployed-configuration-32G: ${ALLTOOLS_INSTALLED_MARKERFILE}
@@ -119,13 +115,11 @@ deployed-configuration-16G: ${ALLTOOLS_INSTALLED_MARKERFILE}
 	@echo ${DIR}/configurations/complete_punch_16G.json > ${DIR}/.deployed_configuration
 
 
-##@ Step 3
+##@ Step 3 : choose a platform model to deploy. Refer to the various models available in the configurations folder.
 
-##@   Deploy for validation or production a Ubuntu PunchBox
+.PHONY: punchbox-ubuntu-16G punchbox-ubuntu-32G punchbox-ubuntu-32G-security punchbox-ubuntu-32G-validation punchbox-ubuntu-32G-validation-security
 
-.PHONY: punchbox-ubuntu-16G punchbox-ubuntu-32G punchbox-ubuntu-32G-validation
-
-punchbox-ubuntu-16G: deployed-configuration-16G  ## Generate all configurations for a punch deployment on ubuntu targets - 16GB
+punchbox-ubuntu-16G: deployed-configuration-16G  ## Complete Ubuntu punch. Check ./configurations/complete_punch_16G.json
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
@@ -133,7 +127,7 @@ punchbox-ubuntu-16G: deployed-configuration-16G  ## Generate all configurations 
 				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-ubuntu-32G: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets - 32GB
+punchbox-ubuntu-32G: deployed-configuration-32G  ## Complete Ubuntu punch. Check ./configurations/complete_punch_32G.json
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -141,7 +135,7 @@ punchbox-ubuntu-32G: deployed-configuration-32G  ## Generate all configurations 
 				 --punch-user-config ${DIR}/punch/configurations/validation \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-ubuntu-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets with RBAC + SSL security over the ELK configuration - 32GB
+punchbox-ubuntu-32G-security: deployed-configuration-32G  ## Complete Ubuntu punch with security. Check ./configurations/complete_punch_32G.json
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -150,7 +144,7 @@ punchbox-ubuntu-32G-security: deployed-configuration-32G  ## Generate all config
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --security
 
-punchbox-ubuntu-32G-validation: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets - 32GB
+punchbox-ubuntu-32G-validation: deployed-configuration-32G  ## Validation Ubuntu punch. Used for release testing.
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -159,7 +153,7 @@ punchbox-ubuntu-32G-validation: deployed-configuration-32G  ## Generate all conf
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --validation
 
-punchbox-ubuntu-32G-validation-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets with RBAC + SSL security over the ELK configuration - 32GB
+punchbox-ubuntu-32G-validation-security: deployed-configuration-32G  ## Validation Ubuntu punch with RBAC/TLS. Used for release testing.
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -169,11 +163,9 @@ punchbox-ubuntu-32G-validation-security: deployed-configuration-32G  ## Generate
 				 --security \
 				 --validation
 
-##@   Deploy for validation or production a CentOS PunchBox
+.PHONY: punchbox-centos-16G punchbox-centos-32G punchbox-centos-32G-security punchbox-centos-32G-validation punchbox-centos-32G-validation-security
 
-.PHONY: punchbox-centos-16G punchbox-centos-32G punchbox-centos-32G-validation
-
-punchbox-centos-16G: deployed-configuration-16G  ## Generate all configurations for a punch deployment on CentOS targets - 16GB
+punchbox-centos-16G: deployed-configuration-16G  ## Complete Centos punch. Check ./configurations/complete_punch_16G.json
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
@@ -183,7 +175,7 @@ punchbox-centos-16G: deployed-configuration-16G  ## Generate all configurations 
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-centos-32G: deployed-configuration-32G  ## Generate all configurations for a punch deployment on CentOS targets - 32GB
+punchbox-centos-32G: deployed-configuration-32G  ## Complete Centos punch. Check ./configurations/complete_punch_32G.json
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -193,7 +185,7 @@ punchbox-centos-32G: deployed-configuration-32G  ## Generate all configurations 
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on CentOS targets with RBAC security over the ELK configuration - 32GB
+punchbox-centos-32G-security: deployed-configuration-32G  ## Complete Centos punch with RBAC and TLS. Check ./configurations/complete_punch_32G. 
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -204,7 +196,7 @@ punchbox-centos-32G-security: deployed-configuration-32G  ## Generate all config
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --security
 				
-punchbox-centos-32G-validation: deployed-configuration-32G  ## Generate all configurations for a punch deployment on CentOS targets - 32GB
+punchbox-centos-32G-validation: deployed-configuration-32G  ## Validation Centos model. Used for release testing.
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -215,7 +207,7 @@ punchbox-centos-32G-validation: deployed-configuration-32G  ## Generate all conf
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --validation
 
-punchbox-centos-32G-validation-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on ubuntu targets with RBAC + SSL security over the ELK configuration - 32GB
+punchbox-centos-32G-validation-security: deployed-configuration-32G  ## Validation Centos model. Used for release testing. Includes RBAC + SSL security over the ELK configuration.
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -227,11 +219,9 @@ punchbox-centos-32G-validation-security: deployed-configuration-32G  ## Generate
 				 --security \
 				 --validation
 
-##@   Deploy for validation or production a Rhel(Red Hat Enterprise Linux) PunchBox
+.PHONY: punchbox-rhel-16G punchbox-rhel-32G punchbox-rhel-32G-security punchbox-rhel-32G-validation
 
-.PHONY: punchbox-rhel-16G punchbox-rhel-32G punchbox-rhel-32G-validation
-
-punchbox-rhel-16G: deployed-configuration-16G  ## Generate all configurations for a punch deployment on rhel targets - 16GB
+punchbox-rhel-16G: deployed-configuration-16G  ## Complete RHEL punch. Check ./configurations/complete_punch_32G. 
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
@@ -241,7 +231,7 @@ punchbox-rhel-16G: deployed-configuration-16G  ## Generate all configurations fo
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-rhel-32G: deployed-configuration-32G  ## Generate all configurations for a punch deployment on rhel targets - 32GB
+punchbox-rhel-32G: deployed-configuration-32G  ## Complete RHEL punch. Check ./configurations/complete_punch_32G. 
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -251,7 +241,7 @@ punchbox-rhel-32G: deployed-configuration-32G  ## Generate all configurations fo
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-rhel-32G-security: deployed-configuration-32G  ## Generate all configurations for a punch deployment on rhel targets with RBAC security over the ELK configuration - 32GB
+punchbox-rhel-32G-security: deployed-configuration-32G  ## Complete RHEL punch with RBAC and TLS. Check ./configurations/complete_punch_32G. 
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -262,7 +252,7 @@ punchbox-rhel-32G-security: deployed-configuration-32G  ## Generate all configur
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --security
 
-punchbox-rhel-32G-validation: deployed-configuration-32G  ## Generate all configurations for a punch deployment on rhel targets - 32GB
+punchbox-rhel-32G-validation: deployed-configuration-32G  ## RHEL validation punch.
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -273,7 +263,19 @@ punchbox-rhel-32G-validation: deployed-configuration-32G  ## Generate all config
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --validation
 
-##@ Step 4
+.PHONY: punchbox-ubuntu-clustering-32G
+
+punchbox-ubuntu-clustering-32G: ## Three node shiva and storm cluster. Check configurations/clustering_32G.json
+	@$(call green, "Deploying 32G clustering punchbox")
+	@echo ${DIR}/configurations/clustering_32G.json.json > ${DIR}/.deployed_configuration
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --platform-config-file ${DIR}/configurations/clustering_32G.json \
+				 --generate-vagrantfile \
+				 --punch-user-config ${DIR}/punch/configurations/validation \
+				 --deployer $(shell cat ${DIR}/.deployer)
+
+
+##@ Step 4 : start your VMs
 
 .PHONY: start-vagrant
 
@@ -281,11 +283,11 @@ start-vagrant:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Start vagrant boxes
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --start-vagrant
 
-##@ Step 5
+##@ Step 5 : Deploy the punch. I.e. deploy all the punch components to yours vms.
 
 .PHONY: deploy-punch
 
-deploy-punch:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy PunchPlatform to targets
+deploy-punch:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy punch components to the target VMs
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --generate-platform-config \
 								  --templates-dir ${DIR}/punch/deployment_template/ \
@@ -297,7 +299,7 @@ deploy-punch:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy PunchPlatform to targ
 
 .PHONY: deploy-punch
 
-deploy-punch-security:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy PunchPlatform to targets
+deploy-punch-security:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy punch components to the target VMs. This also install secrets.
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --generate-platform-config \
 								  --templates-dir ${DIR}/punch/deployment_template/ \
@@ -307,11 +309,11 @@ deploy-punch-security:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy PunchPlatfor
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh --deploy -u vagrant -e @${DIR}/punch/build/pp-conf/deployment_secrets.json
 
-##@ Step 6
+##@ Step 6 : add a user punch configuration, i.e. tenants, channels and punchlines.
 
 .PHONY: deploy-config local-integration-vagrant update-deployer-configuration
 
-deploy-config:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploys PunchPlatform configuration files to targets
+deploy-config:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy punch user configuration files to the target operator (server1) VM
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh -cp -u vagrant
 
@@ -329,7 +331,7 @@ update-deployer-configuration: ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Use this rul
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
 								--punch-user-config ${DIR}/punch/configurations/validation
 
-##@ Setting Validation Scheduler with SystemD
+##@ Setting Validation Scheduler with SystemD. Use this only to add a cron to launch a punch campaign (say) every night on your laptop.
 
 .PHONY: validation-scheduler-ubuntu-32G validation-scheduler-centos-32G
 
@@ -409,7 +411,6 @@ validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4 and punch_dir
 .PHONY: clean clean-deployer clean-punch-config clean-vagrant clean-validation-scheduler
 
 clean: clean-vagrant clean-deployer ## Cleanup vagrant and deployer
-	@$(call blue, "************  CLEAN  ************")
 	@rm -rf ${DIR}/.venv
 	@rm -rf ${DIR}/punch/build
 	@rm -rf ${DIR}/activate.sh
@@ -423,24 +424,25 @@ clean: clean-vagrant clean-deployer ## Cleanup vagrant and deployer
 	@-find ${DIR} -name '*.pyo' -exec rm -f {} +
 	@-find ${DIR} -name '*~' -exec rm -f {} +
 	@-find ${DIR} -name '__pycache__' -exec rm -fr {} +
-	@$(call red, "WIPED: build vagrantfile activate.sh punchbox.pex ansible.pex and pyc/pyo files")
+	@$(call blue, "Deleting build vagrantfile activate.sh punchbox.pex ansible.pex and pyc/pyo files")
+	@$(call green, "Cleaned")
 
 clean-deployer:  ## Remove the installed deployer
-	@$(call red, "CLEANING OLD DEPLOYER ARCHIVES", "${DIR}/punch/build/punch-deployer-*")
+	@$(call blue, "Cleaning deployer archive", "${DIR}/punch/build/punch-deployer-*")
 	@rm -rf ${DIR}/punch/build/punch-deployer-*
 	@$(call red, "Will not be removed: do it manually", "${DIR}/.deployer and ${DIR}/.deployed_configuration")
 
 clean-punch-config:  ## Remove Punchplatform Configurations
-	@$(call red, "CLEANING PUNCH CONFIGURATIONS", "${DIR}/punch/build/pp-conf/*")
+	@$(call blue, "Cleaning old punch configurations", "${DIR}/punch/build/pp-conf/*")
 	@rm -rf ${DIR}/punch/build/pp-conf/
 
 clean-vagrant:  ## Remove vagrant boxes and generated Vagrantfile
-	@$(call red, "WIPPING VAGRANT VM", "cd ${DIR}/vagrant \&\& ${VAGRANT} destroy -f")
+	@$(call blue, "Destroying vagrant vms", "cd ${DIR}/vagrant \&\& ${VAGRANT} destroy -f")
 	@eval ${CLEANUP_COMMAND}
 	@rm -rf ${DIR}/vagrant/Vagrantfile
 
 clean-validation-scheduler:  ## Remove installed validation scheduler for current user
-	@$(call red, "Cleaning old systemd generated files", "${VALIDATION_SERVICE_SCRIPT} and ${VALIDATION_TIMER_SCRIPT}")
+	@$(call blue, "Cleaning old systemd generated files", "${VALIDATION_SERVICE_SCRIPT} and ${VALIDATION_TIMER_SCRIPT}")
 	@systemctl --user disable --now ${VALIDATION_TIMER_NAME}
 	@systemctl --user disable --now ${VALIDATION_SERVICE_NAME}
 	@rm -rf ${VALIDATION_SERVICE_SCRIPT} ${VALIDATION_TIMER_SCRIPT}

@@ -28,6 +28,14 @@ In the rest of this chapter we go through a complete deployment, assuming you ha
 
 ## Deployment
 
+> :warning: Before launching command you need to have (i) a punch deployer archive at hand and (ii) choose a target
+deployment depending on what you want to do. 
+
+A few ready-to-be-used deployment configurations are available. It is best to start from these: 
+
+* punchbox-ubuntu-32G (or punchbox-ubuntu-16G) deploy a fairly complete punch with the full combo: storm spark shiva kafka elastic etc..
+* 
+
 ### Quick start 
 
 This example shows how to deploy a complete punch quickly. We provided a Makefile to reduce 
@@ -67,10 +75,10 @@ make clean
 
 ### Behind the scene
 
-Commands provided throught the `Makefile` are a wrapper of the following commands. 
-You can use them directly if you want to have more possibilities 
+The commands provided by the `Makefile` are simple wrappers of punchbox commands. 
+You can use them directly if you want to have more possibilities. 
 
-Assuming you also have a punchplatform deployer and your associated configuration somewhere
+Assuming you also have a punch deployer and your associated configuration somewhere
 type in the following command:
 
 ```sh
@@ -91,8 +99,8 @@ punchbox --platform-config-file configurations/complete_punch_16G.json \
         --deployer <path_to_your_punchplatform_deployer_zip>
 ```
 
-This will unzip the punch deployer archive, as well as the sample standalone channels so that you will have a complete
-sample application deployed on your punch.
+This will unzip the punch deployer archive, as well as the sample standalone channels 
+so that you will have a complete sample application deployed on your punch.
 
 Next generate the punch deployment files: You do that using the `punchplatform-deployer.sh`
 tool that is now available to you. 
@@ -107,7 +115,7 @@ punchplatform-deployer.sh -gi
 
 Last you can effectively deploy the punch. Note that you can use tags to install only
 a part of it:
-Note that  a successful configuration generation you can deploy a specific component for example:
+Note also that after successful configuration generation you can deploy a specific component for example:
 
 ```sh
 # install everything 
@@ -146,7 +154,8 @@ If you want to only deal with vagrant boxes, you must use vagrant options :
 punchbox --platform-config-file configurations/32-full.json --generate-vagrantfile --start-vagrant  
 ```
 
-**Note** : For each update on config or templates you must relaunch all these commands, you can only play with `punchbox` options to be more or less verbose
+**Note** : For each update on config or templates you must relaunch all these commands, 
+you can only play with `punchbox` options to be more or less verbose
 
 ## Options
 

@@ -1,27 +1,34 @@
-# Punchplatform validation
+# Punch Release Validation
 
-**Warning** : Section in Beta, fixes will coming soon
+The punch team provides and uses this tool to regularly validate the punch
+development releases. You can either launch a campaign on-shot, or make it part
+of a cron so that it is run daily. 
 
-Punchplatform validation could be use to daily check your platform health or to check a 
-specific critic point
+Files in the `templates` folder combined with the punch standalone examples
+provide the required test tenanst and channels. We use these applications
+to check the correct end-to-end punch behavior.
 
-Punchplatform team provides and uses this tool to validate Punchplatform releases
-and to maintain stabilily of Punch repository 
+You can also use your own channels and create your own validation templates 
+to better fit to your specific use case.
 
-Files in `templates` folder combined with Punchplatform standalone examples
-are the resources necessary for Punchplatform team validation
+## Basics
 
-However, you can use your own channels and create your own validation templates to respond
-to your specific use case 
+* the profile used to run test is based on the configurations/complete_punch_32G.json model
+* the os (RHEL/Ubuntu/Centos) is changed as part of the chosen Makefile directive
+* the punch operator used is 'vagrant' on server1
+* the tenants and channels configuration is provided and installed automatically on vagrant@server1.
+* the whole campaign can be automatically scheduled for automated tests. 
 
-## Punchplatform integration 
+## Quick Start
 
-### Quick Start
+### Manual Campaign
 
-#### TEST on vagrant a complete punch platform with 32G RAM
+Perform the following list of steps. 
 
 ```sh
+# build the punchbox tools
 make install
+
 # a .deployer file is generated which contains the file path to your deployer.zip; change it to yours if it doesn't match
 # By default we consider that pp-punch and punchbox are in the same directory: $WORKING_SPACE/pp-punch and $WORKING_SPACE/punchbox
 make configure-deployer
@@ -29,13 +36,13 @@ make configure-deployer
 # Generate all configurations for a 32G deployment on ubuntu
 make punchbox-ubuntu-32G-validation
 
-# Pop up vagrant boxes
+# Start your VMs
 make start-vagrant
 
-# Deploy Punchplatform
+# Deploy the punch
 make deploy-punch
 
-# send validation configuration files to your platform and run tests
+# Install the validation configuration files to your punch and run the tests
 make local-integration-vagrant
 
 # note: run local-integration-vagrant rule as many as you want to run tests
@@ -46,7 +53,7 @@ make update-deployer-configuration && make local-integration-vagrant
 make clean
 ```
 
-#### Setup automatic scheduling with systemd
+### Setup automatic scheduling with systemd
 
 **Note 1**: their is no automatic clone of pp-punch repository; 
 
@@ -65,7 +72,7 @@ user@PUNCH: ~/r61$ ls
 pp-punch  punchbox  starters
 ```
 
-##### Ubuntu LTS 18.X
+#### Ubuntu LTS 18.X
 
 ```sh
 # everyday at 4 am
@@ -83,7 +90,7 @@ journalctl -u punch_validation.service -f
 make clean-validation-scheduler
 ```
 
-##### CentOS 7
+#### CentOS 7
 
 ```sh
 # everyday at 2 am
@@ -98,9 +105,12 @@ journalctl -u punch_validation.service -f
 make clean-validation-scheduler
 ```
 
-### Manual integration 
+## Manual Commands 
 
-You have to deploy your platform with a specific validation configuration : 
+This chapter is useful to launch only part of the deployment or test. It also is useful
+to understand the punchbox tooling and the punch deployer tools. 
+
+Deploy your platform with a specific validation configuration : 
 
 ```sh
 punchbox --platform-config-file configurations/complete_punch_16G.json \
@@ -125,7 +135,7 @@ ssh vagrant@server_operator
 
 This automatic test checks if all the test pass.
 
-### Reporting to Livedemo
+## Reporting to Livedemo
 
 You can send your tests results to the Punchplatform Livedemo with ElastAlert HTTP POST.
 
@@ -142,7 +152,7 @@ The Livedemo will receive :
 
 A Spark aggregation plan running on Livedemo will add aggregated tests results to the validation information document.
 
-## Punchplatform tests 
+## Tests Description
 
 This section describes tests done during Punchplatform team validation :
 

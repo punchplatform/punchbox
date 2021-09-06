@@ -1,38 +1,101 @@
-# Punch Integration Tools
+# Punchbox Integration Tools
 
-This repository provides tools to deploy plain servers, kubernetes clusters and/or
-punch based platform in a production-ready setup. Most of these tools should be able to run on machine having at least 16GB of ram memory. 
-But is very useful should you have VMs or physical servers as well.
+Welcome to the punchbox project. It  
+provides tools to easily deploy plain servers, kubernetes clusters and/or
+punch platforms in a production-ready setup. 
 
-This repository follows the punch branch naming convention. 
+These tools run fine on 16GB laptops. 32G is recommended. If you have one you will
+be at ease to work locally, i.e. have a representative platforms completly running
+on local VMS. 
+This said; these tools are also very useful should you have (remote) VMs or physical servers.
 
-For instance, this repository 5.7 branch should be used to deploy the same version of punch (5.7), the 6.0 to deploy a 6.0 etc. If you do not plan to install punch but only kube or vagrant boxes, stick to the latest stable branch !
+## FAQ
 
-**Behind the scene**
+### Why a Punchbox ?
 
-We use `pyenv` to install the exact python version we depend on ~ **3.6.8**.
+The punchbox is very useful to:
 
-A virualenv directory is created at the root of this repository on your local filesystem, containing required python modules for the punchbox to be functional.
+* support teams: punchboxes are used to test platform representative of real clients platforms 
+* validation team: the punch team use the punchbox to play release and integration tests
+* development team: having a punchbox at hand makes it easy to develop distributed applications.
 
-Some python module, such as ansible, are generated as PEX by our `Makefile` install rule. They are then added to your $PATH upon sourcing a generated `activate.sh` script.
+### Why not MiniKube ? Kind ? Kast-All-In-One ? Vagrant ?
+
+* Minikube is kubernetes centric and too simple (single node)
+* Kind is great for automated K8 CI/CD tests. We use it for that. But only for that.
+* Vagrant: vagrant is actually used by the punchbox. Vagrant alone is too low level.  
+* Kast-All-In-One: is a great and very similar tool. We plan to use it and probably replace the punchbox in the future. The rationale of maitaining the punchbox is to keep supporting non Kubernetes projects and to keep leveraging the punch validation apps.
+
+### What tools/binary is actually delivered ?
+
+After a 'make install' two binaries are provided:
+
+* ansible : so that you do not have to provide it yourself. We make sure the right ansible version is packaged for you.
+* punchbox : a small python app that provide various helper subcopmmands. Check 'punchbox -h'. 
+
+Note however that you can completly ignore these two apps and only use the top level Makefile.
+
+### What can a Punchbox do ?
+
+* create a set of VMs
+* deploy various models of punch on these VMs
+* deploy a Kast Kubernetes cluster on top of these VMS.
+* run punch validation campaigns
+
+### Is the Punchbox useful to Punch Customers ?
+
+Yes. It is an easy and well documented way to learn how to deploy a punch.
+
+### Is the Punchbox specific to Punch ?
+
+No but the primary goal of the Punchbox is indeed to allow the punch 
+professional and development teams to support customers and validate 
+releases. 
+
+### What is the Branch Usage ?
+
+This repository follows the punch branch naming convention.
+For instance, this repository 5.7 branch should be used to deploy the same version of 
+punch (5.7), the 6.0 to deploy a 6.0 etc. If you do not plan to install punch but only 
+kube or vagrant boxes, stick to the latest stable branch.
 
 ## Requirements
 
 ### RSA Key for ssh
 
-The use of ssh to deploy software inside VMs relies on having generated a RSA key in the user environment (~/.ssh/id_rsa.pub).
-If it does not exist, you can create one :
+The use of ssh to deploy the punch software and cots inside the vagrant VMs 
+requires your RSA public key be located in (/.ssh/id_rsa.pub). 
+
+If it does not exist, you can create one:
+
 ```sh
 ssh-keygen  ### When prompted, use the provided default values (just press Return key)
 ```
 
-### Python and PEX
-This repository leverages python pex. We recommand the use of [pyenv](https://github.com/pyenv/pyenv). 
+That key will be installed in the authorized_keys file of each VM. 
+
+Right after your VMs are created, ensure you can successfully  ssh without password to each 
+VM. I.e. :
+
+```
+ssh vagrant@server1
+```
+must succeed. 
+
+### Python 
+
+[pyenv](https://github.com/pyenv/pyenv) is used to install the exact python version we depend on ~ **3.6.8**.
+
+A virualenv directory is created at the root of this repository on your local filesystem, containing required python modules for the punchbox to be functional.
+
+Some python module, such as ansible, are generated as PEX by our `Makefile` install rule. They are then added to your $PATH upon sourcing a generated `activate.sh` script.
+
 If not familiar with python installation and best practices refer to 
 [Setup Python](https://doc.punchplatform.com/Contribution_Guide/Setup_Python.html). 
 
 Here is a safe and clean procedure to setup your python environment: first 
 create and activates a new virtualenv and call it (say) punchbox
+
 ```sh
 pyenv virtualenv 3.6.8 punchbox
 pyenv activate punchbox
@@ -159,7 +222,8 @@ core runtime stack. It will soon become an integrated part of the punch.
 
 ## Punch Reference Servers
 
-This part lets you create plain unix servers with all the prerequisites to (i) setup a punch deployer server and/or (ii) setup a punch platform target server.
+This part lets you create plain unix servers with all the prerequisites to (i) setup a punch deployer server 
+and/or (ii) setup a punch platform target server.
 
 Depending on your goal the prerequisites are differnt. A punch deployer server needs for example ansible, jq, unzip python etc .. Instead a punch target server (i.e. where you deploy and run punch apps and services) require  mainly python 3. 
 
@@ -178,6 +242,17 @@ Also provided is a great tool to perform an end-to-end validation of the punch.
 **warning**: this part requires you have an official punch deployer package. 
 
 Refer to the [punch](./punch/README.md) guide.  
+
+## Run Punch Validation Campaign
+
+One of the primary goal of this project is to allow each developper to run locally a
+decent campaign of integration tests. This makes it easier to test a punch on the various
+OS targets, easier to have developper close to the testing and integration issues (devops principles),
+and last benefit from the set of development laptop to benefit from a first platform for testing. 
+
+This comes in complement to a central shared site CI/CD.
+
+If that is what you want to do, refer to the [validation](./punch/configurations/validation/README.md) guide.
 
 ## Contribute
 
