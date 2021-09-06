@@ -275,13 +275,17 @@ punchbox-ubuntu-clustering-32G: ## Three node shiva and storm cluster. Check con
 				 --deployer $(shell cat ${DIR}/.deployer)
 
 
-##@ Step 4 : start your VMs
+##@ Step 4 : start (or stop) your VMs
 
-.PHONY: start-vagrant
+.PHONY: start-vagrant stop-vagrant
 
 start-vagrant:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Start vagrant boxes
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --start-vagrant
+
+stop-vagrant:  ## Stop vagrant boxes. This is useful to simply stop, not destroying.
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchbox --stop-vagrant
 
 ##@ Step 5 : Deploy the punch. I.e. deploy all the punch components to yours vms.
 
@@ -408,9 +412,12 @@ validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4 and punch_dir
 	@systemctl --user list-timers
 ##@ Cleanup
 
-.PHONY: clean clean-deployer clean-punch-config clean-vagrant clean-validation-scheduler
+.PHONY: stop clean clean-deployer clean-punch-config clean-vagrant clean-validation-scheduler
 
-clean: clean-vagrant clean-deployer ## Cleanup vagrant and deployer
+stop: stop-vagrant ## Only stop vagrant boxes
+	@$(call green, "Stopped vagrant boxes")
+
+clean: clean-vagrant clean-deployer ## Cleanup vagrant and deployer. Watchout this wipes everything. 
 	@rm -rf ${DIR}/.venv
 	@rm -rf ${DIR}/punch/build
 	@rm -rf ${DIR}/activate.sh

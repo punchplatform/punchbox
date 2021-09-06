@@ -122,6 +122,11 @@ def launch_vagrant_boxes():
     v.up()
     logging.info(' punchbox: vagrant boxes successfully started')
 
+def stop_vagrant_boxes():
+    v = vagrant.Vagrant(vagrant_dir, quiet_stdout=False, quiet_stderr=False)
+    v.halt()
+    logging.info(' punchbox: vagrant boxes successfully stopped')
+
 
 def destroy_vagrant_boxes():
     if os.path.exists(vagrantfile_target):
@@ -311,6 +316,7 @@ def main():
     parser.add_argument("--destroy-vagrant", help="Vagrant destroy", action="store_true")
     parser.add_argument("--generate-vagrantfile", help="Generate vagrantfile", action="store_true")
     parser.add_argument("--start-vagrant", help="Vagrant up", action="store_true")
+    parser.add_argument("--stop-vagrant", help="Vagrant halt", action="store_true")
     parser.add_argument("--os", help="Operating system to deploy with Vagrant. If set, it overwrites configuration")
     parser.add_argument("--interface", help="Interface to apply to deployed services")
     parser.add_argument("--security", help="Enable security deployment", action="store_true")
@@ -328,6 +334,9 @@ def main():
 
     if args.start_vagrant is True:
         launch_vagrant_boxes()
+
+    if args.stop_vagrant is True:
+        stop_vagrant_boxes()
 
     if args.deployer is not None:
         unzip_punch_archive(args.deployer)
