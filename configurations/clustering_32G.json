@@ -1,0 +1,101 @@
+{
+  "targets": {
+    "info": {
+      "server1": {
+        "disksize": "40GB",
+        "memory": 6144,
+        "cpu": 2
+      },
+      "server2": {
+        "disksize": "40GB",
+        "memory": 5120,
+        "cpu": 2
+      },
+      "server3": {
+        "disksize": "40GB",
+        "memory": 5120,
+        "cpu": 2
+      },
+      "server4": {
+        "disksize": "40GB",
+        "memory": 5120,
+        "cpu": 2
+      }
+    },
+    "meta": {
+      "os": "ubuntu/bionic64"
+    }
+  },
+  "punch": {
+    "installation_directory": "/data/opt",
+    "data_storage_directory": "/data",
+    "elasticsearch": {
+      "servers": [
+        "server1"
+      ],
+      "memory": "512m"
+    },
+    "kibana": {
+      "servers": [
+        "server1"
+      ]
+    },
+    "zookeeper": {
+      "servers": [
+        "server1"
+      ],
+      "childopts": "-server -Xmx128m -Xms128m"
+    },
+    "gateway": {
+      "servers": [
+        "server1"
+      ],
+      "inet_address": "172.28.128.22"
+    },
+    "storm": {
+      "master": {
+        "servers": [
+          "server1"
+        ]
+      },
+      "ui": {
+        "servers": [
+          "server1"
+        ]
+      },
+      "slaves": [
+        "server2","server3","server4"
+      ],
+      "workers_childopts": "-Xmx128m",
+      "supervisor_memory_mb": 256
+    },
+    "kafka": {
+      "brokers": [
+        "server1:9092"
+      ],
+      "jvm_xmx": "512M"
+    },
+    "shiva": {
+      "servers": [
+        "server2",
+        "server3",
+        "server4"
+      ],
+      "mode": "kafka"
+    },
+    "operator": {
+      "servers": [
+        "server1"
+      ],
+      "username": "ppoperator"
+    },
+    "metricbeat": {
+      "servers": [
+        "server1",
+        "server2",
+        "server3",
+        "server4"
+      ]
+    }
+  }
+}
