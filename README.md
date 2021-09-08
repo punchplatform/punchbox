@@ -82,9 +82,22 @@ punchbox -h
 
 ## Usages
 
-### Generate Bare Linux Vagrant Boxes
+### Deploy a KAST Kubernetes cluster
 
-To generate one or several plain linux boxes,  you will find some
+Checkout the [kast](./kast/README.md) guide to deploy a Kast cluster onto vagrant. In turn you will be
+able to install a punch on top of it. 
+
+### Create Punch Reference Servers
+
+Refer to the [ansible](./ansible/README.md) guide.  It contains a few ansible roles to create linux servers suited for a punch deployment. But only the linux server.
+
+### Deploy a Complete Punch
+
+Refer to the [punch](./punch/README.md) guide. To run validation tests, checkout out the [validation](./punch/configurations/validation/README.md) guide.
+
+### Generate Plain Linux CLusters 
+
+To generate one or several plain linux boxes, you will find some
 simple models in the configurations folder. For example to generate 
 three ubuntu servers for testing things on a 16Gb laptop use the following:
 
@@ -138,30 +151,7 @@ Here the configurations/empty_16G.json example:
 
 For another os simply update the meta os properties. For example "bento/centos-8". 
 
-### Deploy a KAST Kubernetes cluster
-
-Checkout the [kast](./kast/README.md) guide to deploy a Kast cluster onto vagrant. In turn you will be
-able to install a punch on top of it. 
-
-### Deploy Punch Reference Servers
-
-This part lets you create plain unix servers with all the prerequisites to 
-(i) setup a punch deployer server 
-and/or (ii) setup a punch platform target server.
-
-Depending on your goal the prerequisites are differnt. A punch deployer server needs for example ansible, jq, unzip python etc .. Instead a punch target server (i.e. where you deploy and run punch apps and services) require  mainly python 3. 
-
-The ansible roles defined in this part are free to use and lets you setup these target in minutes. 
-
-Refer to the [ansible](./ansible/README.md) guide.  
-
-### Deploy a Complete Punch
-
-Refer to the [punch](./punch/README.md) guide.  
-To run validation tests, checkout out the [validation](./punch/configurations/validation/README.md) guide.
-
 ## Contribute
 
-This repository is licensed under the ApacheV2 license, please feel free to contribute. 
-Only the punch itself is submitted to license, but is not necessary to use the vagrant or kube 
+This repository is licensed under the ApacheV2 license, please feel free to contribute. Only the punch itself is submitted to license, but is not necessary to use the vagrant or kube 
 parts.
