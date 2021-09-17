@@ -17,7 +17,7 @@
         "punch_commands": {
           "security": {
             "kafka_clients": {
-              "local": {
+              "common": {
                 "ssl_enabled": true,
                 "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                 "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
@@ -26,7 +26,7 @@
                 }
             },
             "elasticsearch_clients": {
-                "es_search": {
+                "common": {
                   "ssl_enabled": true,
                   "ssl_client_certificate_authority": "@{PUNCHPLATFORM_SECRETS_DIR}/ca.pem",
                   "ssl_client_certificate": "@{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem",
@@ -50,7 +50,7 @@
                   }
               },
               "gateway_clients": {
-                  "gateway_32g": {
+                  "common": {
                     "ssl_enabled": true,
                     "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                     "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
@@ -59,7 +59,7 @@
                   }
               },
               "zookeeper_clients": {
-                  "local": {
+                  "common": {
                     "ssl_enabled": true,
                     "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                     "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}",
@@ -75,7 +75,7 @@
     "reporters": {
       "myreporter" : {
         "type": "kafka",
-        "brokers": "local",
+        "brokers": "common",
         "topic": "platform-events",
         "reporting_interval": 30,
         "encoding": "json"
@@ -95,13 +95,13 @@
     "shiva": {
     "shiva_version": "{{ version.shiva }}",
     "clusters": {
-      "local": {
+      "common": {
         "reporters" : ["myreporter"],
         "storage": {
           "type" : "{{ shiva.mode }}"
           {% if shiva.mode == "kafka" %}
           ,
-          "kafka_cluster": "local"
+          "kafka_cluster": "common"
           {% endif %}
         },
         {% if security is defined %}
@@ -116,7 +116,7 @@
           "{{ server }}": {
             "runner": true,
             "can_be_master": true,
-            "tags": [ "local" ]
+            "tags": [ "common" ]
           }{% if not loop.last %},{% endif %}
       {% endfor %}
         }
@@ -137,7 +137,7 @@
       "operators_username" : ["{{ operator.username }}"],
       "storage" : {
             "type" : "kafka",
-            "kafka_cluster": "local"
+            "kafka_cluster": "common"
       },
       "servers": {
         "server1": {}
@@ -165,7 +165,7 @@
     "spark_version" : "{{ version.spark }}",
     "punchplatform_analytics_deployment_version": "{{ version["analytics-deployment"] }}",
     "clusters" : {
-      "local": {
+      "common": {
         "master" : {
           "servers" : {{ spark.masters | tojson }},
           "listen_interface" : "{{ iface }}",
@@ -196,7 +196,7 @@
         },
         {% endif %}
         "spark_workers_by_punchplatform_spark": 1,
-        "zk_cluster" : "local",
+        "zk_cluster" : "common",
         "zk_root" : "spark-main",
         "slaves_cpu" : 2,
         "slaves_memory" : "{{ spark.slaves_memory }}"
@@ -211,7 +211,7 @@
    "zookeeper_nodes_production_interface": "{{ iface }}",
    "zookeeper_childopts": "{{ zookeeper.childopts }}",
     "clusters": {
-      "local": {
+      "common": {
         "hosts": {{ zookeeper.servers | tojson }},
         "cluster_port": 2181,
         "punchplatform_root_node": "/punchplatform-primary"
@@ -237,7 +237,7 @@
   "gateway": {
     "gateway_version": "{{ version.gateway }}",
     "clusters": {
-      "gateway_32g": {
+      "common": {
         "tenant": "mytenant",
         "modsecurity_enabled": false,
         {% if security is defined %}
@@ -261,7 +261,7 @@
         },
         "elasticsearch": {
           "data_cluster": {
-            "cluster_id": "es_search",
+            "cluster_id": "common",
             "hosts" : {{ server_ip | tojson }},
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
             {% if security is defined %}
@@ -273,7 +273,7 @@
             {% endif %}
           },
           "metric_cluster": {
-            "cluster_id": "es_search",
+            "cluster_id": "common",
             "hosts": {{ server_ip | tojson }},
             "index_name": "mytenant-gateway-logs",
             "settings": ["es.index.read.missing.as.empty: yes", "es.nodes.discovery: true"]
@@ -329,7 +329,7 @@
    "kafka_version" : "{{ version.kafka }}",
    "kafka_brokers_production_interface" : "{{ iface }}",
     "clusters" : {
-      "local" : {
+      "common" : {
         "brokers_with_ids" : [
               {%- for broker in kafka.brokers %}
               {
@@ -346,9 +346,9 @@
         "keystore_name": "server-keystore.jks",
         "keystore_password": "@{DEPLOYMENT_SECRETS.kafka.keystore_pass}",
         {% endif %}
-        "zk_cluster" : "local",
-        "zk_root" : "kafka-local",
-        "brokers_config" : "punchplatform-local-server.properties",
+        "zk_cluster" : "common",
+        "zk_root" : "kafka-common",
+        "brokers_config" : "punchplatform-common-server.properties",
         "default_replication_factor" : 1,
         "default_partitions" : 2,
         "partition_retention_bytes" : 1073741824,
@@ -363,7 +363,7 @@
    "elasticsearch" : {
     "elasticsearch_version" : "{{ version.elastic }}",
     "clusters" : {
-      "es_search" : {
+      "common" : {
         "nodes" : {
           {% for server in elasticsearch.servers %}
           "{{ server }}" : {
@@ -423,7 +423,7 @@
    "storm_version" : "{{ version.storm }}",
    "storm_nimbus_nodes_production_interface" : "{{ iface }}",
     "clusters" : {
-      "local": {
+      "common": {
         "master" : {
           "servers" : {{ storm.master.servers | tojson }}
         },
@@ -431,7 +431,7 @@
           "servers" : {{ storm.ui.servers | tojson }}
         },
         "slaves" : {{ storm.slaves | tojson }},
-        "zk_cluster" : "local",
+        "zk_cluster" : "common",
         "zk_root" : "storm-1.2.2-main",
         "storm_workers_by_punchplatform_supervisor" : 10,
         "workers_childopts" : "{{ storm.workers_childopts }}",
@@ -448,7 +448,7 @@
     "minio_access_key": "admin",
     "minio_secret_key": "punchplatform",
       "clusters": {
-        "local": {
+        "common": {
           "hosts": {{ minio.servers | tojson }},
           "port": "9000"
         }
@@ -466,7 +466,7 @@
             "servers": {{ clickhouse.servers | tojson }}
           }
         ],
-        "zk_cluster": "local",
+        "zk_cluster": "common",
         "zk_root": "clickhouse",
         "http_port": 8123,
         "tcp_port": 9100
@@ -480,7 +480,7 @@
   "kibana_version" : "{{ version.elastic }}",
     "domains" : {
       "admin" : {
-        "gateway_cluster_target": "gateway_32g",
+        "gateway_cluster_target": "common",
         "kibana_port" : 5601,
         "type" : "administration"
         {% if security is defined %}
@@ -558,7 +558,7 @@
       }
     },
     "elasticsearch" : {
-      "cluster_id" : "es_search"
+      "cluster_id" : "common"
       {% if security is defined %}
       ,
       "ssl_enabled": true

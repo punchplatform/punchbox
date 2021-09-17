@@ -321,6 +321,10 @@ deploy-config:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy punch user configura
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchplatform-deployer.sh -cp -u vagrant
 
+
+update-validation-configuration: .deployer ## Use this rule to update the validation resources/config from your standalone archive test resources
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && update_validation_config.sh
+	
 local-integration-vagrant:  ## Use this rule instead of deploy-config if you are planning to do validation
 	@$(call green, "Copying Needed files to server1 for local integration test", "/home/vagrant/pp-conf")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant

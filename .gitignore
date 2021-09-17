@@ -56,3 +56,4 @@ build
 vagrant/.dependencies_installed
 .alltools_installed
 punch/resolv.hjson
+.standalone_archive
