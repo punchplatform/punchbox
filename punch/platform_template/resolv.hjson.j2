@@ -68,9 +68,9 @@
       }
       match:$.dag[?(@.type=='kafka_input')].settings
       additional_values:{ 
-         brokers: local
+         brokers: common
          bootstrap.servers:{{ punch.kafka.brokers[0] }}
-         metric_cluster_id:local
+         metric_cluster_id:common
          {% if security %}
          security.protocol: SSL
          ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
@@ -92,9 +92,9 @@
       }
       match:$.dag[?(@.type=='kafka_output')].settings
       additional_values:{ 
-         brokers: local
+         brokers: common
          bootstrap.servers:{{ punch.kafka.brokers[0] }}
-         metric_cluster_id:local
+         metric_cluster_id:common
          {% if security %}
          producer.security.protocol: SSL
          producer.ssl.truststore.location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
@@ -142,7 +142,7 @@
       }
       match:$.metrics.reporters[?(@.type=='kafka')]
       additional_values:{ 
-         brokers: local
+         brokers: common
          bootstrap.servers:{{ punch.kafka.brokers[0] }}
          topic: platform-events
          reporting_interval: 30
@@ -272,7 +272,7 @@
       }
       match:$.reporters[?(@.type=='kafka')]
       additional_values:{ 
-       brokers: local
+       brokers: common
        bootstrap.servers:{{ punch.kafka.brokers[0] }}
 
        topic: platform-events
@@ -331,7 +331,7 @@
 
             security:{
                kafka_clients: {
-                  local: {
+                  common: {
                      ssl_enabled: true
                      ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
                      ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
@@ -340,7 +340,7 @@
                   }
                }
                elasticsearch_clients: {
-                  es_search: {
+                  common: {
                      ssl_enabled: true
                      ssl_client_certificate_authority: @{PUNCHPLATFORM_SECRETS_DIR}/ca.pem
                      ssl_client_certificate: @{PUNCHPLATFORM_SECRETS_DIR}/server-cert.pem
@@ -356,7 +356,7 @@
                   }
                }
                gateway_clients: {
-                  gateway_32g: {
+                  common: {
                      ssl_enabled: true
                      ssl_truststore_location: @{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks
                      ssl_truststore_pass: @{PUNCHPLATFORM_RUNTIME_SECRETS.secret}
@@ -365,7 +365,7 @@
                   }
                }
                    "zookeeper_clients": {
-                  "local": {
+                  "common": {
                     "ssl_enabled": true,
                     "ssl_truststore_location": "@{PUNCHPLATFORM_SECRETS_DIR}/truststore.jks",
                     "ssl_truststore_pass": "@{PUNCHPLATFORM_RUNTIME_SECRETS.secret}"
@@ -378,4 +378,3 @@
    }
    {% endif %}
    {% endif %}
-}

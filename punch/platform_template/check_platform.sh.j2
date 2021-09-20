@@ -48,13 +48,19 @@ function startRule() {
     ./punchplatform-elastalert.sh --start-foreground --config $RULES_DIR/../config.yaml --rule $RULES_DIR/$1/$1_success.yaml
 }
 
-function startFullTest() {
+function startFullTestByRules() {
     echo -e "${BLUE}INFO:${RESET} Start checks"
     {% for rule in rules %}
     $RULES_DIR/{{rule}}/{{rule}}_check.sh
     {% endfor %}
     echo -e "${BLUE}INFO:${RESET} Start channels elastalert validation"
     channelctl -t validation start --channel elastalert_validation
+}
+
+function startFullTest() {
+    cd $PUNCHPLATFORM_CONF_DIR/tenants/validation/resources/robot
+    . activate
+    punch-robot-test .
 }
 
 function close() {

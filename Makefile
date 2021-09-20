@@ -325,11 +325,9 @@ deploy-config:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy punch user configura
 update-validation-configuration: .deployer ## Use this rule to update the validation resources/config from your standalone archive test resources
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && update_validation_config.sh
 	
-local-integration-vagrant:  ## Use this rule instead of deploy-config if you are planning to do validation
+local-integration-vagrant: update-validation-configuration  ## Use this rule instead of deploy-config if you are planning to do validation
 	@$(call green, "Copying Needed files to server1 for local integration test", "/home/vagrant/pp-conf")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
-	@$(call green, "Check if vagrant boxes are up", "")
-	@cd ${DIR}/vagrant && ${VAGRANT} up
 	@$(call green, "Executing on server1", "/home/vagrant/pp-conf/check_platform.sh")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		cd ${DIR}/vagrant && \
@@ -337,7 +335,8 @@ local-integration-vagrant:  ## Use this rule instead of deploy-config if you are
  
 update-deployer-configuration: ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Use this rule to update validation platform configuration files
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
-								--punch-user-config ${DIR}/punch/configurations/validation
+								--punch-user-config ${DIR}/punch/configurations/validation \
+								--deployer $(shell cat ${DIR}/.deployer) 
 
 ##@ Setting Validation Scheduler with SystemD. Use this only to add a cron to launch a punch campaign (say) every night on your laptop.
 
