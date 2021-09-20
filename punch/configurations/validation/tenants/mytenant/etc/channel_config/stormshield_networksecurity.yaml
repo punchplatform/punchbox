@@ -1,0 +1,35 @@
+---
+
+# the three mandatory tenant related properties
+tenant: mytenant
+channel: stormshield_networksecurity
+vendor: stormshield_networksecurity
+
+# the default template profile to use for generating the actual 
+# channel configuration files. You can override this using the 
+#   channelctl configure --profile examples/another_template
+# command line.   
+channel_structure_profile: shiva_single
+
+# a field in metadata that can be used in punchlets
+technology: stormshield_networksecurity
+
+# the target storm cluster
+cluster_name: common
+
+# the processings you want to run on the data stream
+input:
+  port: 9902
+  host: localhost
+processing:
+  workers: 1
+  executors: 1
+  punchlets:
+  - punchlets/common/input.punch
+  - punchlets/common/parsing_syslog_header.punch
+  - punchlets/stormshield_networksecurity/parsing.punch
+  - punchlets/common/geoip.punch
+
+# some important runtime settings
+runtime_settings:
+  childopts: -server -Xms1g -Xmx4g

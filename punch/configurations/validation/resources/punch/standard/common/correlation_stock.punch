@@ -1,0 +1,9 @@
+{
+    // expected logs are key values. We simply convert them to a json document
+    // with type inference on, so that numerical values will ba available to
+    // esper statements.
+    kv().inferTypes().on([logs][log]).into(root:[stock]);
+    
+    // No need to send the original payload to the topology. 
+    remove([logs]);
+}

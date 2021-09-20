@@ -1,0 +1,30 @@
+---
+version: '6.0'
+resources:
+- partitions: 1
+  cluster: common
+  replication_factor: 1
+  name: invalid_storm_topic
+  type: kafka_topic
+applications:
+- name: punchline_fail
+  runtime: shiva
+  command: punchlinectl
+  args:
+  - start
+  - "--punchline"
+  - invalid_punchline.yaml
+  - "--runtime"
+  - storm
+  shiva_runner_tags:
+  - common
+  cluster: common
+  exit:
+    type: platform
+    condition:
+      failure:
+        acks_greater_or_equal_to: 0
+      success:
+        fails_greater_or_equal_to: 1000
+        inactive_for_more_than: 500s
+

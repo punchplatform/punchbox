@@ -1,0 +1,57 @@
+runtime: spark
+metrics:
+  reporters:
+  - type: kafka
+dag:
+- type: elastic_input
+  settings:
+    query:
+      query:
+        bool:
+          must:
+          - range:
+              '@timestamp':
+                lt: '{{ to }}'
+                gte: '{{ from }}'
+      aggregations:
+        by_channel:
+          terms:
+            field: vendor
+          aggregations:
+            total_size:
+              sum:
+                field: size
+            max_size:
+              max:
+                field: size
+    index: '{{ input_index }}'
+    aggregation: true
+    timestamp:
+      field_value: '{{ to }}'
+      field_name: timestamp
+  component: input
+  publish:
+  - stream: data
+- settings:
+    statement: SELECT timestamp, aggregation_result.doc_count, aggregation_result.key,
+      aggregation_result.max_size.value AS max_size, aggregation_result.total_size.value
+      AS total_size, doc_count_error_upper_bound, sum_other_doc_count FROM (SELECT
+      explode(buckets) AS aggregation_result, doc_count_error_upper_bound, sum_other_doc_count,
+      timestamp FROM input_data)
+  component: sql
+  subscribe:
+  - component: input
+    stream: data
+  publish:
+  - stream: data
+  type: sql
+- settings:
+    index: '{{ output_index }}-{{ day }}'
+  component: output
+  subscribe:
+  - component: sql
+    stream: data
+  type: elastic_batch_output
+type: punchline
+version: '6.0'
+tenant: mytenant

@@ -1,0 +1,53 @@
+version: "6.0"
+runtime: storm
+type: punchline
+name: input_topology
+meta:
+  tenant: {{channel.tenant}}
+  channel: {{channel.channel}}
+  vendor: {{channel.vendor}}
+  technology: {{channel.technology}}
+dag:
+  
+  # Syslog input
+  - type: syslog_input
+    settings:
+      listen:
+        proto: tcp
+        host: {{channel.input.host}}
+        port: {{channel.input.port}}
+      self_monitoring.activation: true
+      self_monitoring.period: 10
+    publish:
+      - stream: logs
+        fields:
+          - log
+          - _ppf_local_host
+          - _ppf_local_port
+          - _ppf_remote_host
+          - _ppf_remote_port
+          - _ppf_timestamp
+          - _ppf_id
+      - stream: _ppf_metrics
+        fields:
+          - _ppf_latency
+  
+  # Kafka output
+  - type: kafka_output
+    settings:
+      topic: "{{channel.tenant}}_{{channel.channel}}"
+      encoding: lumberjack
+      producer.acks: all
+      producer.batch.size: 16384
+      producer.linger.ms: 5
+    subscribe:
+      - component: syslog_input
+        stream: logs
+      - component: syslog_input
+        stream: _ppf_metrics
+
+metrics:
+  reporters:
+    - type: kafka
+settings:
+  topology.worker.childopts: {{channel.runtime_settings.childopts}}

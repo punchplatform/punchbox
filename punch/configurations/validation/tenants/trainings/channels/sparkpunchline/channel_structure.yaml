@@ -1,0 +1,21 @@
+---
+stop_by_tenant: true
+version: '6.0'
+start_by_tenant: true
+applications:
+- name: track1-spark_punchline
+  runtime: shiva
+  command: punchline
+  args:
+  - "--punchline"
+  - spark_punchline.yaml
+  - "--runtime"
+  - spark
+  - "--deploy-mode"
+  - foreground
+  cluster: common
+  shiva_runner_tags:
+  - punchline
+  resources:
+  - spark_punchline.yaml
+

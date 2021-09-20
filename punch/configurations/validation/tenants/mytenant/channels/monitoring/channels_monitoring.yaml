@@ -1,0 +1,6 @@
+monitoring_interval: 30
+elasticsearch:
+  es_platform_logs_index: platform-*logs-*
+  es_topologies_metrics_index: mytenant-metrics-*
+reporters:
+- type: kafka

@@ -1,0 +1,37 @@
+{
+  destination: {
+    proto: kafka
+    brokers: common
+    topic: streaming_validation
+    encoding: lumberjack
+  }
+  load: {
+    total_messages: 1000
+    stats_publish_interval: 1s
+    message_throughput: 10000
+  }
+  message: {
+    payloads: [
+      {
+        log: "%{ts} host%{id_counter}"
+        _ppf_id: "%{id_counter}-%{id_ts}"
+        _ppf_timestamp: "%{ts}"
+      }
+    ]
+    fields: {
+      id_ts: {
+          type: timestamp
+          format: HmsS
+      }
+      id_counter: {
+        type: counter
+        min: 1
+        max: 999999
+      }
+      ts: {
+        type: timestamp
+        format: dd/MMM/yyyy:HH:mm:ss Z
+      }
+    }
+  }
+}

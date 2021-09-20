@@ -1,0 +1,11 @@
+version: '6.0'
+start_by_tenant: true
+stop_by_tenant: true
+applications:
+- name: channels_monitoring
+  runtime: shiva
+  cluster: common
+  command: channels-monitoring
+  args:
+  - channels_monitoring.json
+resources: []

@@ -1,0 +1,23 @@
+{
+  // The parsed log is stored as Json under the <stream><data_field> of the punchlet
+  // Default parsers assume the Storm stream is "logs" and the first field in the
+  // PunchBolt configuration is "log" 
+  Tuple input = root:[logs][log];
+
+  input:[lmc][output][ts] = date("iso").get();
+  input:[lmc][output][host][name] = getHostName();
+  input:[lmc][output][host][ip] = getHostIp();
+
+  remove(input:[message]); // Does nothing if the raw log has already been transferred to a separate [logs][raw_log] field
+  remove(input:[size]);
+
+  // what we want is to send to BlackStratus a single String with key values,
+  // not a Json representation. To do that, we use a toKv operator.
+  //
+  String kv = toKv().on(input);
+
+  //
+  // All done, we only need to overwrite the root document with that String.
+  //
+  root:[logs][log] = kv;
+}

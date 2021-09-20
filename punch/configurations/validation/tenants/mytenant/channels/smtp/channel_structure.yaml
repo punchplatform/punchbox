@@ -1,0 +1,10 @@
+stop_by_tenant: false
+resources: []
+version: '6.0'
+start_by_tenant: false
+applications:
+- cluster: common
+  execution_mode: cluster
+  name: input
+  runtime: storm
+  reload_action: kill_then_start

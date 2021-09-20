@@ -1,0 +1,52 @@
+version: '6.0'
+runtime: storm
+type: punchline
+dag:
+- type: syslog_input
+  settings:
+    listen:
+      proto: tcp
+      host: 0.0.0.0
+      port: 9909
+  publish:
+  - stream: logs
+    fields:
+    - log
+- component: punchlet
+  type: punchlet_node
+  settings:
+    punchlet_code: '{kv().on([logs][log]).into([logs]);}'
+  subscribe:
+  - component: syslog_input
+    stream: logs
+  publish:
+  - stream: logs
+    fields:
+    - event_timestamp
+    - uniquecarrier_id
+    - departure_timestamp
+    - arrival_timestamp
+    - flight_consumption
+    - flight_ip
+- component: output
+  type: clickhouse_output
+  settings:
+    hosts:
+    - localhost:8123
+    username: default
+    password: ''
+    database: default
+    table: flights
+    bulk_size: 10
+    column_names:
+    - event_timestamp
+    - uniquecarrier_id
+    - departure_timestamp
+    - arrival_timestamp
+    - flight_consumption
+    - flight_ip
+  subscribe:
+  - component: punchlet
+    stream: logs
+settings:
+  topology.worker.childopts: -server -Xms1g -Xmx4g

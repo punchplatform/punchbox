@@ -1,0 +1,30 @@
+version: '6.0'
+start_by_tenant: true
+stop_by_tenant: true
+applications:
+- name: platform_health
+  runtime: shiva
+  cluster: common
+  command: platform-monitoring
+  args:
+  - platform_monitoring.yaml
+- name: local_events_dispatcher
+  runtime: shiva
+  cluster: common
+  command: punchlinectl
+  args:
+  - start
+  - --punchline
+  - local_events_dispatcher.yaml
+- name: channels_monitoring
+  runtime: shiva
+  cluster: common
+  command: channels-monitoring
+  args:
+  - channels_monitoring.yaml
+resources:
+- type: kafka_topic
+  name: platform-events
+  cluster: common
+  partitions: 1
+  replication_factor: 1

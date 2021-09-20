@@ -1,0 +1,73 @@
+{
+
+	"destination" : { "proto" : "lumberjack", "host" : "127.0.0.1", "port" : 9000 },
+
+	"load" :{
+		"total_messages" : 1000,
+		"stats_publish_interval" : "2s",
+		"message_throughput" : 100
+	},
+
+	"message" : {
+
+		"payloads" : [
+			"%{syslog_timestamp} host%{syslog_host_counter} %{src_us} - %{owner} [%{timestamp}] \"GET /images/KSC-94EC-412-small.gif HTTP/1.0\" 200 %{bytes} \"%{url}\" \"%{useragent}\""
+		],
+ 		
+		"fields" : {
+			"syslog_timestamp" : {
+				"type" : "timestamp",
+				"format" : 	"MMM dd HH:mm:ss"
+			},			
+			"syslog_host_counter" : {
+				"type" : "counter",
+				"min" : 0,
+				"max" : 2
+			},			
+			"timestamp" : {
+				"type" : "timestamp",
+				"format" : 	"MMM dd HH:mm:ss:SSS"
+			},
+			"src_us" : {
+				"type" : "ipv4",
+				"format" : "128.[0-255].[0-255].[0-255]"
+			},
+			"owner" : {
+				"type" : "list",
+				"content" : ["frank", "bob", "alice", "ted", "dimi", "ced", "phil", "julien", "jerome", "hacker", "loic", "geoff", "leo"]
+			},		
+			"bytes" : {
+				"type" : "random",
+				"min" : 1000,
+				"max" : 30000
+			},	
+			"url" : {
+				"type" : "list",
+				"content" : [
+					"http://www.example.com/start.html", 
+					"http://www.semicomplete.com/blog/geekery/bypassing-captive-portals.html"
+					]
+			},
+			"useragent" : {
+				"type" : "list",
+				"content" : [
+					"Mozilla/5.0 (iPad; U; CPU OS 4_3_5 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8L1 Safari/6533.18.5", 
+					"Mozilla/5.0 (Windows; U; Windows NT 6.0; sv-SE) AppleWebKit/525.27.1 (KHTML, like Gecko) Version/3.2.1 Safari/525.27.1", 
+					"Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48B; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/43.0.2357.65 Mobile Safari/537.36",
+					"Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko",
+					"Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.0; Trident/4.0; GTB7.4; InfoPath.3; SV1; .NET CLR 3.1.76908; WOW64; en-US)",
+					"Windows-RSS-Platform/2.0 (IE 11.0; Windows NT 6.1)"
+					]
+			},												
+			"user" : {
+				"type" : "list",
+				"content" : ["frank", "bob", "alice", "ted", "dimi", "ced", "phil", "julien", "jerome", "hacker", "loic", "geoff", "leo"]
+			},
+			"age" : {
+				"type" : "counter",
+				"min" : 18,
+				"max" : 64
+			}
+		}
+	}
+}

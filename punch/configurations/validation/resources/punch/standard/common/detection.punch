@@ -1,0 +1,48 @@
+{
+  // Only run detection rule on correctly parsed logs
+  if (root:[type] == "error") {
+    root.empty();
+    return;
+  }  
+
+  Tuple log = root:[logs][log];
+  String rawLog = [logs][raw_log];
+  Tuple detected;
+
+  // This is just an example. 
+  switch (log:[type]) {
+
+  case "web":
+
+      // Shellshock detection
+      if (rawLog.contains("() {:;};") || rawLog.contains("() { :;};")) {
+        detected:[origin] = "shellshock";
+        detected:[severity] = 4;
+      }
+      break;
+
+  case "firewall":
+  default:
+    break;
+  }
+  
+
+  // If one of the rule matched, we have a non empty detected
+  // Add it to the storm stream under a new field 'detected'. 
+  if (!detected.isEmpty()) {
+    detected:[type] = log:[type];
+    detected:[lmc] = log:[lmc];
+    detected:[tenant] = log:[tenant];
+    detected:[channel] = log:[channel];
+    detected:[vendor] = log:[vendor];
+    detected:[message] = rawLog; // TBD an array  [origin]
+    detected:[log_id] = log:[es_id];
+    root:[logs][log] = detected;
+    root:[logs][es_type] = "detection";
+  } else {
+    // nothing was detected. Filter out the log, so as not to send it
+    // twice to Elasticsearch. Check the topology graph structure to understand 
+    // this
+    root.empty();
+  }
+}

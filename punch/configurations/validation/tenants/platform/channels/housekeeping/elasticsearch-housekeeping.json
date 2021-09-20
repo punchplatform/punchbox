@@ -1,7 +1,7 @@
 {
     "clusters_settings": [
       {
-        "cluster_id": "es_search",
+        "cluster_id": "common",
         "actions": [
           {
             "type": "close_indices",

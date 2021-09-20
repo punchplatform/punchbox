@@ -1,0 +1,35 @@
+version: '6.0'
+type: punchline
+runtime: storm
+
+dag:
+  - type: extraction_input
+    component: input
+    settings:
+      index: validation-extraction-archive-*
+      nodes:
+        - localhost
+      exit_conditions:
+        success:
+          acks_greater_or_equal_to: 1
+          require_no_remaining_tuple_to_inject: true
+          require_no_pending_tuple: true
+        failure:
+          fails_greater_or_equal_to: 1
+    publish:
+      - stream: metadata
+        fields:
+          - metadata
+  - type: archive_reader_node
+    component: reader
+    settings: { }
+    subscribe:
+      - component: input
+        stream: metadata
+    publish:
+      - stream: data
+        fields:
+          - data
+      - stream: _ppf_errors
+        fields:
+          - data

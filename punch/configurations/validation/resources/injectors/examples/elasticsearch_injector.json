@@ -1,0 +1,53 @@
+{
+	#  this injector will directly indexes documents into elasticsearch.
+	"destination" : {  
+		"proto" : "elasticsearch", 
+		"http_hosts": [ 
+			{ "host": "127.0.0.1", "port": 9200 } 
+		], 
+		"cluster_name" : "es_search", 
+		"index": "test", 
+		"type": "log", 
+		"bulk_size": 100
+	},
+
+	# The input load characteristics. Here injection will stop after
+	# 1000 messages have been sent with a rate of 1 messages per seconds
+	"load" :{
+		"total_messages" : 1000,
+		"stats_publish_interval" : "2s",
+		"message_throughput" : 100
+	},
+
+	# In this section you define what you inject
+	"message" : {
+
+		# here you can define your document directly using a json object. It is more readable
+		# than using escaped strings. 
+
+		"payloads" : [
+			{
+				"@timestamp" : "%{timestamp}",
+				"age" : %{age},
+				"user" : "%{user}"
+			}
+		],
+ 		
+ 		# Each %{variable} you defined must be defined here. 
+		"fields" : {
+			"timestamp" : {
+				"type" : "timestamp",
+				"format" : 	"MMM dd HH:mm:ss:SSS"
+			},
+			"user" : {
+				"type" : "list",
+				"content" : ["frank", "bob", "alice", "ted", "dimi", "ced", "phil", "julien", "jerome", "hacker", "loic", "geoff", "leo"]
+			},
+			"age" : {
+				"type" : "counter",
+				"min" : 18,
+				"max" : 64
+			}
+		}
+	}
+}

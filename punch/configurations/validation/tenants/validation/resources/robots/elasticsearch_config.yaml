@@ -1,0 +1,4 @@
+---
+type: elasticsearch
+index: punch_validation_es
+cluster: common

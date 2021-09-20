@@ -1,0 +1,7 @@
+---
+type: kafka
+topic: punch_validation_kafka
+cluster: common
+# below optional
+username: hello
+password: world

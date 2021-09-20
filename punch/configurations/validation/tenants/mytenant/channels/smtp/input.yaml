@@ -1,0 +1,28 @@
+version: '6.0'
+tenant: mytenant
+channel: smtp
+runtime: storm
+type: punchline
+name: input
+settings:
+  additional_jars:
+  - punch-smtp-node-6.3.2-SNAPSHOT.jar
+dag:
+- type: third_party_input
+  class: org.thales.punch.nodes.smtp.SmtpInputNode
+  component: input
+  settings:
+    host: 127.0.0.1
+    port: 2525
+  publish:
+  - stream: logs
+    fields:
+    - log
+- type: punchlet_node
+  settings:
+    punchlet_code: "{print(root);}"
+  component: punch_bolt
+  subscribe:
+  - component: input
+    stream: logs
+  publish: []

@@ -1,0 +1,21 @@
+---
+version: '6.0'
+applications:
+- name: stormshield_input
+  runtime: shiva
+  command: punchlinectl
+  args:
+    - start
+    - "--punchline"
+    - input.hjson
+  shiva_runner_tags:
+    - common
+  cluster: common
+  exit:
+    type: platform
+    condition:
+      success:
+        acks_greater_or_equal_to: 100
+      failure:
+        fails_greater_or_equal_to: 1
+        inactive_for_more_than: 60s

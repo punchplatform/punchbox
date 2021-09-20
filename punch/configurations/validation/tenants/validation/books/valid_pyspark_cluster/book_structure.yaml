@@ -1,0 +1,26 @@
+---
+version: '6.0'
+resources:
+- partitions: 1
+  cluster: common
+  replication_factor: 1
+  name: valid_pyspark_cluster_topic
+  type: kafka_topic
+applications:
+- name: punchline_pyspark_cluster_success
+  runtime: shiva
+  command: punchlinectl
+  args:
+  - start
+  - "--punchline"
+  - valid_punchline.yaml
+  - "--runtime"
+  - pyspark
+  - "--spark-cluster"
+  - common
+  shiva_runner_tags:
+  - common
+  cluster: common
+  exit:
+    type: platform
+

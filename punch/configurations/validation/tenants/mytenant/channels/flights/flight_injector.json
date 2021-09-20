@@ -1,0 +1,51 @@
+{
+	"destination" : { "proto" : "tcp", "host" : "127.0.0.1", "port" : 9909 },
+	"load" :{
+		"total_messages" : 10,
+		"stats_publish_interval" : "2s",
+		"message_throughput" : 100
+	},
+	"message" : {
+		"payloads" : [
+			"event_timestamp=%{event_timestamp} uniquecarrier_id=%{uniquecarrier_id} departure_timestamp=%{departure_timestamp} arrival_timestamp=%{arrival_timestamp} flight_consumption=%{flight_consumption} flight_ip=%{flight_ip}"
+		]
+		,
+		"fields" : {
+			"event_timestamp": {
+            	"type": "timestamp",
+            	"format" :  "yyyy-MM-dd HH:mm:ss"
+        	},
+			"uniquecarrier_id": {
+            	"type": "uuid"
+        	},
+			"flight_ip" : {
+				"type" : "ipv4",
+				"format" : "192.168.99.[0-255]"
+			},
+			"flight_consumption" : {
+				"type" : "random",
+				"min" : 1000,
+				"max" : 30000
+
+			},
+			"departure_timestamp" : {
+           	 	"type" : "timestamp",
+            	"format" :  "yyyy-MM-dd HH:mm:ss",
+            	"start_time" : "2020.02.01",
+            	"start_time_format" : "yyyy.MM.dd",
+            	"tick_interval" : "1h"
+        	},
+        	"arrival_timestamp" : {
+           	 	"type" : "timestamp",
+            	"format" :  "yyyy-MM-dd HH:mm:ss",
+            	"relative_start_time" : "departure_timestamp",
+            	"duration" : {
+            		"type" : "random",
+            		"unit" : "minute",
+					"min" : 120,
+					"max" : 8000
+            	}
+        	}
+		}
+	}
+}

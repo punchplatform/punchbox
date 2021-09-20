@@ -1,0 +1,4 @@
+---
+type: elasticsearch
+index: validation-archive-housekeeping*
+cluster: common

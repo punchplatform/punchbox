@@ -1,0 +1,55 @@
+// @test(fields=[logs][data]) 2017-12-22T11:39:27.832-0100: [GC (CMS Final Remark) [YG occupancy: 189618 K (306688 K)]2017-12-22T11:39:27.833-0100: [Rescan (parallel) , 0.0175512 secs]2017-12-22T11:39:27.850-0100: [weak refs processing, 0.0001371 secs]2017-12-22T11:39:27.850-0100: [class unloading, 0.0086789 secs]2017-12-22T11:39:27.859-0100: [scrub symbol table, 0.0125872 secs]2017-12-22T11:39:27.872-0100: [scrub string table, 0.0004193 secs][1 CMS-remark: 7885K(5803264K)] 197503K(6109952K), 0.0404548 secs] [Times: user=0.13 sys=0.01, real=0.04 secs]
+{
+	//     -----------------
+	//        INPUT CHECK   
+	//     -----------------
+	if (![logs][data].exists()) {
+		raise("No input found under [logs][data]");
+	}
+
+	Tuple doc = [logs][log];
+	Tuple tmp;
+
+	//     --------------
+	//        ANALYSIS   
+	//     --------------
+	if (!dissect("%{ts}: %{payload}").on([logs][data]).into(tmp)) {
+		raise("Unexpected log format. Must start with a timestamp like '2017-12-22T10:20:19.936-0100'");
+	}
+
+	doc:[init][ts] = date("iso", "iso").on(tmp:[ts]).get();
+	String payload = tmp:[payload].asString();
+
+	// Match and exact expression (no variables)
+	Tuple exactPayload; 
+	exactPayload
+		.add("[CMS-concurrent-mark-start]")
+		.add("[CMS-concurrent-preclean-start]")
+		.add("[CMS-concurrent-abortable-preclean-start]")
+		.add("[CMS-concurrent-reset-start]")
+		.add("[CMS-concurrent-sweep-start]");
+
+	if (exactPayload.contains(payload)) {
+		// exact
+		doc:[alarm][name] = payload.substring(1, payload.length() - 1);
+		return;
+	} else if (payload.startsWith("[GC ")) {
+		// GC
+		dissect("[GC (%{alarm_name}) %{}] [Times: user=%{user_time} sys=%{sys_time}, real=%{real_time} secs%{}").on(payload).into(tmp:[diss]);
+	} else if (payload.startsWith("[CMS-")) {
+		// CMS
+		dissect("[%{alarm_name}: %{}/%{} secs] [Times: user=%{user_time} sys=%{sys_time}, real=%{real_time} secs%{}").on(payload).into(tmp:[diss]);
+	} else {
+		// error
+		raise("Not a recognized 'Jvm Garbage Collector'");
+	}
+
+
+	//     --------------------
+	//        FIELDS BINDING   
+	//     --------------------
+	doc:[alarm][name] = tmp:[diss][alarm_name];
+	if (tmp:[diss][real_time]) doc:[real] = tmp:[diss][real_time].asDouble();
+	if (tmp:[diss][sys_time]) doc:[user] = tmp:[diss][sys_time].asDouble();
+	if (tmp:[diss][user_time]) doc:[sys] = tmp:[diss][user_time].asDouble();
+}

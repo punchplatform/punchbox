@@ -1,0 +1,37 @@
+version: "6.0"
+start_by_tenant: true
+stop_by_tenant: true
+
+resources:
+- type: kafka_topic
+  name: "{{channel.tenant}}_{{channel.channel}}"
+  cluster: {{ channel.cluster_name|default('common') }}
+  partitions: 1
+  replication_factor: 1
+
+applications:
+- name: input
+  runtime: shiva
+  command: punchlinectl
+  args:
+  - start
+  - --punchline
+  - input.yaml
+  shiva_runner_tags:
+  - {{ channel.cluster_name|default('common') }}
+  cluster: {{ channel.cluster_name|default('common') }}
+  reload_action: kill_then_start
+
+- name: processing
+  runtime: shiva
+  command: punchlinectl
+  args:
+  - start
+  - --punchline
+  - processing.yaml
+  shiva_runner_tags:
+  - {{ channel.cluster_name|default('common') }}
+  cluster: {{ channel.cluster_name|default('common') }}
+  reload_action: kill_then_start
+
+

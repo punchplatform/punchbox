@@ -1,0 +1,15 @@
+version: '6.0'
+start_by_tenant: true
+stop_by_tenant: true
+applications:
+- name: input
+  runtime: shiva
+  command: punchlinectl
+  args:
+  - start
+  - --punchline
+  - input.yaml
+  shiva_runner_tags:
+  - {{ channel.cluster_name|default('common') }}
+  cluster: {{ channel.cluster_name|default('common') }}
+  reload_action: kill_then_start

@@ -1,0 +1,306 @@
+{
+  "order": 10,
+  "index_patterns": [
+  	"*-spark-metrics-*"
+  ],
+    "mappings": {
+      "dynamic" : true,
+      "dynamic_templates": [
+        {
+          "strings_as_keywords": {
+            "match_mapping_type": "string",
+            "mapping": {
+              "ignore_above": 256,
+              "type": "keyword"
+            }
+          }
+        }
+      ],
+      "date_detection": true,
+      "numeric_detection": false,
+      "properties": {
+        "@timestamp": {
+          "type": "date",
+          "format": "epoch_millis||strictDateOptionalTime"
+        },
+        "ecs": {
+          "properties": {
+            "version": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "error": {
+          "properties": {
+            "code": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "id": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "message": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "stack_trace": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "type": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "es_ts": {
+          "type": "date"
+        },
+        "host": {
+          "properties": {
+            "architecture": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "domain": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "hostname": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "ip": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "name": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "os": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "user": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "labels": {
+          "properties": {
+            "application": {
+              "properties": {
+                "deploy_mode": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "driver_host": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "progression": {
+                  "type": "float"
+                }
+              }
+            },
+            "application_id": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "duration": {
+              "properties": {
+                "application_ms": {
+                  "type": "long"
+                }
+              }
+            },
+            "event": {
+              "properties": {
+                "action": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "attempt": {
+                  "type": "long"
+                },
+                "cpu_time": {
+                  "type": "long"
+                },
+                "disk_spilled_bytes": {
+                  "type": "long"
+                },
+                "duration": {
+                  "type": "long"
+                },
+                "executor_id": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "failure_reason": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "gc_time": {
+                  "type": "long"
+                },
+                "host": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "id": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "index": {
+                  "type": "long"
+                },
+                "mem_spilled_bytes": {
+                  "type": "long"
+                },
+                "num_tasks": {
+                  "type": "long"
+                },
+                "parent": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "reason": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "size": {
+                  "type": "long"
+                },
+                "stage_attempt_id": {
+                  "type": "long"
+                },
+                "status": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "timestamp": {
+                  "type": "date"
+                },
+                "type": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "id": {
+              "properties": {
+                "application": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "job": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "stage": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "task": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "level": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "name": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "runtime": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "spark": {
+              "properties": {
+                "application": {
+                  "properties": {
+                    "elapsed_time": {
+                      "type": "long"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "message": {
+          "type": "keyword",
+          "ignore_above": 256
+        },
+        "metrics_producer_id": {
+          "type": "keyword"
+        },
+        "platform": {
+          "properties": {
+            "application_id": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "channel": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "id": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "name": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "tenant": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "version": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "service": {
+          "properties": {
+            "type": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "spark": {
+          "properties": {
+            "application": {
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
+        "storm": {
+          "properties": {
+            "worker": {
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+}

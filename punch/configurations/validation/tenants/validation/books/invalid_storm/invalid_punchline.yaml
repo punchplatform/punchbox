@@ -1,0 +1,51 @@
+---
+version: '6.0'
+runtime: storm
+type: punchline
+dag:
+- type: syslog_input
+  settings:
+    listen:
+      proto: tcp
+      host: 0.0.0.0
+      port: 8545
+    self_monitoring.activation: true
+    self_monitoring.period: 10
+  publish:
+  - stream: logs
+    fields:
+    - log
+    - _ppf_local_host
+    - _ppf_local_port
+    - _ppf_remote_host
+    - _ppf_remote_port
+    - _ppf_timestamp
+    - _ppf_id
+  - stream: _ppf_metrics
+    fields:
+    - _ppf_latency
+- type: punchlet_node
+  settings:
+    punchlet_code: "{print(root);}"
+  subscribe:
+  - component: syslog_input
+    stream: logs
+  - component: syslog_input
+    stream: _ppf_metrics
+  publish:
+  - stream: logs
+    fields:
+    - log
+    - _ppf_id
+  - stream: _ppf_errors
+    fields:
+    - _ppf_error_message
+    - _ppf_error_document
+    - _ppf_id
+  - stream: _ppf_metrics
+    fields:
+    - _ppf_latency
+metrics:
+  reporters: []
+settings:
+  topology.worker.childopts: "-server -Xms1g -Xmx4g -Dpunch.every=10 -Dpunch.exit_delay=3600"

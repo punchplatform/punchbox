@@ -1,0 +1,22 @@
+version: '6.0'
+start_by_tenant: true
+stop_by_tenant: true
+applications:
+- name: elasticsearch-housekeeping
+  runtime: shiva
+  cluster: common
+  command: elasticsearch-housekeeping
+  args:
+  - --tenant-configuration-path
+  - elasticsearch-housekeeping.yaml
+  apply_resolver_on:
+  - elasticsearch-housekeeping.yaml
+  quartzcron_schedule: 0 0 * ? * * *
+- name: archives-housekeeping
+  runtime: shiva
+  cluster: common
+  command: archives-housekeeping
+  args:
+  - archives-housekeeping.yaml
+  quartzcron_schedule: 0 * * ? * * *
+resources: []

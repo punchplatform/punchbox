@@ -1,0 +1,40 @@
+---
+version: "6.0"
+runtime: storm
+type: punchline
+meta:
+  vendor: punch
+  technology: punch_integration_test
+dag:
+- type: kafka_input
+  component: kafka_input
+  settings:
+    topic: punch_validation_kafka
+    start_offset_strategy: last_committed
+    key_codec:
+      type: string
+    value_codec:
+      type: string
+  publish:
+  - stream: logs
+    fields:
+    - key
+    - value
+- type: elasticsearch_output
+  settings:
+    cluster_id: common
+    per_stream_settings:
+    - stream: logs
+      index:
+        type: daily
+        prefix: validation-integration-test-
+      document_json_field: value
+      additional_document_value_fields:
+      - type: date
+        document_field: "@timestamp"
+        format: iso
+  subscribe:
+  - component: kafka_input
+    stream: logs
+settings:
+  topology.worker.childopts: "-server -Xms1g -Xmx1g"

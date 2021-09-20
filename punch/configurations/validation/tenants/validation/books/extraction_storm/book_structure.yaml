@@ -1,0 +1,32 @@
+version: '6.0'
+resources:
+  - type: kafka_topic
+    name: validation_archiving
+    cluster: common
+    partitions: 1
+    replication_factor: 1
+applications:
+  - name: archiving
+    runtime: storm
+    execution_mode: cluster
+    cluster: common
+    reload_action: kill_then_start
+    exit:
+      type: platform
+      condition:
+        success:
+          acks_greater_or_equal_to: 1000
+  - name: extraction
+    runtime: storm
+    execution_mode: cluster
+    cluster: common
+    reload_action: kill_then_start
+    after_success:
+      - archiving
+    exit:
+      type: platform
+      condition:
+        success:
+          acks_greater_or_equal_to: 1
+settings:
+  stage_interval: 3s

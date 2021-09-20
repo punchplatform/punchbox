@@ -1,0 +1,43 @@
+{
+  type: punchline
+  runtime: *
+  version: "6.0"
+  dag:
+  [
+    {
+      settings:
+      {
+        input_data:
+        [
+          {
+            from_date: "{{ from }}"
+            to_date: "{{ to }}"
+          }
+        ]
+      }
+      component: input
+      publish:
+      [
+        {
+          stream: data
+        }
+      ]
+      type: dataset_generator
+    }
+    {
+      settings:
+      {
+        index: validation-plan-dates-templating-test
+      }
+      component: output
+      subscribe:
+      [
+        {
+          component: input
+          stream: data
+        }
+      ]
+      type: elastic_batch_output
+    }
+  ]
+}

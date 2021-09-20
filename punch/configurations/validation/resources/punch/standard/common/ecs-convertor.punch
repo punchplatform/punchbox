@@ -1,0 +1,147 @@
+{
+  /**
+   * This parser convert a standard PunchPlatform parsed log into the
+   * "Elastic Common Schema (ECS)" data structure
+   *
+   * To learn more about it, see https://github.com/elastic/ecs
+   */
+   
+  if (!root:[logs][data]) {
+    throw new PunchRuntimeException("The ECS convetor expect data its under [logs][log]");
+  }
+
+  Tuple doc = root:[logs][log];
+
+  // mandatory
+  doc:[ecs][version] = "v1.0.0-beta2";
+  move(doc:[type]).into(doc:[event][type]);
+  move(doc:[message]).into(doc:[event][original]);
+  move(doc:[tenant]).into(doc:[labels][tenant]);
+  move(doc:[channel]).into(doc:[labels][channel]);
+  move(doc:[vendor]).into(doc:[labels][vendor]);
+
+  //
+  // Start with specific fields mapping
+  //
+  switch (doc:[event][type]) {
+    case "web":
+      move(doc:[session][out][byte]).into(doc:[http][response][body][bytes]);
+      break;
+    case "wse":
+      move(doc:[app][method]).into(doc:[http][request][method]);
+      move(doc:[app][return][code]).into(doc:[http][response][status_code]);
+      move(doc:[web][header][referer]).into(doc:[http][request][referrer]);
+      move(doc:[app][header][content_type]).into(doc:[http][request][content_type]); // does no exist in ECS
+      move(doc:[init][host][useragent]).into(doc:[user_agent][original]);
+      move(doc:[websense][action]).into(doc:[event][action]);
+      move(doc:[websense][reason]).into(doc:[event][alarm][description]); // does no exist in ECS
+      move(doc:[websense][product_version]).into(doc:[service][version]);
+      move(doc:[websense][product]).into(doc:[service][name]);
+      break;
+  }
+
+  // event
+  doc:[event][created] = doc:[obs][ts];
+  move(doc:[action]).into(doc:[event][action]);
+  move(doc:[alarm][sev]).into(doc:[event][severity]);
+  move(doc:[taxo][nf][sev]).into(doc:[event][severity]);
+  move(doc:[taxo][nf][alarm]).into(doc:[event][severity_code]); // does no exist in ECS
+  move(doc:[session][duration]).into(doc:[event][duration]); // WARN: shoud be in nanoseconds
+  doc:[event][duration] = doc:[event][duration].tryLong();
+  
+
+  // source
+  move(doc:[init][host][ip]).into(doc:[source][ip]);
+  doc:[source][address] = doc:[source][ip];
+  move(doc:[init][host][port]).into(doc:[source][port]);
+  move(doc:[init][host][if]).into(doc:[source][interface]); // does no exist in ECS
+  move(doc:[init][usr][loc][country]).into(doc:[source][geo][country_name]);
+  move(doc:[init][usr][loc][cty_short]).into(doc:[source][geo][city_name]);
+  move(doc:[init][usr][loc][country_short]).into(doc:[source][geo][country_iso_code]);
+  if (doc:[init][usr][loc][geo_point]) {
+    doc:[source][geo][location][lon] = doc:[init][usr][loc][geo_point][0];
+    doc:[source][geo][location][lat] = doc:[init][usr][loc][geo_point][1];
+    remove(doc:[init][usr][loc][geo_point]);
+  }
+  move(doc:[session][out][byte]).into(doc:[source][bytes]);
+  move(doc:[session][out][packet]).into(doc:[source][packets]);
+  move(doc:[init][usr][id]).into(doc:[source][user][id]);
+  move(doc:[init][usr][name]).into(doc:[source][user][name]);
+  move(doc:[init][host][mac]).into(doc:[source][mac]);
+  doc:[source][bytes] = doc:[source][bytes].tryLong();
+  doc:[source][packets] = doc:[source][packets].tryLong();
+  doc:[source][port] = doc:[source][port].tryLong();
+
+  // destination
+  move(doc:[target][host][ip]).into(doc:[destination][ip]);
+  doc:[destination][address] = doc:[soudestinationrce][ip];
+  move(doc:[target][host][name]).into(doc:[destination][hostname]); // does no exist in ECS
+  move(doc:[target][host][port]).into(doc:[destination][port]);
+  doc:[destination][port] = doc:[destination][port].tryLong();
+  move(doc:[target][host][if]).into(doc:[destination][interface]); // does no exist in ECS
+  move(doc:[target][usr][loc][country]).into(doc:[destination][geo][country_name]);
+  move(doc:[target][usr][loc][cty_short]).into(doc:[destination][geo][city_name]);
+  move(doc:[target][usr][loc][country_short]).into(doc:[destination][geo][country_iso_code]);
+  if (doc:[target][usr][loc][geo_point]) {
+    doc:[destination][geo][location][lon] = doc:[target][usr][loc][geo_point][0];
+    doc:[destination][geo][location][lat] = doc:[target][usr][loc][geo_point][1];
+    remove(doc:[target][usr][loc][geo_point]);
+  }
+  move(doc:[session][in][byte]).into(doc:[destination][bytes]);
+  move(doc:[session][in][packet]).into(doc:[destination][packets]);
+  move(doc:[target][usr][id]).into(doc:[destination][user][id]);
+  move(doc:[target][usr][name]).into(doc:[destination][user][name]);
+  doc:[destination][packets] = doc:[destination][packets].tryLong();
+  doc:[destination][bytes] = doc:[destination][bytes].tryLong();
+
+  // observer
+  move(doc:[obs][host][name]).into(doc:[observer][hostname]);
+
+  // rule
+  move(doc:[rule]).into(doc:[event][rule]); // does no exist in ECS
+  move(doc:[alarm]).into(doc:[event][alarm]); // does no exist in ECS
+  
+  // service
+  move(doc:[app][name]).into(doc:[service][type]);
+
+  // network
+  move(doc:[app][proto][name]).into(doc:[network][protocol]);
+
+  // process (priority by init > obs > target)
+  move(doc:[target][process][name]).into(doc:[process][name]);
+  move(doc:[target][process][id]).into(doc:[process][pid]);
+  move(doc:[target][process][status]).into(doc:[process][title]);
+  move(doc:[obs][process][id]).into(doc:[process][pid]);
+  move(doc:[obs][process][name]).into(doc:[process][name]);
+  move(doc:[obs][process][status]).into(doc:[process][title]);
+  move(doc:[init][process][name]).into(doc:[process][name]);
+  move(doc:[init][process][id]).into(doc:[process][pid]);
+  move(doc:[init][process][status]).into(doc:[process][title]);
+
+  // url
+  move(doc:[target][uri][full]).into(doc:[url][full]);
+  if (doc:[url][full] && doc:[url][full].asString().contains("/")) {
+    String full_url = doc:[url][full];
+    doc:[url][domain] = full_url.substring(0, full_url.lastIndexOf("/"));
+    doc:[url][path] = full_url.substring(full_url.lastIndexOf("/")+1);
+  }
+  move(doc:[target][uri][url]).into(doc:[url][domain]);
+  move(doc:[target][uri][urn]).into(doc:[url][path]);
+  if (doc:[url][path] && doc:[url][path].asString().contains("?")) {
+    String url = doc:[url][path].asString();
+    doc:[url][query] = url.substring(url.indexOf("?")+1);
+    if (doc:[url][query].contains("#")) {
+      String url_query = doc:[url][query];
+      doc:[url][query] = url_query.substring(0, url_query.indexOf("#"));
+      doc:[url][fragment] = url_query.substring(url_query.indexOf("#")+1);
+    }
+  }
+
+  // http
+  move(doc:[web][request][rc]).into(doc:[http][response][status_code]);
+  move(doc:[web][header][referer]).into(doc:[http][request][referrer]);
+  move(doc:[web][request][method]).into(doc:[http][request][method]);
+  move(doc:[web][header][user_agent]).into(doc:[user_agent][original]);
+  move(doc:[web][header][version]).into(doc:[http][version]);
+
+}

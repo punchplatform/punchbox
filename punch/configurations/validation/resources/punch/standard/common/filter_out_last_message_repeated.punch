@@ -1,0 +1,11 @@
+{
+  /*
+   * Discards the log if solely a "last message repeated XXX times" error
+   */
+
+    // The log is assumed to be received in [logs][data]
+    if (!root:[logs][data])
+        throw new PunchRuntimeException("No input data : This parser expect to receive it under [logs][data]");
+    if (root:[logs][data].contains("last message repeated"))
+      root.empty();
+}

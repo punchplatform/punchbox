@@ -1,0 +1,47 @@
+{
+  // This punchlet sets the destination ElasticSearch index and type for ech 
+  // tuple received. In addition it performs some conversion on the content
+  // if the tuple has an indication of some parsing error. The goal is
+  // to send the incorrectly parsed log to ElasticSearch so that it is 
+  // saved.
+  //
+  // The tuple you receive from Storm have the form :
+  //
+  //   { "stream-id" : {
+  //         "field-id" : ...
+  //         "field_id" : ...
+  //      },
+  //      "stream-id" : ...
+  //   }
+  //
+  // 
+  Tuple log = root:[logs][log];
+
+  //
+  // we add a timestamp so that we can see how the logs spent their
+  // time in the various topologies included in the channel
+  //
+  [logs][log][lmc][output][ts] = date("iso").get();
+
+  //
+  // The index and type used by elasticsearch can be set by your punchlet.
+  // In this example we only request the type to be "error" instead of the
+  // one configured in the ElasticSearch bolt. We will use the same index
+  //
+  if (log:[lmc][error]) {
+      Tuple error;
+      error:[lmc] = log:[lmc];
+      error:[type] = "ParsingException";
+      error:[message] = [logs][raw_log];
+      error:[channel] = log:[channel];
+      error:[vendor] = log:[vendor];
+      error:[tenant] = log:[tenant];
+      error:[source] = log.toString();
+      root:[logs][log] = error;
+      root:[logs][es_type] = "error" ;
+  } else { 
+      // Set [lmc][output][host][name] and [ip] for monitoring
+      log:[lmc][output][host][name] = getHostName();
+      log:[lmc][output][host][ip] = getHostIp();
+  }
+}

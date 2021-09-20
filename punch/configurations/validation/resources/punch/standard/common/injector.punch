@@ -1,0 +1,3 @@
+{
+  [logs][data] = [logs][raw_log];
+}

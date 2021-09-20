@@ -1,0 +1,28 @@
+version: '6.0'
+type: punchline
+runtime: storm
+
+dag:
+  - type: extraction_input
+    component: input
+    settings:
+      index: validation-extraction-archive-*
+      nodes:
+        - localhost
+    publish:
+      - stream: metadata
+        fields:
+          - metadata
+  - type: archive_reader_node
+    component: reader
+    settings: { }
+    subscribe:
+      - component: input
+        stream: metadata
+    publish:
+      - stream: data
+        fields:
+          - data
+      - stream: _ppf_errors
+        fields:
+          - data

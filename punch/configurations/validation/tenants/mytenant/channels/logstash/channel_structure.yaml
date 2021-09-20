@@ -1,0 +1,26 @@
+version: '6.0'
+start_by_tenant: true
+stop_by_tenant: true
+applications:
+- name: input
+  runtime: shiva
+  cluster: common
+  shiva_runner_tags: []
+  command: logstash
+  args:
+  - -f
+  - logstash.conf
+- name: print
+  runtime: shiva
+  cluster: common
+  command: punchlinectl
+  args:
+  - start
+  - --punchline
+  - punchline.yaml
+resources:
+- type: kafka_topic
+  name: mytenant_logstash
+  cluster: common
+  partitions: 1
+  replication_factor: 1

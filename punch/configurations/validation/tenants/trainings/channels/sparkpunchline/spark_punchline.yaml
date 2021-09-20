@@ -1,0 +1,20 @@
+---
+type: punchline
+version: '6.0'
+dag:
+- type: dataset_generator
+  component: input
+  settings:
+    input_data:
+    - from: "{{from_date}}"
+      to: "{{to_date}}"
+      hello: world
+  publish:
+  - stream: data
+- type: show
+  component: show
+  settings:
+    truncate: false
+  subscribe:
+  - component: input
+    stream: data

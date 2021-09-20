@@ -1,0 +1,320 @@
+{
+  // The parsed log is stored as Json under the <stream><data_field> of the punchlet
+  // Default parsers assume the Storm stream is "logs" and the first field in the
+  // PunchBolt configuration is "log" 
+  
+  Tuple document = [logs][log];
+  Tuple tmp;
+
+  if (document:[postfix]) {
+    move(document:[postfix]).into(tmp:[msg]);
+    switch (document:[init][process][name]) {
+      // Postfix SMTP server
+      case "smtpd":
+        if (grok("%{POSTFIX_SMTPD:document:[postfix]}").on(tmp:[msg])) {
+          move(document:[postfix][postfix_client_ip]).into(document:[init][host][ip]);
+          move(document:[postfix][postfix_client_hostname]).into(document:[init][host][name]);
+          move(document:[postfix][alarm]).into(document:[alarm][name]);
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // canonicalize and enqueue Postfix message
+      case "cleanup":
+        if (grok("%{POSTFIX_CLEANUP:document:[postfix]}").on(tmp:[msg])) {
+          document:[alarm][name] = document:[init][process][name];
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix queue manager
+      case "qmgr":
+        if (grok("%{POSTFIX_QMGR:document:[postfix]}").on(tmp:[msg])) {
+          move(document:[postfix][alarm]).into(document:[alarm][name]);
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix delivery to external command
+      case "pipe":
+        if (grok("%{POSTFIX_PIPE:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix zombie blocker
+      case "postscreen":
+        if (grok("%{POSTFIX_POSTSCREEN:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix DNS white/blacklist logger
+      case "dnsblog":
+        if (grok("%{POSTFIX_DNSBLOG:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix session count and request rate control
+      case "anvil":
+        if (grok("%{POSTFIX_ANVIL:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix SMTP+LMTP client
+      case "smtp":
+        if (!grok("%{POSTFIX_SMTP:document:[postfix]}").on(tmp:[msg])) {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix local mail pickup
+      case "pickup":
+        if (grok("%{POSTFIX_PICKUP:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix TLS proxy
+      case "tlsproxy":
+        if (grok("%{POSTFIX_TLSPROXY:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix master process
+      case "master":
+        if (grok("%{POSTFIX_MASTER:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix delivery status reports
+      case "bounce":
+        if (grok("%{POSTFIX_BOUNCE:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix to Sendmail compatibility interface
+      case "sendmail":
+        if (grok("%{POSTFIX_SENDMAIL:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix mail posting utility
+      case "postdrop":
+        if (grok("%{POSTFIX_POSTDROP:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix shared connection cache server
+      case "scache":
+        if (grok("%{POSTFIX_SCACHE:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix address rewriting and resolving daemon
+      case "trivial-rewrite":
+        if (grok("%{POSTFIX_TRIVIAL_REWRITE:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix TLS session cache and PRNG manager
+      case "tlsmgr":
+        if (grok("%{POSTFIX_TLSMGR:document:[postfix]}").on(tmp:[msg])) {
+          // TODO
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      // Postfix local mail delivery
+      case "local":
+        if (grok("%{POSTFIX_LOCAL:document:[postfix]}").on(tmp:[msg])) {
+         move(document:[postfix][alarm]).into(document:[alarm][name]);
+        } else {
+          throw new PunchRuntimeException("Parse error in " + document:[init][process][name]);
+        }
+        break;
+      case "amavis":
+      if (grok("%{AMAVIS:document:[postfix]}").on(tmp:[msg])) {
+        move(document:[postfix][alarm]).into(document:[alarm][name]);
+        if(document:[postfix][amavis_key_value_data]){
+          if(document:[alarm][name] == "Passed CLEAN"){
+            if(kv().fieldSplit(", ").valueSplit(": ").on(document:[postfix][amavis_key_value_data]).into(document:[postfix])){
+
+              for (String key : document:[postfix].getKeys()){
+                String n_key = key.replaceAll("[ -:]", "_").toLowerCase();
+                if(! (key==n_key)){
+                  move(document:[postfix][${key}]).into(document:[postfix][${n_key}]);
+                }
+              }
+              if(document:[postfix][queued_as]){
+                grok("%{BASE16NUM:document:[session][id]}, %{POSINT:document:[session][duration]}").on(document:[postfix][queued_as]);
+              }
+            }
+          }
+          if(document:[alarm][name] == "Passed CLEAN"){
+            kv().fieldSplit(",").valueSplit("=").on(document:[postfix][amavis_key_value_data]).into(document:[postfix]);
+              for (String key : document:[postfix].getKeys()){
+                String n_key = key.replaceAll("[ -:]", "_").toLowerCase();
+                if(! (key==n_key)){
+                  move(document:[postfix][${key}]).into(document:[postfix][${n_key}]);
+                }
+              }
+          }
+          else{
+          }
+        }
+        move(document:[postfix][sev]).into(document:[alarm][sev]);
+        move(document:[postfix][proto]).into(document:[app][name]);
+        move(document:[postfix][dl]).into(document:[session][in][byte]);
+        move(document:[postfix][src_host]).into(document:[init][host][name]);
+        move(document:[postfix][src_ip]).into(document:[init][host][ip]);
+        move(document:[postfix][dst_ip]).into(document:[target][host][ip]);
+        if(document:[postfix][dst_host]){
+          document:[target][host][name].append(document:[postfix][dst_host]);
+        }
+        if(document:[postfix][dst_host]){
+          document:[target][host][name].append(document:[postfix][dst_host_1]);
+        }
+      }
+      else {
+        throw new PunchRuntimeException("Parse error");
+      }
+      break;
+    }
+    if(document:[postfix][postfix_smtp_response]){
+      if(grok("%{POSTFIX_STATUS_CODE}%{SPACE}%{POSTFIX_STATUS_CODE_ENHANCED}%{SPACE}from MTA\(%{POSTFIX_RELAY_INFO}\):%{SPACE}%{POSTFIX_STATUS_CODE:document:[app][return][code]}%{SPACE}%{POSTFIX_STATUS_CODE_ENHANCED:document:[postfix]}%{SPACE}%{DATA}: %{WORD:document:[alarm][name]} as %{BASE16NUM:document:[postfix][id]}").on(document:[postfix][postfix_smtp_response])){
+        document:[session][id].append(document:[postfix][id]);
+        move([postfix_relay_hostname]).into(document:[init][host][name]);
+        move([postfix_relay_ip]).into(document:[init][host][ip]);
+        move([postfix_relay_port]).into(document:[init][host][port]);
+      }
+      else if (grok("%{POSTFIX_STATUS_CODE:document:[app][return][code]}%{SPACE}%{POSTFIX_STATUS_CODE_ENHANCED:document:[postfix][status]}%{SPACE}<%{DATA}(?:&gt;|>)? \[%{GREEDYDATA}\] %{GREEDYDATA:document:[alarm][name]}").on(document:[postfix][postfix_smtp_response])){
+      }
+      else{
+        throw new PunchRuntimeException("smtp format unknown");
+      }
+    }
+    if(document:[postfix][postfix_keyvalue_data]){
+      if(!kv().fieldSplit(", ").valueSplit("=").on(document:[postfix][postfix_keyvalue_data]).into(document:[postfix])){
+        throw new PunchRuntimeException("Key/Value error on smtp log");
+      }
+      else{
+        for (String key : document:[postfix].getKeys()){
+          String n_key = key.replaceAll("[ -:]", "_").toLowerCase();
+          if(! (key==n_key)){
+            move(document:[postfix][${key}]).into(document:[postfix][${n_key}]);
+          }
+        }
+      }
+      move(document:[postfix][to]).into(document:[postfix][dst_mail]);
+      move(document:[postfix][from]).into(document:[postfix][src_mail]);
+      if(document:[postfix][relay]){
+        if(grok("%{POSTFIX_RELAY_INFO:document:[postfix]}").on(document:[postfix][relay])){
+          if(document:[postfix][postfix_relay_hostname]){
+            if(!grok("^%{IP}$").on(document:[postfix][postfix_relay_hostname])){
+              move(document:[postfix][postfix_relay_hostname]).into(document:[target][host][name]);
+            }
+          }
+          move(document:[postfix][postfix_relay_ip]).into(document:[target][host][ip]);
+          move(document:[postfix][postfix_relay_port]).into(document:[target][host][port]);
+        }
+        else{
+          move(document:[postfix][relay]).into(document:[target][host][name]);
+        }
+      }
+      if(document:[postfix][client]){
+        if(grok("%{POSTFIX_CLIENT_INFO:document:[postfix]}").on(document:[postfix][client])){
+          move(document:[postfix][postfix_client_ip]).into(document:[init][host][ip]);
+          if(document:[postfix][postfix_client_hostname]){
+            if(!grok("^%{IP}$").on(document:[postfix][postfix_client_hostname])){
+              move(document:[postfix][postfix_client_hostname]).into(document:[init][host][name]);
+            }
+          }
+          move(document:[postfix][postfix_client_port]).into(document:[init][host][port]);
+        }
+        else{
+          move(document:[postfix][client]).into(document:[init][host][name]);
+        }
+        if(!document:[alarm][name]){
+          document:[alarm][name] = "connected";
+        }
+      }
+    }
+    if(document:[postfix][postfix_queueid]){
+      document:[session][id].append(document:[postfix][postfix_queueid]);
+    }
+
+    if(document:[postfix][src_mail]){
+      split().delim(",").on(document:[postfix][src_mail]).into(document:[postfix][src_mail]);
+      for (Tuple mail : document:[postfix][src_mail].asArray()) {
+        grok("<%{DATA:document:[src_mail]}>?$").on(mail);
+        grok("%{USER:document:[src_name]}@%{HOST:document:[src_domain]}").on(document:[src_mail]);
+        document:[init][usr][mail].append(document:[src_mail]);
+        document:[init][usr][name].append(document:[src_name]);
+        document:[init][usr][domain].append(document:[src_domain]);
+        remove(document:[src_mail]);
+        remove(document:[src_name]);
+        remove(document:[src_domain]);
+      }
+
+    }
+    if(document:[postfix][dst_mail]){
+      split().delim(",").on(document:[postfix][dst_mail]).into(document:[postfix][dst_mail]);
+      for (Tuple mail : document:[postfix][dst_mail].asArray()) {
+        grok("<%{DATA:document:[dst_mail]}>?$").on(mail);
+        grok("%{USER:document:[dst_name]}@%{HOST:document:[dst_domain]}").on(document:[dst_mail]);
+        document:[target][usr][mail].append(document:[dst_mail]);
+        document:[target][usr][name].append(document:[dst_name]);
+        document:[target][usr][domain].append(document:[dst_domain]);
+        remove(document:[dst_name]);
+        remove(document:[dst_mail]);
+        remove(document:[dst_domain]);
+      }
+    }
+    remove(document:[postfix][id]);
+    remove(document:[postfix][queued_as]);
+    remove(document:[postfix][hits]);
+    remove(document:[postfix][mail_id]);
+    remove(document:[postfix][message_id]);
+    remove(document:[postfix][src_mail]);
+    remove(document:[postfix][dst_mail]);
+    remove(document:[postfix][relay]);
+    remove(document:[postfix][client]);
+    remove(document:[postfix][dsn]);
+    remove(document:[postfix][nrcpt]);
+    remove(document:[postfix][delays]);
+    remove(document:[postfix][dst_host]);
+    remove(document:[postfix][dst_host_1]);
+    remove(document:[postfix][postfix_client_hostname]);
+    remove(document:[postfix][postfix_relay_hostname]);
+    remove(document:[postfix][postfix_keyvalue_data]);
+    remove(document:[postfix][amavis_key_value_data]);
+    remove(document:[postfix][postfix_smtp_response]);
+    remove(document:[postfix][postfix_queueid]);
+
+    move(document:[postfix][size]).into(document:[session][out][byte]);
+    move(document:[postfix][delay]).into(document:[session][duration]);
+    move(document:[postfix][duration]).into(document:[session][duration]);
+    document:[type] = "mx";
+  } 
+}

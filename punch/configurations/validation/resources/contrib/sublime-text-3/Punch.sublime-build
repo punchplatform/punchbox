@@ -1,0 +1,6 @@
+{
+    "cmd": ["punchplatform-puncher.sh", "-noinput", "-p", "$file"],
+    "selector": "source.punch",
+    "target": "ansi_color_build",
+    "syntax": "Packages/ANSIescape/ANSI.tmLanguage"
+}

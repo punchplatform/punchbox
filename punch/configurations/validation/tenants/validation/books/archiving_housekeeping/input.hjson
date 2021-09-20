@@ -1,0 +1,69 @@
+{
+  version: "6.0"
+  runtime: storm
+  type: punchline
+  meta: {
+    /*  Meta key/values can be used by some generic punchlets. Here the input.punch
+        is using them for filling in some common fields of all parsed logs, identifying
+        the type of device and the channel which processed the log.
+    */
+    vendor: apache
+    technology: apache_httpd
+  }
+
+  dag: [
+    {
+      type: syslog_input
+      settings: {
+        listen: {
+          proto: tcp
+          host: 0.0.0.0
+          port: 9901
+        }
+        self_monitoring.activation: true
+        self_monitoring.period: 10
+      }
+      publish: [
+        {
+          stream: logs
+          fields: [
+            log
+            _ppf_id
+          ]
+        }
+      ]
+    }
+    {
+      type: elasticsearch_output
+      settings: {
+        per_stream_settings: [
+          {
+            stream: logs
+            index: {
+              type: daily
+              prefix: validation-archive-
+            }
+            document_json_field: log
+            document_id_field: _ppf_id
+            additional_document_value_fields: [
+              {
+                type: date
+                document_field: @timestamp
+                format: iso
+              }
+            ]
+          }
+        ]
+      }
+      subscribe: [
+        {
+          "component": "syslog_input",
+          stream: logs
+        }
+      ]
+    }
+  ]
+  settings: {
+    topology.worker.childopts: "-server -Xms1g -Xmx1g"
+  }
+}

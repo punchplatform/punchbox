@@ -1,0 +1,82 @@
+{
+    "description": "test extraction as csv",
+    "format": "csv",
+    "index": "mytenant-events-*",
+    "fields": [
+        {
+            "name": "@timestamp",
+            "type": "date",
+            "esTypes": [
+                "date"
+            ],
+            "count": 0,
+            "scripted": false,
+            "searchable": true,
+            "aggregatable": true,
+            "readFromDocValues": true
+        },
+        {
+            "name": "action",
+            "type": "string",
+            "esTypes": [
+                "keyword"
+            ],
+            "count": 0,
+            "scripted": false,
+            "searchable": true,
+            "aggregatable": true,
+            "readFromDocValues": true
+        },
+        {
+            "name": "alarm.facility",
+            "type": "string",
+            "esTypes": [
+                "keyword"
+            ],
+            "count": 0,
+            "scripted": false,
+            "searchable": true,
+            "aggregatable": true,
+            "readFromDocValues": true
+        },
+        {
+            "name": "alarm.name",
+            "type": "string",
+            "esTypes": [
+                "keyword"
+            ],
+            "count": 0,
+            "scripted": false,
+            "searchable": true,
+            "aggregatable": true,
+            "readFromDocValues": true
+        },
+        {
+            "name": "col.host.net",
+            "type": "string",
+            "esTypes": [
+                "keyword"
+            ],
+            "count": 0,
+            "scripted": false,
+            "searchable": true,
+            "aggregatable": true,
+            "readFromDocValues": true
+        }
+    ],
+    "filters": {
+        "bool": {
+            "must": [
+                {
+                    "range": {
+                        "@timestamp": {
+                            "gte": "now-1h",
+                            "lte": "now"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "tenant": "mytenant"
+}

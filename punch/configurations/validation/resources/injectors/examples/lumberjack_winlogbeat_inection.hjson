@@ -1,0 +1,37 @@
+{
+  destination: {proto: "lumberjack", host: "127.0.0.1", port: 5044}
+  load:
+  {
+    total_messages: 1000
+    stats_publish_interval: 2s
+    message_throughput: 100
+  }
+  message:
+  {
+    /*
+      the following setting is needed to indicate we provide a dictionary of fields to describe the lumberjack frame
+      otherwise, the whole payload would be sent inside 'log' singleton field in the lumberjack frame
+    */
+    payload_source_is_json_with_fields: true
+    payloads:
+    [
+       /*
+       	Here is 1 log content, that will be provided in 'line' field in the lumberjack key/value frame
+       	This is the behavious of a winlogbeat in 'logstash' output mode
+
+       	Note that we provide it here in Json syntax (because JSON is included in the HJSON syntax)
+       */
+      { line: 
+	  {"@timestamp":"%{timestamp}","@metadata":{"beat":"winlogbeat","type":"_doc","version":"7.9.2"},"message":'''Opération de chiffrement.\n\nSujet :\n\tID de sécurité :\t\tS-1-5-21-247528832-2285835577-2914503926-1001\n\tNom du compte :\t\tcvanf\n\tDomaine du compte :\t\tCVFDUAL\n\tID d’ouverture de session :\t\t0x3CD0F2\n\nParamètres de chiffrement :\n\tNom du fournisseur :\tMicrosoft Software Key Storage Provider\n\tNom de l’algorithme :\tECDSA_P256\n\tNom de la clé :\tTB_2_msedge.net\n\tType de clé :\tClé utilisateur.\n\nOpération de chiffrement :\n\tOpération :\tOuvrir la clé.\n\tCode de retour :\t0x0''',"winlog":{"task":"System Integrity","opcode":"Informations","activity_id":"{7dff74c8-9891-0003-1475-ff7d9198d601}","provider_name":"Microsoft-Windows-Security-Auditing","provider_guid":"{54849625-5478-4994-a5ba-3e3b0328c30d}","event_id":5061,"api":"wineventlog","keywords":["Succès de l’audit"],"event_data":{"Operation":"%%2480","SubjectLogonId":"0x3cd0f2","KeyType":"%%2500","SubjectUserSid":"S-1-5-21-247528832-2285835577-2914503926-1001","AlgorithmName":"ECDSA_P256","ReturnCode":"0x0","ProviderName":"Microsoft Software Key Storage Provider","SubjectDomainName":"CVFDUAL","KeyName":"TB_2_msedge.net","SubjectUserName":"cvanf"},"channel":"Security","record_id":47206,"computer_name":"CVFDUAL","process":{"pid":908,"thread":{"id":1100}}},"event":{"created":"2020-10-02T08:23:14.010Z","outcome":"success","kind":"event","code":5061,"provider":"Microsoft-Windows-Security-Auditing","action":"System Integrity"},"host":{"architecture":"x86_64","name":"CVFDUAL","os":{"platform":"windows","version":"10.0","family":"windows","name":"Windows 10 Pro","kernel":"10.0.19041.508 (WinBuild.160101.0800)","build":"19041.508"},"id":"aff89fbf-3056-4380-8779-0c615ec6ff62","ip":["fe80::59f1:908d:23fe:fa3","10.0.2.15","fe80::d885:8e57:1ecd:b534","192.168.56.113"],"mac":["08:00:27:fd:0c:f0","08:00:27:39:d3:9c"],"hostname":"CVFDUAL"},"ecs":{"version":"1.5.0"},"agent":{"version":"7.9.2","hostname":"CVFDUAL","ephemeral_id":"9fee52af-76b6-4bff-a0b2-ac5239153376","id":"1b45d9d8-9372-439e-b2a8-bc78a0028319","name":"CVFDUAL","type":"winlogbeat"},"log":{"level":"information"}}
+	  mymeta: "This is a test log"
+	  myint: 42
+	}
+    ]
+    # Fields allow to 'customize' each log before it is sent
+    fields:
+    {
+    	# Here, we generate a timestamp, so that the log seems to have just been generated (instead of using a static log sample)
+      timestamp: {type: "timestamp", format: "YYYY-MM-dd'T'HH:mm:ss:SSS'Z'"}
+    }
+  }
+}

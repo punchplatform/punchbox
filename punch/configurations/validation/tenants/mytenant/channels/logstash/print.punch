@@ -1,0 +1,4 @@
+{
+	// simply print the log received from logstash
+	print(root);
+}

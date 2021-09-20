@@ -4,140 +4,124 @@
     "*-gateway-logs-*"
   ],
   "mappings": {
-      "dynamic": true,
-      "dynamic_templates": [
-      ],
-      "properties": {
-        "job": {
-          "properties": {
-            "runtime": {
-              "properties": {
-                "id": {
-                  "type": "keyword"
-                }
-              }
-            }
-          }
-        },
-        "client": {
-          "properties": {
-            "ip": {
-              "type": "ip"
-            }
-          }
-        },
-        "content": {
-          "properties": {
-            "level": {
-              "type": "keyword"
-            },
-            "message": {
-              "type": "text"
-            }
-          }
-        },
-        "http": {
-          "properties": {
-            "request": {
-              "properties": {
-                "method": {
-                  "type": "keyword"
-                }
-              }
-            },
-            "response": {
-              "properties": {
-                "status_code": {
-                  "type": "integer"
-                },
-                "time_taken": {
-                  "type": "long"
-                }
-              }
-            }
-          }
-        },
-        "init": {
-          "properties": {
-            "host": {
-              "properties": {
-                "name": {
-                  "type": "text"
-                }
-              }
-            },
-            "process": {
-              "properties": {
-                "id": {
-                  "type": "keyword"
-                }
-              }
-            }
-          }
-        },
-        "platform": {
-          "properties": {
-            "tenant": {
-              "type": "keyword"
-            }
-          }
-        },
-        "punchlet": {
-          "properties": {
-            "execution": {
-              "properties": {
-                "id": {
-                  "type": "keyword"
-                },
-                "result": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        },
-        "request": {
-          "properties": {
-            "body": {
-              "properties": {
-                "bytes": {
-                  "type": "long"
-                }
-              }
-            }
-          }
-        },
-        "response": {
-          "properties": {
-            "body": {
-              "properties": {
-                "bytes": {
-                  "type": "long"
-                }
-              }
-            }
-          }
-        },
-        "target": {
-          "properties": {
-            "type": {
-              "type": "keyword"
-            }
-          }
-        },
-        "url": {
-          "properties": {
-            "path": {
-              "type": "keyword"
-            },
-            "port": {
-              "type": "long"
-            },
-            "query": {
-              "type": "text"
-            }
+    "dynamic": true,
+    "dynamic_templates": [
+      {
+        "strings_as_keywords": {
+          "match_mapping_type": "string",
+          "mapping": {
+            "type": "keyword",
+            "ignore_above": 256
           }
         }
       }
+    ],
+    "properties": {
+      "client": {
+        "properties": {
+          "ip": {
+            "type": "ip"
+          }
+        }
+      },
+      "content": {
+        "properties": {
+          "level": {
+            "type": "keyword"
+          },
+          "message": {
+            "type": "text"
+          }
+        }
+      },
+      "http": {
+        "properties": {
+          "request": {
+            "properties": {
+              "method": {
+                "type": "keyword"
+              }
+            }
+          },
+          "response": {
+            "properties": {
+              "status_code": {
+                "type": "integer"
+              },
+              "time_taken": {
+                "type": "long"
+              }
+            }
+          }
+        }
+      },
+      "init": {
+        "properties": {
+          "host": {
+            "properties": {
+              "name": {
+                "type": "text"
+              }
+            }
+          },
+          "process": {
+            "properties": {
+              "id": {
+                "type": "keyword"
+              }
+            }
+          }
+        }
+      },
+      "punchlet": {
+        "properties": {
+          "execution": {
+            "properties": {
+              "id": {
+                "type": "keyword"
+              },
+              "result": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "request": {
+        "properties": {
+          "body": {
+            "properties": {
+              "bytes": {
+                "type": "long"
+              }
+            }
+          }
+        }
+      },
+      "response": {
+        "properties": {
+          "body": {
+            "properties": {
+              "bytes": {
+                "type": "long"
+              }
+            }
+          }
+        }
+      },
+      "url": {
+        "properties": {
+          "path": {
+            "type": "keyword"
+          },
+          "port": {
+            "type": "long"
+          },
+          "query": {
+            "type": "text"
+          }
+        }
+      }
+    }
   }
 }

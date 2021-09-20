@@ -1,0 +1,14 @@
+version: '6.0'
+start_by_tenant: false
+stop_by_tenant: true
+applications:
+- name: elastalert
+  runtime: shiva
+  command: elastalert
+  args:
+  - --config
+  - config.yaml
+  - --verbose
+  cluster: common
+  shiva_runner_tags:
+  - common

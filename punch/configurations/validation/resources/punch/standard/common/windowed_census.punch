@@ -1,0 +1,59 @@
+import java.util.Map;
+import java.util.HashMap;
+import java.time.Duration;
+import java.time.ZonedDateTime;
+
+public class Census extends Punchlet {    
+
+	//period in seconds
+	long period = 10;
+	
+	Map<String, Tuple> map;
+	ZonedDateTime next;
+	
+	public void activate() {
+	    logger().info("Activating census.");
+	    this.next = ZonedDateTime.now();
+   		this.map = new HashMap<String, Tuple>();
+	}
+
+	public void execute(Tuple root) {
+
+	    // First check if we are ticked by Storm
+        if (root.isEmpty()) {  
+            return;
+        }
+        
+        ZonedDateTime now = ZonedDateTime.now();
+        if (now.isAfter(this.next)) {
+			Duration duration = Duration.ofSeconds(period);
+			this.next = now.plus(duration);
+			logger().debug("census : clear map");         
+			this.map.clear();   
+		}
+
+        String censusId = root:[logs][log][init][host][ip].asString();
+        if (!this.map.containsKey(censusId)) {
+        	[census][es_index] = "census-" + world:[meta][tenant] ;
+        	[census][es_type] = "lastseen";
+        	[census][local_uuid] = censusId;
+ 			[census][census_element][persistent_id] = censusId;
+			[census][census_element][channel] = world:[meta][channel];
+			[census][census_element][tenant] = world:[meta][tenant];
+
+        	this.map.put(censusId, root);
+        	//propagate the census element
+        	logger().info("census : propagate {}", censusId);
+
+        	[history][es_index]=[census][es_index];
+        	[history][es_type] = "history";
+        	[history][local_uuid] = censusId+date("-yyyy.MM.dd.hh.mm.ss").get();
+        	[history][census_element][persistent_id] = censusId;
+			[history][census_element][tenant] = world:[meta][tenant];
+
+
+        } else {
+            root.empty();
+        }        
+	}
+}

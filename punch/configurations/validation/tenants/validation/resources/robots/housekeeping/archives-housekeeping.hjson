@@ -1,0 +1,14 @@
+{
+  archiving_pools: [
+    {
+      devices_addresses: [
+        file:///tmp/archive_housekeeping/storage
+      ]
+      pool: validation
+      retention: 30s
+      max_deletion_percentage: 100
+      es_cluster_id: common
+      es_index: validation-archive-housekeeping
+    }
+  ]
+}

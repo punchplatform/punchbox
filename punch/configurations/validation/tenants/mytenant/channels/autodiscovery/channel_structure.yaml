@@ -1,0 +1,16 @@
+version: '6.0'
+start_by_tenant: false
+stop_by_tenant: true
+applications:
+- name: punchline
+  runtime: shiva
+  command: punchlinectl
+  args:
+  - start
+  - --punchline
+  - punchline.yml
+  shiva_runner_tags:
+  - common
+  cluster: common
+  reload_action: kill_then_start
+

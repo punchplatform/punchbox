@@ -1,0 +1,17 @@
+---
+stop_by_tenant: true
+version: '6.0'
+start_by_tenant: true
+applications:
+- args:
+  - start
+  - "--punchline"
+  - kafka_to_es.yaml
+  - "--runtime"
+  - storm
+  cluster: common
+  shiva_runner_tags:
+  - common
+  name: kafka_to_es
+  runtime: shiva
+  command: punchlinectl

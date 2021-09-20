@@ -1,0 +1,102 @@
+version: "6.0"
+runtime: storm
+type: punchline
+name: processing_topology
+meta:
+  tenant: {{channel.tenant}}
+  channel: {{channel.channel}}
+  vendor: {{channel.vendor}}
+  technology: {{channel.technology}}
+dag:
+
+  # Kafka input
+  - type: kafka_input
+    settings:
+      topic: "{{channel.tenant}}_{{channel.channel}}"
+      start_offset_strategy: last_committed
+      fail_action: exit
+    publish:
+      - stream: logs
+        fields:
+          - log
+          - _ppf_id
+          - _ppf_timestamp
+          - _ppf_partition_id
+          - _ppf_partition_offset
+      - stream: _ppf_metrics
+        fields:
+          - _ppf_latency
+
+  # Punchlet node
+  - type: punchlet_node
+    component: punchlet
+    settings:
+      {% if channel.processing.punchlet_json_resources %}
+      punchlet_json_resources:
+      {%   for punchlet_json_resources in channel.processing.punchlet_json_resources -%}
+        - {{punchlet_json_resources}}
+      {%   endfor -%}
+      {% endif %}
+      punchlet:
+      {% for punchlet in channel.processing.punchlets -%}
+        - {{punchlet}}
+      {% endfor %}
+    subscribe:
+      - component: kafka_input
+        stream: logs
+      - component: kafka_input
+        stream: _ppf_metrics
+    publish:
+      - stream: logs
+        fields:
+          - log
+          - _ppf_id
+          - _ppf_timestamp
+      - stream: _ppf_errors
+        fields:
+          - _ppf_error_message
+          - _ppf_error_document
+          - _ppf_id
+      - stream: _ppf_metrics
+        fields:
+          - _ppf_latency
+  
+  # Elasticsearch output
+  - type: elasticsearch_output
+    settings:
+      per_stream_settings:
+        - stream: logs
+          index:
+            type: daily
+            prefix: mytenant-events-
+          document_json_field: log
+          document_id_field: _ppf_id
+          additional_document_value_fields:
+            - type: date
+              document_field: "@timestamp"
+              format: iso
+        - stream: _ppf_errors
+          document_json_field: _ppf_error_document
+          additional_document_value_fields:
+            - type: tuple_field
+              document_field: ppf_error_message
+              tuple_field: _ppf_error_message
+            - type: date
+              document_field: "@timestamp"
+              format: iso
+          index:
+            type: daily
+            prefix: mytenant-events-
+    subscribe:
+      - component: punchlet
+        stream: logs
+      - component: punchlet
+        stream: _ppf_errors
+      - component: punchlet
+        stream: _ppf_metrics
+
+metrics:
+  reporters:
+    - type: kafka
+settings:
+  topology.worker.childopts: {{channel.runtime_settings.childopts}}

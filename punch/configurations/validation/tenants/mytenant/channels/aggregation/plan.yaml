@@ -1,0 +1,24 @@
+version: '6.0'
+name: aggregation
+model:
+  metric_index: mytenant-metrics
+  plan_logs_index: platform-plan-logs*
+  input_index: mytenant-events-*
+  output_index: mytenant-aggregations
+  dates:
+    day:
+      offset: -PT1m
+      format: yyyy.MM.dd
+    from:
+      offset: -PT1m
+      format: yyyy-MM-dd'T'HH:mmZ
+    to:
+      format: yyyy-MM-dd'T'HH:mmZ
+settings:
+  cron: '*/1 * * * *'
+  persistence:
+  - type: elasticsearch
+    index_name: platform-plan-cursor
+metrics:
+  reporters:
+  - type: kafka

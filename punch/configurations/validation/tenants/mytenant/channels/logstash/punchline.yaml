@@ -1,0 +1,37 @@
+version: '6.0'
+runtime: storm
+dag:
+- type: kafka_input
+  component: input
+  settings:
+    topic: mytenant_logstash
+    brokers: common
+    value_codec:
+      type: string
+    start_offset_strategy: last_committed
+    self_monitoring.activation: true
+    self_monitoring.period: 60
+  publish:
+  - stream: logs
+    fields:
+    - log
+  - stream: _ppf_metrics
+    fields:
+    - _ppf_latency
+- type: punchlet_node
+  component: printer
+  settings:
+    punchlet:
+    - ./print.punch
+  subscribe:
+  - stream: logs
+    component: input
+  - stream: _ppf_metrics
+    component: input
+metrics:
+  reporters:
+  - type: kafka
+  reporting_interval: 10
+settings:
+  topology.max.spout.pending: 5000
+  topology.worker.childopts: -server -Xms756m -Xmx756m

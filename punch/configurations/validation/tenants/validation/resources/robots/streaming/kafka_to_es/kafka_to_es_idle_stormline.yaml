@@ -1,0 +1,46 @@
+---
+version: "6.0"
+runtime: storm
+type: punchline
+dag:
+- type: kafka_input
+  settings:
+    topic: streaming_validation
+    start_offset_strategy: last_committed
+    encoding: lumberjack
+    exit_conditions:
+      success:
+        inactive_for_more_than: 20000
+
+
+  publish:
+  - stream: logs
+    fields:
+    - log
+    - _ppf_id
+    - _ppf_timestamp
+  
+- type: elasticsearch_output
+  settings:
+    cluster_id: common
+    reindex_failed_documents: true
+    error_index: 
+        type : constant
+        value: validation-streaming-errors
+    per_stream_settings:
+    - stream: logs
+      index:
+        type: constant
+        value: validation-streaming-events
+      document_value_fields:
+        - log
+      document_id_field: _ppf_id
+      additional_document_value_fields:
+      - type: date
+        document_field: "@timestamp"
+        format: iso
+  subscribe:
+  - component: kafka_input
+    stream: logs
+settings:
+  topology.worker.childopts: "-server -Xms400m -Xmx400m"

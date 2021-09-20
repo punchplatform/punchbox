@@ -1,0 +1,39 @@
+---
+
+# the three mandatory tenant related properties
+tenant: mytenant
+channel: websense_web_security
+vendor: websense_web_security
+
+# the default template profile to use for generating the actual 
+# channel configuration files. You can override this using the 
+#   channelctl configure --profile examples/another_template
+# command line.   
+channel_structure_profile: shiva_single
+
+# a field in metadata that can be used in punchlets
+technology: websense_web_security
+
+# the target storm cluster
+cluster_name: common
+
+# the processings you want to run on the data stream
+input:
+  port: 9902
+  host: localhost
+processing:
+  workers: 1
+  executors: 1
+  punchlet_json_resources: 
+  - punchlets/websense_web_security/enrichment_category.json
+  - punchlets/websense_web_security/enrichment_disposition.json
+  punchlets:
+  - punchlets/common/input.punch
+  - punchlets/common/parsing_syslog_header.punch
+  - punchlets/sourcefire/parsing.punch
+  - punchlets/websense_web_security/enrichment.punch
+  - punchlets/common/geoip.punch
+
+# some important runtime settings
+runtime_settings:
+  childopts: -server -Xms1g -Xmx4g

@@ -1,0 +1,22 @@
+{
+    // The parsed log is stored as Json under the <stream><data_field> of the punchlet
+    // Default parsers assume the Storm stream is "logs" and the first field in the
+    // PunchBolt configuration is "log" 
+    Tuple input = root:[logs][log];
+
+    /* what we want is to send to BlackStratus a single String with key values,
+    * not a Json representation. To do that, we use a toKv operator.
+    */
+    String kv = toKv().on(input);
+    
+    print(kv);
+
+    // expected logs are key values. We simply convert them to a json document
+    // with type inference on, so that numerical values will ba available to
+    // esper statements.
+    kv().inferTypes().on(kv).into(root:[logs]);
+     
+    // No need to send the original payload to the topology. 
+    remove([logs][log]);
+    print(root);
+}

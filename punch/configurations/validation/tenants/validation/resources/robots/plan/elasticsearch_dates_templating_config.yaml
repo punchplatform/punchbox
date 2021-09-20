@@ -1,0 +1,4 @@
+---
+type: elasticsearch
+index: validation-plan-dates-templating-test
+cluster: common

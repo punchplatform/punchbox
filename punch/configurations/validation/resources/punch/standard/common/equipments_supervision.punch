@@ -1,0 +1,139 @@
+import org.apache.storm.utils.RotatingMap;
+
+    // On the implementation side:
+    //  
+    // This punchlet uses the complete API, and does not rely on the simplified
+    // form, i.e. a simple "{ }" set of statements. 
+    //
+    // What this allows it to code a stateful processing. In this example, we update  
+    // several logs, all related through the same session host&equipment (the 'mid' field),
+    // and push them all grouped together, at once, downstream the Storm topology.
+    // We also use an efficient timeout expiration mechanism to deal with the non receiving of
+    // the last log.  
+    //
+
+public class EquipmentSupervisionPunchlet extends Punchlet {
+
+    //  We use a map structure from storm, that makes it easy to deal with expiration.
+    RotatingMap<String, Tuple> map;
+
+    // 
+    // The activate method is called before receiving the first tuples.
+    // Your punchlet has been fully initialized you can access and resource
+    // file, or mapped json tuples.
+    //
+    // Here we setup a rotating map. It comes from the storm core library and is handy
+    // to efficiently store items with efficient O(1) expiration. 
+    //
+    public void activate() {
+          //
+          // The timeout is not this '3'. It is the one set in the topology file
+          // For example : "punchlet_tick_frequency" : 60
+          // means all aggregated logs will eventually be flushed after 60 seconds
+          //
+          this.map = new RotatingMap<String, Tuple>(3);
+
+    }
+
+    // Update the new tuple received in root into the complete updated tuple.
+    // This method performs a merge of some of the fields. Code is self-explanatory
+    Tuple update(Tuple complete, Tuple root) {
+
+      // update rep.ts or obs.ts
+      if (root:[logs][log][rep][ts]) {
+        complete:[supervised_equipment][log][obs][ts] = root:[logs][log][rep][ts];
+      } else {
+        complete:[supervised_equipment][log][obs][ts] = root:[logs][log][obs][ts];
+      }
+
+      return complete;
+
+    }
+
+    //
+    // This is executed whenever a log traverse, or when Storm wakes us up
+    // periodically, in which case the root tuple is empty. 
+    //
+    public void execute(Tuple root) {
+
+      // First check if we are ticked by Storm
+      // If so make our RoatingMap expire all the tuples in there for more than that timeout. 
+      if (root.isEmpty()) {
+        //print("map size = "+map.size());
+        logger().info("map size = {}", map.size());
+        Map<String, Tuple> expired = map.rotate();
+        logger().debug("EXPIRED num_docs={}", expired.size());
+        for(Tuple tuple : expired.values()) {
+            root.append(tuple);
+            //print(tuple);
+        }
+        return;
+      }
+
+      // check if init.host.ip or init.host.name exist
+      String mid;
+      if (root:[logs][log][init][host][ip]) {
+        mid = root:[logs][log][init][host][ip];
+      } else if (root:[logs][log][init][host][name]) {
+        mid = root:[logs][log][init][host][name];
+      } else if (root:[logs][log][rep][host][ip]) {
+        mid = root:[logs][log][rep][host][ip];
+      } else if (root:[logs][log][rep][host][name]) {
+        mid = root:[logs][log][rep][host][name];
+      } else {
+        return;
+      }
+
+      if (mid.isEmpty()) {
+        // Not expected, let it go downstream
+        return;
+      }
+
+      Tuple complete = map.get(mid);
+      if (complete == null) {
+
+        // we receive this mid for the first time, initiate a tuple
+
+        // WATCHOUT : for efficiency tuple assignement does not perform cloning
+        // you will get a reference to the same inner values. If you write
+        //   supervised_equipment = root 
+        // then updating supervised_equipment will update root. 
+        // We have to build a new tuple from scratch.
+        complete = tuple();
+
+        // add host
+        complete:[supervised_equipment][log][host] = mid;
+
+        // add timestamp
+        if (root:[logs][log][rep][ts]) {
+          complete:[supervised_equipment][log][obs][ts] = root:[logs][log][rep][ts];
+        } else {
+          complete:[supervised_equipment][log][obs][ts] = root:[logs][log][obs][ts];
+        }
+
+        // add tenant and channel
+        complete:[supervised_equipment][log][tenant] = root:[logs][log][tenant];
+        complete:[supervised_equipment][log][channel] = root:[logs][log][channel];
+          
+        // create local_uuid per host
+        complete:[supervised_equipment][local_uuid] = mid;
+
+        // define es_index 
+        complete:[supervised_equipment][es_index] = "equipments-" + root:[logs][log][tenant] + "-supervision_v1";
+
+        // and keep it in our per punchlet map
+        map.put(mid, complete);
+        logger().trace("INSERTED mid={}", mid);
+
+      } else {
+
+        // We already have that mid, simply update obs.ts or rep.ts for this equipment to our aggregation tuple.
+        complete = update(complete, root);
+        logger().trace("UPDATED mid={}", mid);
+
+      }
+
+    }
+
+}
+

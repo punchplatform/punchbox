@@ -1,0 +1,27 @@
+{
+	"destination" : { "proto" : "tcp", "host" : "127.0.0.1", "port" : 9999 },
+	"load" :{
+		"total_messages" : 20,
+		"stats_publish_interval" : "2s",
+		"message_throughput" : 1
+	},
+	"message" : {
+		"payloads" : [
+			"color=%{color} city=%{city} uri=%{uri}"
+		],
+		"fields" : {
+			"color" : {
+				"type" : "list",
+				"content" : [ "red", "blue", "green", "yellow"]
+			},
+			"city" : {
+				"type" : "list",
+				"content" : [ "Rome", "Paris", "London", "Istanbul", "Madrid"]
+			},
+			"uri" : {
+				"type" : "list",
+				"content" : [ "https://punchplatform.com", "https://google.com", "https://facebook.com"]
+			}
+		}
+	}
+}

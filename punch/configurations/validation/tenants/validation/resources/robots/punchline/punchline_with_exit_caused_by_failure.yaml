@@ -1,0 +1,42 @@
+version: '6.0'
+type: punchline
+runtime: shiva
+
+# This punchline will return a 0 return code, because although there is a tuple failure,
+#   the number of failures is not enough to reach the failure condition
+
+dag:
+  - type: generator_input
+    settings:
+      messages_count: 5
+      interval: 200
+      exit_conditions:
+        success:
+          inactive_for_more_than: 1s
+          require_no_remaining_tuple_to_inject: true
+          require_no_pending_tuple: true
+        failure:
+          fails_greater_or_equal_to: 1
+      messages:
+        - logs:
+            _ppf_id: msg-%{message_num}
+            value: generated log %{message_num}
+    publish:
+      - stream: logs
+        fields:
+          - logs
+  - type: punchlet_node
+    settings:
+      punchlet_code: >
+        {      
+          print(root);
+          throw new PunchTupleFailureException("Test");
+        }
+    subscribe:
+      - component: generator_input
+        stream: logs
+settings:
+  topology.worker.childopts: -server -Xms256m -Xmx256m
+  topology.enable.message.timeouts: true
+  topology.workers: 1
+  topology.max.spout.pending: 50

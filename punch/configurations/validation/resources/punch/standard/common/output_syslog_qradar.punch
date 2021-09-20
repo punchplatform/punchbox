@@ -1,0 +1,11 @@
+{
+  // The parsed log is stored as Json under the <stream><data_field> of the punchlet
+  // Default parsers assume the Storm stream is "logs" and the raw log content is stored in a separate "raw_log" field
+  
+  
+  String kv = input:[logs][raw_log];
+  //
+  // All done, we only need to overwrite the root document with that String.
+  //
+  root:[logs][log] = kv;
+}

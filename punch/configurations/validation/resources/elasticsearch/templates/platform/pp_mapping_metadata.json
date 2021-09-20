@@ -3,6 +3,11 @@
   "index_patterns": [
     "*resources-metadata*"
   ],
+  "settings": {
+    "index": {
+      "refresh_interval": "-1"
+    }
+  },
   "mappings": {
     "date_detection": true,
     "numeric_detection": false,
@@ -24,6 +29,9 @@
       },
       "name": {
         "type": "keyword"
+      },
+      "version": {
+        "type": "long"
       }
     }
   }

@@ -1,0 +1,15 @@
+version: '6.0'
+start_by_tenant: false
+stop_by_tenant: true
+applications:
+- name: flight
+  runtime: shiva
+  command: punchlinectl
+  args:
+  - start
+  - --punchline
+  - flight_punchline.yaml
+  shiva_runner_tags:
+  - common
+  cluster: common
+  reload_action: kill_then_start

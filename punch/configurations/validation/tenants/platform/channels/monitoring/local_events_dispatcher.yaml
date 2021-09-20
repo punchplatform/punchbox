@@ -1,0 +1,87 @@
+version: '6.0'
+runtime: storm
+type: punchline
+dag:
+- type: kafka_input
+  settings:
+    brokers: local
+    topic: platform-events
+    value_codec:
+      type: string
+    start_offset_strategy: last_committed
+    auto.offset.reset: earliest
+    self_monitoring.activation: true
+    self_monitoring.period: 60
+  publish:
+  - stream: docs
+    fields:
+    - doc
+- type: punchlet_node
+  settings:
+    punchlet:
+    - standard/Platform/monitoring_dispatcher.punch
+  subscribe:
+  - component: kafka_input
+    stream: docs
+  publish:
+  - stream: docs
+    fields:
+    - doc
+    - index
+  - stream: _ppf_errors
+    fields:
+    - _ppf_error_message
+    - _ppf_error_document
+    - _ppf_timestamp
+    - _ppf_tenant
+    - _ppf_channel
+- type: elasticsearch_output
+  settings:
+    cluster_id: es_monitoring
+    per_stream_settings:
+    - stream: docs
+      index:
+        type: tuple_field
+        tuple_field: index
+      document_json_field: doc
+      additional_document_value_fields:
+      - document_field: es_ts
+        type: date
+        format: iso
+    - stream: _ppf_errors
+      index:
+        type: daily
+        prefix: platform-monitoring-errors-
+      document_json_field: _ppf_error_document
+      additional_document_value_fields:
+      - document_field: '@timestamp'
+        type: date
+        format: iso
+      - document_field: tenant
+        type: tuple_field
+        tuple_field: _ppf_tenant
+      - document_field: channel
+        type: tuple_field
+        tuple_field: _ppf_channel
+      - document_field: error_message
+        type: tuple_field
+        tuple_field: _ppf_error_message
+      - document_field: error_ts
+        type: tuple_field
+        tuple_field: _ppf_timestamp
+    reindex_failed_documents: true
+    error_index:
+      type: daily
+      prefix: platform-monitoring-errors-
+  subscribe:
+  - component: punchlet_node
+    stream: docs
+  - component: punchlet_node
+    stream: _ppf_errors
+metrics:
+  reporters:
+  - type: elasticsearch
+    reporting_interval: 60
+storm_settings:
+  topology.max.spout.pending: 6000
+  topology.worker.childopts: -server -Xms756m -Xmx756m

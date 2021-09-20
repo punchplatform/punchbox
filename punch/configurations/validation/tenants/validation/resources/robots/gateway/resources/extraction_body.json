@@ -1,0 +1,45 @@
+{
+    "description": "extraction-test",
+    "format": "csv",
+    "index": "platform-logs-*",
+    "fields": [
+        {
+            "name": "@timestamp",
+            "type": "date"
+        },
+        {
+            "name": "content.message",
+            "type": "string"
+        }
+    ],
+    "filters": {
+        "bool": {
+            "must": [
+                {
+                    "match_phrase": {
+                        "http.request.method": {
+                            "query": "GET"
+                        }
+                    }
+                },
+                {
+                    "range": {
+                        "@timestamp": {
+                            "gte": "1580308065389",
+                            "lte": "1580309865390",
+                            "format": "epoch_millis"
+                        }
+                    }
+                }
+            ],
+            "filter": [
+                {
+                    "match_all": {}
+                }
+            ],
+            "should": [],
+            "must_not": []
+        }
+    },
+    "tenant": "mytenant"
+}
