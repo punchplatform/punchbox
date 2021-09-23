@@ -1,4 +1,4 @@
-export PUNCHBOX_DIR=/home/cedric/lmc/pp-punchbox
+export PUNCHBOX_DIR=$(pwd)
 export PUNCHBOX_BUILD_DIR="${PUNCHBOX_DIR}/punch/build"
 export PUNCHPLATFORM_CONF_DIR="${PUNCHBOX_BUILD_DIR}"/pp-conf
 export PATH="${PUNCHBOX_DIR}/bin:${PUNCHBOX_DIR}/bin/pex/ansible_pex:$PATH"
@@ -7,7 +7,7 @@ mkdir -p "${PUNCHBOX_BUILD_DIR}"
 
 # Looking for unziped deployer (if it exists)
 export PUNCHBOX_DEPLOYER_DIR=""
-for deployer in $(cd "${PUNCHBOX_BUILD_DIR}" ; ls -ltrd */ 2>null | grep 'punch.*-deployer-.*' 2>null) ; do
+for deployer in $(cd "${PUNCHBOX_BUILD_DIR}" ; ls -ltrd */ 2>/dev/null | grep 'punch.*-deployer-.*' 2>/dev/null) ; do
    PUNCHBOX_DEPLOYER_DIR="${PUNCHBOX_BUILD_DIR}/${deployer}"
 done
 

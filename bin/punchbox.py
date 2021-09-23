@@ -60,7 +60,8 @@ def check_archive_existence(deployer_folder_name):
 def unzip_punch_archive(deployer):
     deployer_folder_name = check_archive_existence(os.path.splitext(os.path.basename(deployer))[0])
     if not os.path.exists(build_dir + "/" + deployer_folder_name + "/.unzipped"):
-        cmd = 'unzip -o -d {1} {0}'.format(deployer, build_dir)
+        logging.info(' punchbox: unzipping deployer from %s', deployer)
+        cmd = 'unzip -q -o -d {1} {0}'.format(deployer, build_dir)
         rc = os.system(cmd)
         if rc == 0:
             deployer_folder_name = check_archive_existence(deployer_folder_name)
@@ -132,14 +133,6 @@ def destroy_vagrant_boxes():
         logging.info(' punchbox: vagrant boxes successfully stopped')
 
 
-def patch_security_model(model: Dict):
-    security_dir = "{}/../punch/resources/security".format(ROOT_DIR)
-    model['security'] = {}
-    model['security']['security_dir'] = security_dir
-
-    return model
-
-
 # GENERATE FILE MODEL #
 def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = None, vagrant_interface: str = None,
                    security: bool = False):
@@ -163,7 +156,9 @@ def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = No
         model['iface'] = "ens4"
     # security model
     if security:
-        model = patch_security_model(model)
+        security_dir = "{}/../punch/resources/security".format(ROOT_DIR)
+        model['security'] = {}
+        model['security']['security_dir'] = security_dir
 
     model = json.dumps({**model, **platform_config['punch']}, indent=4, sort_keys=True)
     model_file = open(generated_model, "w+")
@@ -274,8 +269,9 @@ def main():
         generate_model(platform_config, args.deployer, args.generate_vagrantfile, args.os, args.interface,
                        args.security)
 
-    if args.security is not None:
+    if args.security is True:
         copyfile(platform_templates + "/" + secrets_template_file, secret_target)
+
     if args.punch_user_config is not None:
         import_user_resources(args.punch_user_config, args.validation)
         if "empty" not in args.platform_config_file:

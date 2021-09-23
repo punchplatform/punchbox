@@ -2,7 +2,6 @@
 **/kubespray/
 **/.classpath
 **/.project
-**/activate.sh
 **/.vagrant
 **/.settings/
 **/target/
@@ -33,7 +32,6 @@ current-deployment.inv
 .metadata
 .DS_Store
 *.iml
-bin/activate.sh
 pp-conf
 punchplatform-deployer
 .venv
@@ -45,13 +43,8 @@ bin/pex/punchbox_pex/punchbox.pex
 vagrant/Vagrantfile
 ansible/punchbox.*
 .idea
-.idea/**
 punch/build
-venv
-.deployer
-.deployed_configuration
-bin/pex/.all_pex_generated
-build
+markers/**
 
 vagrant/.dependencies_installed
 .alltools_installed
