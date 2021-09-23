@@ -5,12 +5,12 @@ import os
 import subprocess
 from datetime import datetime
 from shutil import copy2, copytree, ignore_patterns
-from sys import exit
-from typing import List, Dict
 from shutil import copyfile
+from typing import List, Dict
 
 import jinja2
 from jinja2.exceptions import UndefinedError
+from sys import exit
 
 import vagrant
 
@@ -35,9 +35,7 @@ secret_target = build_conf_dir + '/deployment_secrets.json'
 platform_shell_target = build_conf_dir + "/check_platform.sh"
 vagrantfile_target = vagrant_dir + '/Vagrantfile'
 check_platform_target = build_conf_dir + "/check_platform.sh"
-elastalert_tool_target = build_conf_dir + "/punchplatform-elastalert.sh"
 generated_model = build_dir + '/model.json'
-
 
 components = ["punch", "minio", "zookeeper", "spark", "elastic", "opendistro_security", "operator", "binaries",
               "analytics-deployment", "analytics-client", "shiva", "gateway", "storm", "kafka", "logstash",
@@ -49,6 +47,7 @@ def check_archive_existence(deployer_folder_name):
                  if (f.is_dir() and
                      (f.name.startswith('punch-deployer') or f.name.startswith('punchplatform-deployer')))
                  ]
+
     if len(deployers) == 1:
         deployer_folder_name = deployers[0]
     elif len(deployers) > 1:
@@ -73,11 +72,6 @@ def unzip_punch_archive(deployer):
             exit(42)
 
 
-def copy_elastalert_tool(elastalert_tool):
-    if not os.path.exists(elastalert_tool_target):
-        copy2(elastalert_tool, elastalert_tool_target)
-
-
 def load_platform_config(platform_config_file):
     with open(platform_config_file) as f:
         logging.info(' punchbox: loading platform configuration from file %s', platform_config_file)
@@ -97,6 +91,7 @@ def my_copy_tree(src, dst, ignore: List[str] = None):
             else:
                 map(lambda x: copy2(s, d), filter(lambda y: y not in s, ignore))
 
+
 def get_versions(deployer):
     data = {}
     deployer_folder_name = check_archive_existence(os.path.splitext(os.path.basename(deployer))[0])
@@ -108,7 +103,8 @@ def get_versions(deployer):
 
     return data
 
-## VAGRANT MANAGEMENT ##
+
+# VAGRANT MANAGEMENT #
 def create_vagrantfile(platform_config, vagrant_os: str = None):
     if not vagrant_os:
         vagrant_os = platform_config["targets"]["meta"]["os"]
@@ -122,6 +118,7 @@ def launch_vagrant_boxes():
     v.up()
     logging.info(' punchbox: vagrant boxes successfully started')
 
+
 def stop_vagrant_boxes():
     v = vagrant.Vagrant(vagrant_dir, quiet_stdout=False, quiet_stderr=False)
     v.halt()
@@ -134,18 +131,18 @@ def destroy_vagrant_boxes():
         v.destroy()
         logging.info(' punchbox: vagrant boxes successfully stopped')
 
+
 def patch_security_model(model: Dict):
-    security_dir="{}/../punch/resources/security".format(ROOT_DIR)
+    security_dir = "{}/../punch/resources/security".format(ROOT_DIR)
     model['security'] = {}
     model['security']['security_dir'] = security_dir
 
     return model
 
 
-## GENERATE FILE MODEL ##
+# GENERATE FILE MODEL #
 def generate_model(platform_config, deployer, vagrant_mode, vagrant_os: str = None, vagrant_interface: str = None,
                    security: bool = False):
-
     model = {}
     data = get_versions(deployer)
 
@@ -183,7 +180,7 @@ def create_ppconf():
         os.makedirs(build_conf_dir)
 
 
-## CREATE RESOLV FILE ##
+# CREATE RESOLV FILE #
 def create_resolver(platform_config, deployer, security=False):
     render_and_write(platform_templates, resolv_template_file, resolv_target,
                      punch=platform_config["punch"], security=security, versions=get_versions(deployer))
@@ -191,86 +188,23 @@ def create_resolver(platform_config, deployer, security=False):
 
 
 # IMPORT CHANNELS AND RESOURCES IN PP-CONF #
-def import_user_resources(punch_user_config, platform_config_file, validation, target_os):
+def import_user_resources(punch_user_config, validation):
     if validation is False:
         # No need to import validation tenant
         ignore = ["*.properties", "resolv.*", "validation"]
-        my_copy_tree(punch_user_config, build_conf_dir, ignore=ignore)
-        logging.info(' punchbox: punch user configuration successfully imported in %s', build_conf_dir)
     else:
+        logging.info(' punchbox: configuration import with validation')
         # Need to render and import validation tenant files
         ignore = ["*.properties", "resolv.*", "*.j2"]
-        my_copy_tree(punch_user_config, build_conf_dir, ignore=ignore)
-
-        # Get constants for template
-        rules_dir = os.path.join(punch_user_config, 'tenants/validation/channels/elastalert_validation/rules')
-        nb_to_validate = len([f for f in next(os.walk(rules_dir))[1]])
-
-        # Time constants
-        validation_now = datetime.now()
-        validation_id = int(validation_now.timestamp())
-        validation_time = validation_now.isoformat(timespec="seconds")
-
-        # Config constants
-        validation_tenant = '/tenants/validation'
-        platform_config = load_platform_config(platform_config_file)
-        target_os = target_os if target_os is not None else platform_config["targets"]["meta"]["os"]
-        spark_master = platform_config["punch"]["spark"]["masters"][0] if "spark" in platform_config["punch"] else ""
-
-        # Git constants
-        pp_punch_dir = os.getenv('PUNCH_DIR', default=punchbox_dir)
-        branch = subprocess.check_output(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=pp_punch_dir
-        ).strip().decode()
-        commit = subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"], cwd=pp_punch_dir
-        ).strip().decode()
-        commit_date = subprocess.check_output(
-            ["git", "log", "-1", "--date=format:%Y-%m-%dT%H:%M", "--format=%ad"], cwd=pp_punch_dir
-        ).strip().decode()
-
-        loader = jinja2.FileSystemLoader(punch_user_config + validation_tenant)
-        env = jinja2.Environment(loader=loader)
-        templates = env.list_templates()
-        for template in templates:
-            try:
-                if "check.sh" in template:
-                    render_and_write(env, template, build_conf_dir + validation_tenant + '/' + template,
-                                     punch=platform_config["punch"], os=platform_config['targets']['meta']['os'])
-                else:
-                    render_and_write(
-                        env, template, build_conf_dir + validation_tenant + '/' + template,
-                        spark_master=spark_master,
-                        elasticsearch_host=platform_config["punch"]["elasticsearch"]["servers"][0],
-                        shiva_host=platform_config["punch"]["shiva"]["servers"][0],
-                        validation_id=validation_id,
-                        validation_time=validation_time,
-                        nb_to_validate=nb_to_validate,
-                        livedemo_api_url=os.getenv('LIVEDEMO_API_URL', default="http://test"),
-                        user=os.getenv('USER', default='anonymous'),
-                        sysname=os.uname().sysname,
-                        release=os.uname().release,
-                        hostname=os.uname().nodename,
-                        target_config=os.path.basename(platform_config_file),
-                        target_os=target_os,
-                        gateway_host=platform_config["punch"]["gateway"]["servers"][0],
-                        branch=branch,
-                        commit=commit,
-                        commit_date=commit_date
-                    )
-            except Exception as e:
-                logging.error(' punchbox: Failure while working on template "%s".', template)
-                raise
-        logging.info(' punchbox: punch validation configuration successfully imported in %s', build_conf_dir)
+    my_copy_tree(punch_user_config, build_conf_dir, ignore=ignore)
+    logging.info(' punchbox: punch configuration successfully imported in %s', build_conf_dir)
 
 
-## CREATE A VALIDATION SHELL ##
-def create_check_platform(platform_config, punch_user_config, security=False):
+# CREATE A VALIDATION SHELL #
+def create_check_platform(platform_config, security=False):
     try:
-        rules_dir = os.path.join(punch_user_config, 'tenants/validation/channels/elastalert_validation/rules')
-        rules = [f for f in next(os.walk(rules_dir))[1]]
         render_and_write(platform_templates, check_platform_template, check_platform_target,
-                         punch=platform_config['punch'], rules=rules, security=security)
+                         punch=platform_config['punch'], security=security)
         os.chmod(check_platform_target, 0o775)
         logging.info(' punchbox: punchplatform validation shell successfully generated in %s', check_platform_target)
     except UndefinedError as err:
@@ -305,9 +239,6 @@ def main():
     parser.add_argument(
         "--validation",
         help="Activate punch validation. Default to false", action="store_true")
-    parser.add_argument(
-        "--elastalert-tool",
-        help="Path to the punchplatform-elastalert.sh tool. Required to launch single validation rules.")
     parser.add_argument(
         "--platform-config-file",
         help="Path to your platform json configuration. "
@@ -344,17 +275,16 @@ def main():
                        args.security)
 
     if args.security is not None:
-        copyfile(platform_templates+"/"+secrets_template_file, secret_target)
+        copyfile(platform_templates + "/" + secrets_template_file, secret_target)
     if args.punch_user_config is not None:
-        import_user_resources(args.punch_user_config, args.platform_config_file, args.validation, args.os)
+        import_user_resources(args.punch_user_config, args.validation)
         if "empty" not in args.platform_config_file:
             create_resolver(platform_config, args.deployer, args.security)
             if args.validation is True:
-                create_check_platform(platform_config, args.punch_user_config, args.security)
-                if args.elastalert_tool is not None:
-                    copy_elastalert_tool(args.elastalert_tool)
+                create_check_platform(platform_config, args.security)
         else:
-            logging.info(" punchbox: empty configuration detected: skipping \'resolv.hjson\' and \'check_platform\' generation")
+            logging.info(" punchbox: empty configuration detected: skipping \'resolv.hjson\' "
+                         "and \'check_platform\' generation")
 
 
 if __name__ == "__main__":
