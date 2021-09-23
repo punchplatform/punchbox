@@ -185,7 +185,7 @@ punchbox-centos-32G: deployed-configuration-32G  ## Complete Centos punch. Check
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-centos-32G-security: deployed-configuration-32G  ## Complete Centos punch with RBAC and TLS. Check ./configurations/complete_punch_32G. 
+punchbox-centos-32G-security: deployed-configuration-32G  ## Complete Centos punch with RBAC and TLS. Check ./configurations/complete_punch_32G.
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -195,7 +195,7 @@ punchbox-centos-32G-security: deployed-configuration-32G  ## Complete Centos pun
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer) \
 				 --security
-				
+
 punchbox-centos-32G-validation: deployed-configuration-32G  ## Validation Centos model. Used for release testing.
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
@@ -221,7 +221,7 @@ punchbox-centos-32G-validation-security: deployed-configuration-32G  ## Validati
 
 .PHONY: punchbox-rhel-16G punchbox-rhel-32G punchbox-rhel-32G-security punchbox-rhel-32G-validation
 
-punchbox-rhel-16G: deployed-configuration-16G  ## Complete RHEL punch. Check ./configurations/complete_punch_32G. 
+punchbox-rhel-16G: deployed-configuration-16G  ## Complete RHEL punch. Check ./configurations/complete_punch_32G.
 	@$(call green, "Deploying 16G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_16G.json \
@@ -231,7 +231,7 @@ punchbox-rhel-16G: deployed-configuration-16G  ## Complete RHEL punch. Check ./c
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-rhel-32G: deployed-configuration-32G  ## Complete RHEL punch. Check ./configurations/complete_punch_32G. 
+punchbox-rhel-32G: deployed-configuration-32G  ## Complete RHEL punch. Check ./configurations/complete_punch_32G.
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -241,7 +241,7 @@ punchbox-rhel-32G: deployed-configuration-32G  ## Complete RHEL punch. Check ./c
 				 --interface eth1 \
 				 --deployer $(shell cat ${DIR}/.deployer)
 
-punchbox-rhel-32G-security: deployed-configuration-32G  ## Complete RHEL punch with RBAC and TLS. Check ./configurations/complete_punch_32G. 
+punchbox-rhel-32G-security: deployed-configuration-32G  ## Complete RHEL punch with RBAC and TLS. Check ./configurations/complete_punch_32G.
 	@$(call green, "Deploying 32G PunchBox")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		punchbox --platform-config-file ${DIR}/configurations/complete_punch_32G.json \
@@ -324,7 +324,7 @@ deploy-config:  ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Deploy punch user configura
 
 update-validation-configuration: .deployer ## Use this rule to update the validation resources/config from your standalone archive test resources
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && update_validation_config.sh
-	
+
 local-integration-vagrant: update-validation-configuration  ## Use this rule instead of deploy-config if you are planning to do validation
 	@$(call green, "Copying Needed files to server1 for local integration test", "/home/vagrant/pp-conf")
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && punchplatform-deployer.sh -cp -u vagrant
@@ -332,11 +332,11 @@ local-integration-vagrant: update-validation-configuration  ## Use this rule ins
 	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
 		cd ${DIR}/vagrant && \
 		${VAGRANT} ssh server1 -c "/home/vagrant/pp-conf/check_platform.sh -f; exit"
- 
+
 update-deployer-configuration: ${ALLTOOLS_INSTALLED_MARKERFILE}  ## Use this rule to update validation platform configuration files
 	@. ${ACTIVATE_SH} && punchbox --platform-config-file $(shell cat ${DIR}/.deployed_configuration) \
 								--punch-user-config ${DIR}/punch/configurations/validation \
-								--deployer $(shell cat ${DIR}/.deployer) 
+								--deployer $(shell cat ${DIR}/.deployer)
 
 ##@ Setting Validation Scheduler with SystemD. Use this only to add a cron to launch a punch campaign (say) every night on your laptop.
 
@@ -420,7 +420,7 @@ validation-scheduler-centos-32G:  ## Takes as parameter ex: hour=4 and punch_dir
 stop: stop-vagrant ## Only stop vagrant boxes
 	@$(call green, "Stopped vagrant boxes")
 
-clean: clean-vagrant clean-deployer ## Cleanup vagrant and deployer. Watchout this wipes everything. 
+clean: clean-vagrant clean-deployer ## Cleanup vagrant and deployer. Watchout this wipes everything.
 	@rm -rf ${DIR}/.venv
 	@rm -rf ${DIR}/punch/build
 	@rm -rf ${DIR}/activate.sh
