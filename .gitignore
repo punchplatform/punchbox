@@ -57,3 +57,5 @@ vagrant/.dependencies_installed
 .alltools_installed
 punch/resolv.hjson
 .standalone_archive
+**/robot_output/
+**/robot_stdout/
