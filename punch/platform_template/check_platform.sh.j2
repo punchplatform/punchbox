@@ -1,79 +1,47 @@
 #! /bin/bash
 
-PROG=$(basename $0)
-RED="\033[31m"
-GREEN="\033[32m"
-YELLOW="\033[33m"
-BLUE="\033[34m"
-RESET="\033[0m"
+shopt -s expand_aliases
 
-RULES_DIR="$PUNCHPLATFORM_CONF_DIR/tenants/validation/channels/elastalert_validation/rules/"
+PROG=$(basename "$0")
+ROBOT_DIR="$PUNCHPLATFORM_CONF_DIR/tenants/validation/resources/robots/"
+
+function info() {
+  echo -e "\033[34mINFO:\033[0m $1"
+}
 
 ######### USAGE ######################
 function usage() {
     echo "Usage: $PROG <command>"
     echo ""
     echo "  -h, --help                          Print this help menu."
-    echo "  -f, --full                          Launch all the elastalert rules."
-    echo "  -r, --rule <rule>                   Launch the given rule with elastalert in foreground. Rules can be found"
-    echo "                                      in the elastalert_validation channel in validation tenant"
+    echo "  -f, --full                          Launch all the robot tests."
+    echo "  -r, --rule <rule>                   Launch the given robot test. Tests can be found"
+    echo "                                      in the robots resources in validation tenant"
     echo
     echo "Examples:"
     echo
     echo "  $ $PROG --full"
     echo "  $ $PROG -f"
-    echo "  $ $PROG --rule aggregation"
-    echo "  $ $PROG -r aggregation"
+    echo "  $ $PROG --rule archiving"
+    echo "  $ $PROG -r archiving"
     echo
 }
 
 
 function init() {
-    echo -e "${BLUE}INFO:${RESET} Push Elasticsearch templates"
+    info "Push Elasticsearch templates"
 
     punchplatform-push-es-templates.sh --directory $PUNCHPLATFORM_CONF_DIR/resources/elasticsearch/templates/ \
         --url {% if security %}https://{% endif %}{{ punch.elasticsearch.servers[0] }}:9200 {% if security %} --username admin --password admin {% endif %}
 
-    echo -e "${BLUE}INFO:${RESET} Push Kibana dashboards"
+    info "Push Kibana dashboards"
 
     punchplatform-setup-kibana.sh --import --url {% if security %}https://{% endif %}{{ punch.kibana.servers[0] }}:5601 {% if security %} -u admin:admin {% endif %}
 
-    echo -e "${BLUE}INFO:${RESET} Start monitoring channels"
+    info "Start monitoring channels"
+
     channelctl -t mytenant start --channel monitoring
     channelctl -t platform start --channel monitoring
-}
-
-function startRule() {
-    $RULES_DIR/$1/$1_check.sh || exit 1
-    ./punchplatform-elastalert.sh --start-foreground --config $RULES_DIR/../config.yaml --rule $RULES_DIR/$1/$1_success.yaml
-}
-
-function startFullTestByRules() {
-    echo -e "${BLUE}INFO:${RESET} Start checks"
-    {% for rule in rules %}
-    $RULES_DIR/{{rule}}/{{rule}}_check.sh
-    {% endfor %}
-    echo -e "${BLUE}INFO:${RESET} Start channels elastalert validation"
-    channelctl -t validation start --channel elastalert_validation
-}
-
-function startFullTest() {
-    cd $PUNCHPLATFORM_CONF_DIR/tenants/validation/resources/robots
-    . activate.sh
-    punch-robot-test .
-}
-
-function close() {
-    echo -e "${BLUE}INFO:${RESET} Wait for 15 min, logs are being inserted in platform"
-    sleep 900
-    pkill -f org.thales.punch.injector.Main >/dev/null 2>/dev/null
-
-    echo -e "${BLUE}INFO:${RESET} Stop channels"
-    channelctl -t mytenant stop
-    channelctl -t validation stop
-
-    echo -e "${BLUE}INFO:${RESET} End of check platform"
-    exit 0
 }
 
 if [ $# -eq 0 ]; then
@@ -81,26 +49,34 @@ if [ $# -eq 0 ]; then
     exit 0
 fi
 
+testDir=""
+
 case $1 in
     -h | --help)
         usage
         exit 0
         ;;
-
     -f | --full)
-        init
-        startFullTest
-        close
+        testDir="."
         ;;
-
-    -r | --rule)
-        startRule "$2"
+    -t | --test)
+        testDir="$2"
         ;;
-
     *)
         usage
         fatal "Unknown command '$1'."
         ;;
 esac
 
+init
+
+info "Sourcing $ROBOT_DIR/activate.sh "
+
+. "$ROBOT_DIR/activate.sh"
+
+info "Launching robot test from directory $ROBOT_DIR/$testDir"
+
+punch-robot-test "$ROBOT_DIR/$testDir"
+
+info "End of check platform"
 exit
