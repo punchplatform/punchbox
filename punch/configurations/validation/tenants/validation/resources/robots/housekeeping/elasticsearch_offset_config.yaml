@@ -1,4 +1,0 @@
----
-type: elasticsearch
-index: validation-archive-*
-cluster: common

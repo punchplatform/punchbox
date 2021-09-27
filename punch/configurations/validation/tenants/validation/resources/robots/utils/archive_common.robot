@@ -32,7 +32,8 @@ Archive Should Contain Documents
     ...              and checks the lines count against the expected number
     [Arguments]  ${expected_lines_count}  ${base_folder}  ${file_pattern}=*.gz
 
-    ${result}=    Run Command    bash  -c
-    ...                          find ${base_folder} -name ${file_pattern} 2>/dev/null | xargs zcat | wc -l
-    Process Should Exit 0    ${result.rc}
+    ${result}=                     Run Command                find  ${base_folder}
+    ...                                                       -name  ${file_pattern}  2>/dev/null
+    ...                                                       |  xargs  zcat  |  wc  -l
+    Process Should Exit 0          ${result.rc}
     Should Be Equal As Integers    ${expected_lines_count}    ${result.stdout}

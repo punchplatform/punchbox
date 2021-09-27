@@ -30,6 +30,21 @@
       }
    }
 
+   // Extraction input (Storm node)
+   extraction_node:{
+      selection:{
+         tenant:*
+         channel:*
+         runtime:*
+      }
+      match:$.dag[?(@.type=='extraction_input')].settings
+      additional_values:{
+         nodes:[
+            {{ punch.elasticsearch.servers[0] }}
+         ]
+      }
+   }
+
    // All ES spark nodes 
    elastic_nodes:{ 
       selection:{ 

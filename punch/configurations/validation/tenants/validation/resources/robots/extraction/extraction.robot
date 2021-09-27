@@ -26,7 +26,10 @@ Shiva Extraction With Exit Code 0
     [Documentation]  Test with a valid extraction punchline configuration using
     ...              the runtime shiva with returned exit code is 0
     [Tags]  book  shiva
-    Run Book    extraction_shiva    return_code=0
+
+    Run Punchline                       ${CURDIR}/archiving.yaml
+    Archive Should Contain Documents    1000                        ${archive_folder}
+    Run Punchline                       ${CURDIR}/extraction.yaml
 
 
 Storm Extraction With Exit Code 0

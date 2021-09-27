@@ -1,4 +1,4 @@
 ---
 type: elasticsearch
-index: validation-extraction-archive*
+index: validation-extraction-archive
 cluster: common

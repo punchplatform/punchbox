@@ -50,14 +50,14 @@ dag:
       per_stream_settings:
         - stream: metadatas
           index:
-            type: daily
-            prefix: validation-archive-housekeeping-
+            type: constant
+            value: validation-archive-housekeeping
           document_json_field: metadata
       batch_size: 1
       reindex_failed_documents: true
       error_index:
-        type: daily
-        prefix: validation-archive-housekeeping-errors
+        type: constant
+        value: validation-archive-housekeeping-errors
     subscribe:
       - component: file_output
         stream: metadatas

@@ -10,7 +10,7 @@ dag:
     encoding: lumberjack
     exit_conditions:
       success:
-        acks_greater_or_equal_to: 10000
+        acks_greater_or_equal_to: 5000
         require_no_remaining_tuple_to_inject: true
         require_no_pending_tuple: true
       failure:

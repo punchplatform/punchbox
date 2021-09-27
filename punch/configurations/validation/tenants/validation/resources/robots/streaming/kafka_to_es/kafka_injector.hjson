@@ -6,9 +6,9 @@
     encoding: lumberjack
   }
   load: {
-    total_messages: 1000
+    total_messages: 5000
     stats_publish_interval: 1s
-    message_throughput: 10000
+    message_throughput: 5000
   }
   message: {
     payloads: [

@@ -17,6 +17,8 @@ applications:
   cluster: common
   command: archives-housekeeping
   args:
-  - archives-housekeeping.yaml
+  - "archives-housekeeping.yaml"
+  - "--childopts"
+  - "-Xms100m -Xmx500m"
   quartzcron_schedule: 0 * * ? * * *
 resources: []

@@ -79,5 +79,5 @@ Http Endpoint Available
     ...               (as opposed to a communication rejection or non-HTTP endpoint)
     [Arguments]  ${endpoint}
 
-    ${result}=                  Run Command                  curl     ${endpoint}
+    ${result}=                  Run Command                  curl  ${endpoint}
     Process Should Exit 0       ${result.rc}

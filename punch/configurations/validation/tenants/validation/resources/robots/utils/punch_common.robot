@@ -31,7 +31,8 @@ Run Command
     ${label}=         Set Variable If        "${label}"=="''"
     ...                                      ${test_name}
     ...                                      ${label}
-    ${result}=        Process.Run Process    @{args}
+    ${result}=        Run Process            @{args}
+    ...                                      shell=True
     ...                                      stdout=${STDOUT_DIR}/${label}_out.txt
     ...                                      stderr=${STDOUT_DIR}/${label}_err.txt
     [Return]          ${result}
@@ -82,9 +83,9 @@ Run Book
     [Arguments]  ${book}  ${return_code}=0
 
     ${result}=             Run Command                         bookctl
-    ...                                                        --tenant    ${TENANT_NAME}
+    ...                                                        --tenant  ${TENANT_NAME}
     ...                                                        start
-    ...                                                        --book      ${book}
+    ...                                                        --book  ${book}
     Process Should Exit    process_return_code=${result.rc}    return_code=${return_code}
 
 
@@ -93,9 +94,9 @@ Start Channel
     [Arguments]  ${channel}
 
     ${result}=             Run Command                         channelctl
-    ...                                                        --tenant    ${TENANT_NAME}
+    ...                                                        --tenant  ${TENANT_NAME}
     ...                                                        start
-    ...                                                        --channel      ${channel}
+    ...                                                        --channel  ${channel}
     Process Should Exit 0   process_return_code=${result.rc}
 
 
@@ -105,9 +106,9 @@ Stop Channel
     [Arguments]  ${channel}
 
     ${result}=             Run Command                         channelctl
-    ...                                                        --tenant    ${TENANT_NAME}
+    ...                                                        --tenant  ${TENANT_NAME}
     ...                                                        stop
-    ...                                                        --channel      ${channel}
+    ...                                                        --channel  ${channel}
     Process Should Exit 0   process_return_code=${result.rc}
 
 Run Punchline
@@ -119,7 +120,7 @@ Run Punchline
     ...                                                        ${EMPTY}
     ...                                                        --runtime ${runtime}
     ${result}=             Run Command                         punchlinectl
-    ...                                                        --tenant    ${TENANT_NAME}
+    ...                                                        --tenant  ${TENANT_NAME}
     ...                                                        start
     ...                                                        --punchline  ${punchline}
     ...                                                        ${runtime_arg}
@@ -133,23 +134,19 @@ Run Plan
     File Should Exist      ${template}
     File Should Exist      ${plan}
     ${result}=             Run Command                         planctl
-    ...                                                        --tenant    ${TENANT_NAME}
-    ...                                                        start    --plan    ${plan}
-    ...                                                        --template    ${template}
-    ...                                                        --runtime    ${runtime}
+    ...                                                        --tenant  ${TENANT_NAME}
+    ...                                                        start  --plan  ${plan}
+    ...                                                        --template  ${template}
+    ...                                                        --runtime  ${runtime}
     ...                                                        --last-committed
     Process Should Exit    process_return_code=${result.rc}    return_code=${return_code}
 
 
 Inject Logs
     [Documentation]  Runs a log injector
-    [Arguments]              ${injector_}    ${logs_count}=${EMPTY}
+    [Arguments]              ${injector_}
 
     File Should exist        ${injector}
-    ${count_arg}=            Set Variable If                   "${logs_count}"=="${EMPTY}"
-    ...                                                        ${EMPTY}
-    ...                                                        "-n ${logs_count}"
     ${result}=               Run Command     punchplatform-log-injector.sh
     ...                                      -c    ${injector}
-    ...                                      ${count_arg}
     Process Should Exit 0    ${result.rc}

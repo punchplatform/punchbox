@@ -1,4 +1,0 @@
----
-type: elasticsearch
-index: platform-plan-cursor-*
-cluster: common
