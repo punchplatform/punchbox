@@ -18,7 +18,6 @@ VAGRANT_DIR=$(DIR)/vagrant
 VAGRANT_FILE=$(DIR)/vagrant/Vagrantfile
 
 # Default paths
-DEFAULT_DEPLOYER_MARKER=$(DIR)/../pp-punch/packagings/punch-deployer/target/punch-deployer-*.zip
 USER_CONF=$(DIR)/punch/configurations/validation
 
 # Targets
@@ -135,9 +134,10 @@ $(PUNCHBOX_OPTIONS_MARKER):
      echo "$$security $$validation" > $(PUNCHBOX_OPTIONS_MARKER)
 
 $(DEPLOYER_MARKER):  ## register your punch deployer
+	@$(call green, "************  Setup deployer ************")
 	@$(call blue, "Adding reference to your punch deployer. Check the file:", "$(DEPLOYER_MARKER)")
 ifndef PUNCH_DIR
-	$(shell echo $(DEFAULT_DEPLOYER_MARKER) > $(DEPLOYER_MARKER))
+	@read -e -p "Path to deployer zip : " DEPLOYER_ZIP_PATH && echo $$DEPLOYER_ZIP_PATH > $(DEPLOYER_MARKER)
 else
 	$(shell echo $(PUNCH_DIR)/packagings/punch-deployer/target/punch-deployer-*.zip > $(DEPLOYER_MARKER))
 endif
@@ -190,7 +190,7 @@ deploy: start-vagrant $(MODEL)  ## Deploy punch components to the target VMs
 								              --templates-dir $(DIR)/punch/deployment_template/ \
 								              --model $(MODEL)
 
-##@ Step 6 : add a user punch configuration, i.e. tenants, channels and punchlines.
+##@ Step 6 (optional) : add a user punch configuration, i.e. tenants, channels and punchlines.
 
 .PHONY: deploy-config local-integration-vagrant update-deployer-configuration update-validation-configuration
 

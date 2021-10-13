@@ -44,7 +44,7 @@ vagrant/Vagrantfile
 ansible/punchbox.*
 .idea
 punch/build
-markers/**
+markers
 
 vagrant/.dependencies_installed
 .alltools_installed

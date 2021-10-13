@@ -4,7 +4,7 @@
 
 Appears when the following error occurs:
 
-```sh
+```
 Error
 mount -t vboxsf -o uid=1000,gid=1000 home_vagrant_public_html_apps /home/vagrant/public_html/apps
 
@@ -33,33 +33,32 @@ Try to generate the configurations and the vagrant file again, without starting 
 punchbox --config configurations/complete_punch_16G.json \
         --generate-vagrantfile \
         --punch-conf <path/to/existing/conf>
-        --deployer ~/pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-*.zip \
+        --deployer ~/pp-punch/pp-packaging/punchplatform-deployer/target/punchplatform-deployer-*.zip
 ```
 
 ## ssh vagrant@server1 fail
 
-The likely cause is you did not have the RSH public key as required. 
-That will end up with clear error messages when connecting to the boxes, typically a (public key error).
+The likely cause is you did not have the RSH public key as required. That will end up with clear error messages when
+connecting to the boxes, typically a (public key error).
 
-A more tricky error is that ssh works but not for all boxes. This is possibly caused by 
-the local ssh agent having too many registered keys that will be tried when sshing to a boxes.
-If there are too many after some failed attempt ssh gives up.  
+A more tricky error is that ssh works but not for all boxes. This is possibly caused by the local ssh agent having too
+many registered keys that will be tried when sshing to a boxes. If there are too many after some failed attempt ssh
+gives up.
 
 Check out the registered keys using:
-```
+
+```sh
 ssh-add -l
 ```
-If you have more than five keys, delete them or some of them. 
-To delete them all: 
-````
-ssh-addd -D
+
+If you have more than five keys, delete them or some of them. To delete them all:
+
+```sh
+ssh-add -D
 ```
+
 After that re-add you default public key:
-```
+
+```sh
 ssh-add
 ```
-
-
-
-```
-
