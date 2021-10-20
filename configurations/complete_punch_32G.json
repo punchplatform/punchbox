@@ -72,8 +72,8 @@
       "slaves": [
         "server3"
       ],
-      "workers_childopts": "-Xmx128m",
-      "supervisor_memory_mb": 256
+      "workers_childopts": "",
+      "supervisor_memory_mb": 1024
     },
     "kafka": {
       "brokers": [
