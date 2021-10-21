@@ -193,8 +193,7 @@ deploy: start-vagrant $(MODEL)  ## Deploy punch components to the target VMs
 	@$(call green, "************ Deploying Configuration ************")
 	@SECURITY_OPTION=$(shell [[ "$(PUNCHBOX_OPTIONS)" == *"security"* ]] \
 		&& echo "-e @$(DIR)/punch/build/pp-conf/deployment_secrets.json")
-	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
-		punchplatform-deployer.sh --deploy -u vagrant $(SECURITY_OPTION)
+	@$(ACTIVATE) && punchplatform-deployer.sh --deploy -u vagrant $(SECURITY_OPTION)
 
 
 ##@ Step 6 (optional) : add a user punch configuration, i.e. tenants, channels and punchlines.
