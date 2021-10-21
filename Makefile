@@ -191,9 +191,8 @@ stop-vagrant: $(VAGRANT_FILE) ## Stop vagrant boxes. This is useful to simply st
 
 deploy: start-vagrant $(MODEL)  ## Deploy punch components to the target VMs
 	@$(call green, "************ Deploying Configuration ************")
-	@SECURITY_OPTION=$(shell [[ "$(PUNCHBOX_OPTIONS)" == *"security"* ]] \
-		&& echo "-e @$(DIR)/punch/build/pp-conf/deployment_secrets.json")
-	@$(ACTIVATE) && punchplatform-deployer.sh --deploy -u vagrant $(SECURITY_OPTION)
+	@[[ "$(PUNCHBOX_OPTIONS)" == *"security"* ]] && security="-e $(DIR)/punch/build/pp-conf/deployment_secrets.json"; \
+	$(ACTIVATE) && punchplatform-deployer.sh --deploy -u vagrant $$security
 
 
 ##@ Step 6 (optional) : add a user punch configuration, i.e. tenants, channels and punchlines.
