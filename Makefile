@@ -23,6 +23,7 @@ USER_CONF=$(DIR)/punch/configurations/validation
 # Targets
 VENV_INSTALLED=$(DIR)/.venv/.installed
 MODEL=$(DIR)/punch/build/model.json
+DEPLOYMENT_SETTINGS=$(DIR)/punch/build/pp-conf/punchplatform-deployment.settings
 PLATFORM_TEMPLATES=$(DIR)/punch/platform_template/*
 BIN=$(DIR)/bin/*
 DEPLOYMENT_SECRETS=$(DIR)/punch/build/deployment_secrets.json
@@ -146,8 +147,14 @@ endif
 
 .PHONY: punchbox
 
-punchbox: $(VAGRANT_FILE) $(MODEL) ## Run punchbox templating
+punchbox: $(VAGRANT_FILE) $(DEPLOYMENT_SETTINGS) ## Run punchbox templating
 	@$(call green, "************ Punchbox generation is done ************")
+
+$(DEPLOYMENT_SETTINGS): $(MODEL)
+	@$(call green, "************ Generate Deployment Settings ************")
+	@$(ACTIVATE) && punchplatform-deployer.sh --generate-platform-config \
+								              --templates-dir $(DIR)/punch/deployment_template/ \
+								              --model $(MODEL)
 
 $(VAGRANT_FILE): $(PREREQUISITES_INSTALLED) $(OS_MARKER) $(DEPLOYED_CONFIGURATION_MARKER) $(DEPLOYED_CONFIGURATION) \
 				 vagrant/Vagrantfile.j2 $(BIN)  ## Render vagrant template
@@ -186,9 +193,9 @@ deploy: start-vagrant $(MODEL)  ## Deploy punch components to the target VMs
 	@$(call green, "************ Deploying Configuration ************")
 	@SECURITY_OPTION=$(shell [[ "$(PUNCHBOX_OPTIONS)" == *"security"* ]] \
 		&& echo "-e @$(DIR)/punch/build/pp-conf/deployment_secrets.json")
-	@$(ACTIVATE) && punchplatform-deployer.sh --generate-platform-config \
-								              --templates-dir $(DIR)/punch/deployment_template/ \
-								              --model $(MODEL)
+	@. ${DIR}/.venv/bin/activate && . ${ACTIVATE_SH} && \
+		punchplatform-deployer.sh --deploy -u vagrant $(SECURITY_OPTION)
+
 
 ##@ Step 6 (optional) : add a user punch configuration, i.e. tenants, channels and punchlines.
 
