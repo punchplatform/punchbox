@@ -112,7 +112,7 @@ configure: install $(OS_MARKER) $(DEPLOYED_CONFIGURATION_MARKER) $(PUNCHBOX_OPTI
 $(OS_MARKER):
 	@$(call green, "************  Setup OS ************")
 	@$(call blue, "Select an OS from the list using its number :")
-	@os=$$($(SELECT_FROM_LIST) "ubuntu/bionic64" "centos/7" "rhel/7") \
+	@os=$$($(SELECT_FROM_LIST) "ubuntu/bionic64" "centos/7" "rhel/7" "rhel/8" ) \
 		&& $(call blue, "OS selected : $$os") \
 		&& echo $$os > $(OS_MARKER)
 
@@ -170,7 +170,7 @@ $(MODEL): $(DEPLOYED_CONFIGURATION_MARKER) $(OS_MARKER) $(PUNCHBOX_OPTIONS_MARKE
 				 			 --punch-user-config $(USER_CONF) \
 							 --deployer $(DEPLOYER) \
 							 --os $(OS) \
-							 --interface $(shell [ "$(OS)" == "centos/7" ] && echo eth1 || echo enp0s8) \
+							 --interface $(shell [[ $(OS) == @(centos|rhel)/* ]] && echo eth1 || echo enp0s8) \
 							 $(PUNCHBOX_OPTIONS)
 
 ##@ Step 4 : start (or stop) your VMs

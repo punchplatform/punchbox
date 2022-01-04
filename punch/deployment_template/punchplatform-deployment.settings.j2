@@ -4,8 +4,8 @@
         "setups_root": "{{ installation_directory }}",
         "remote_data_root_directory": "{{data_storage_directory}}",
         "remote_logs_root_directory": "/var/log/punchplatform",
-        "punchplatform_daemons_user": "vagrant",
-        "punchplatform_group": "vagrant",
+        "punchplatform_daemons_user": "punchdaemon",
+        "punchplatform_group": "punch",
         "binaries_version": "{{ version.binaries }}"
         {% if security is defined %}
         ,

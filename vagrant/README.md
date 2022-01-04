@@ -25,7 +25,7 @@ Edit (or create) your `~/.ssh/config` file and add section below.
 
 ```bash
 # Vagrant VM
-host 172.28.128.* server*
+host 192.168.128.* server*
 user vagrant
 StrictHostKeyChecking no
 UserKnownHostsFile=/dev/null

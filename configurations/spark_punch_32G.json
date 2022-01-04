@@ -54,7 +54,7 @@
       "servers": [
         "server1"
       ],
-      "inet_address": "172.28.128.21"
+      "inet_address": "192.168.128.21"
     },
     "storm": {
       "master": {
