@@ -1,7 +1,10 @@
 version: '6.0'
-runtime: storm
+runtime: shiva
+channel: monitoring
 type: punchline
 dag:
+
+# Kafka input
 - type: kafka_input
   settings:
     brokers: local
@@ -16,6 +19,8 @@ dag:
   - stream: docs
     fields:
     - doc
+
+# Punchlet node
 - type: punchlet_node
   settings:
     punchlet:
@@ -35,9 +40,11 @@ dag:
     - _ppf_timestamp
     - _ppf_tenant
     - _ppf_channel
+
+# ES Output
 - type: elasticsearch_output
   settings:
-    cluster_id: es_monitoring
+    cluster_id: common
     per_stream_settings:
     - stream: docs
       index:
@@ -78,10 +85,12 @@ dag:
     stream: docs
   - component: punchlet_node
     stream: _ppf_errors
+
+  # ES reporters as this one is part of Kafka reporter
 metrics:
   reporters:
   - type: elasticsearch
-    reporting_interval: 60
+    reporting_interval: 30
 storm_settings:
   topology.max.spout.pending: 6000
-  topology.worker.childopts: -server -Xms756m -Xmx756m
+  topology.component.resources.onheap.memory.mb: 112 # 112m * (3 nodes) = 336m

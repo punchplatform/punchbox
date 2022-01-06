@@ -1,5 +1,6 @@
 monitoring_interval: 60
 elasticsearch:
+  es_cluster_id: common
   es_platform_logs_index: platform-*logs-*
   es_topologies_metrics_index: platform-metrics-*
 reporters:
