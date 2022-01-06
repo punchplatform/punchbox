@@ -102,9 +102,14 @@ Vagrant.configure("2") do |config|
 
       # Some hardening: UMASK will remove group and others any rights by default
       
-      server.vm.provision "shell", inline: "sed -i 's/umask 0[0-9][0-9]/umask 077/g' /etc/bashrc /etc/profile"
+      
       {%- if ( 'rhel' in os ) or ( 'centos' in os )  %}
       server.vm.provision "shell", inline: "sed -i 's/UMASK\s*[0-9]*/UMASK      077/g' /etc/login.defs"
+       server.vm.provision "shell", inline: "sed -i 's/umask 0[0-9][0-9]/umask 077/g' /etc/bashrc"
+      {%- endif %}
+      {%- if ( 'ubuntu' in os) %}
+      server.vm.provision "shell", inline: "sed -i 's/UMASK\s*[0-9]*/UMASK      077/g' /etc/login.defs"
+      server.vm.provision "shell", inline: "sed -i 's/umask 0[0-9][0-9]/umask 077/g' /etc/profile"
       {%- endif %}
 
 
