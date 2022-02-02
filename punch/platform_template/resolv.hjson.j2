@@ -184,7 +184,7 @@
       }
       match:$.metrics.reporters[?(@.type=='elasticsearch')]
       additional_values:{ 
-         cluster_name: es_search
+         cluster_name: common
          metric_document_field_name: log
          reporting_interval: 30
          http_hosts:[ 
@@ -243,7 +243,7 @@
       }
       match:$.archiving_pools[*]
       additional_values:{ 
-         es_cluster_id: es_search
+         es_cluster_id: common
          {% if security %}
          credentials: {
             user: admin
@@ -265,7 +265,7 @@
       }
       match: .elasticsearch
       additional_values:{ 
-         es_cluster_id: es_search
+         es_cluster_id: common
          {% if security %}
          credentials: {
             user: admin
@@ -311,7 +311,7 @@
       }
       match:$.reporters[?(@.type=='elasticsearch')]
       additional_values:{ 
-         cluster_name: es_search
+         cluster_name: common
 
         reporting_interval: 30
          http_hosts:[ 

@@ -482,9 +482,9 @@
       "admin" : {
         "gateway_cluster_target": "common",
         "kibana_port" : 5601,
-        "type" : "administration"
-        {% if security is defined %}
-        ,
+        "type" : "administration",
+        "es_type_of_nodes_targeted": "data_node",
+        {%- if security is defined %}
         "local_ssl_certs_dir": "{{security.security_dir}}/platform_certs/server1",
         "server_ssl_enabled": true,
         "server_ssl_key_name": "server-key.pem",
@@ -492,23 +492,60 @@
         "elasticsearch_ssl_enabled": true,
         "elasticsearch_ssl_verificationMode": "full",
         "elasticsearch_ssl_certificateAuthorities_names": ["ca.pem"]
-        {% endif %}
-        {% if gateway is defined %}
-        {% set server_ip = [] %}
-        {% set port = "4242" %}
-        {% if security is defined %}{% set scheme = "https" %}{% else %}{% set scheme = "http" %}{% endif %}
-        {% for server in gateway.servers  %}
-        {% set server_ip = server_ip.append( scheme + "://"+server+":"+port ) %}
-        {% endfor %}
-        ,
+        {%- endif %}
+        {%- if gateway is defined %}
+        {%- set server_ip = [] %}
+        {%- set port = "4242" %}
+        {%- if security is defined %}{% set scheme = "https" %}{% else %}{% set scheme = "http" %}{% endif %}
+        {%- for server in gateway.servers  %}
+        {%- set server_ip = server_ip.append( scheme + "://"+server+":"+port ) %}
+        {%- endfor %}
         "plugins":{
-          "punchplatform": {
+           {%- if security is defined %}
+          "opendistro_security": {
+            "opendistro_security_version": "1.13.0.1"
+          },
+           {%- endif %}
+          "punchplatform_feedback": {
+            "punchplatform_feedback_version": "2.1.0",
+            "tenant": "mytenant",
+            "select_options": ["blue", "green", "red"],
+            "max_tags": 1,
+            "input_type": "checkbox",
+            "range_min": 0,
+            "range_max": 10,
+            "checkbox_label": "False Positive",
+            "save_in_new_index": true,
+            "feedback_index": "feedbacks"
+          },
+          "punch_documentation": {
+            "version": "1.0.1",
+            "documentation_version": "6.4.1-SNAPSHOT"
+          },
+          "data_extraction": {
+            "version": "1.2.1",
+            "enabled": true,
+            "use_legacy": false,
+            "tenant": "mytenant",
             "rest_api": {
-              "hosts": {{ server_ip | tojson }}
-              {% if security is defined %}
+              "hosts": [
+                {%- if gateway is defined %}
+                {%-   set server_ip = [] %}
+                {%-   set port = "4242" %}
+                {%-   if security is defined %}
+                {%-      set scheme = "https" %} 
+                {%    else %}
+                {%        set scheme = "http" %}
+                {%    endif %}
+                {%-   for server in gateway.servers  %}
+                "{{ scheme + "://"+server+":"+port  }}"{% if loop.last == false %},{% endif %}
+                {%-   endfor %}
+                {% endif %}
+              ]
+              {%- if security is defined -%}
               ,
               "ssl_enabled": true
-              {% endif %}
+              {%- endif %}
             }
           }
         }
