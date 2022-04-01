@@ -112,7 +112,7 @@ configure: install $(OS_MARKER) $(DEPLOYED_CONFIGURATION_MARKER) $(PUNCHBOX_OPTI
 $(OS_MARKER):
 	@$(call green, "************  Setup OS ************")
 	@$(call blue, "Select an OS from the list using its number :")
-	@os=$$($(SELECT_FROM_LIST) "ubuntu/bionic64" "centos/7" "rhel/7" "rhel/8" ) \
+	@os=$$($(SELECT_FROM_LIST) "ubuntu/bionic64" "centos/7" "centos/8" "rhel/7" "rhel/8" ) \
 		&& $(call blue, "OS selected : $$os") \
 		&& echo $$os > $(OS_MARKER)
 

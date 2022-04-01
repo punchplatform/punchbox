@@ -107,6 +107,11 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", inline: "sed -i 's/UMASK\s*[0-9]*/UMASK      077/g' /etc/login.defs"
        server.vm.provision "shell", inline: "sed -i 's/umask 0[0-9][0-9]/umask 077/g' /etc/bashrc"
       {%- endif %}
+      {%- if os == 'centos/8' %}
+      server.vm.provision "shell", inline: 'sed -i -E "s/mirror(list)?\.centos\.org/vault.centos.org/g" /etc/yum.repos.d/*'
+      server.vm.provision "shell", inline: 'sed -i -E "s/^mirrorlist/#mirrorlist/g" /etc/yum.repos.d/*'
+      server.vm.provision "shell", inline: 'sed -i -E "s/^#*baseurl/baseurl/g" /etc/yum.repos.d/*'
+      {%- endif %}
       {%- if ( 'ubuntu' in os) %}
       server.vm.provision "shell", inline: "sed -E -i 's/UMASK\\s+[0-9]+/UMASK\\t\\t077/g' /etc/login.defs"
       server.vm.provision "shell", inline: "sed -E -i 's/^USERGROUPS_ENAB\\s*yes/USERGROUPS_ENAB no/g' /etc/login.defs"
